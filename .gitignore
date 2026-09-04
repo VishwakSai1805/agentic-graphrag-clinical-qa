@@ -1,0 +1,30 @@
+# data & artifacts
+data/
+indexes/
+.cache/
+logs/
+paper/build/
+
+# results: keep configs + metrics, drop bulk predictions
+results/**/predictions.jsonl
+results/**/traces/
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+
+# secrets
+.env
+*.key
+
+# os / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

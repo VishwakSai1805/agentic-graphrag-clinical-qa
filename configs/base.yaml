@@ -1,0 +1,28 @@
+seed: 42
+
+cache_dir: .cache/llm
+
+llm:
+  temperature: 0.0
+  seed: 42
+  max_tokens: 512
+  max_retries: 3
+  backoff_base_s: 1.0
+  # Tried in order. Ollama needs no key. Groq/Gemini are skipped
+  # automatically if their api_key_env is unset or empty.
+  fallback_chain:
+    - provider: ollama
+      model: ollama/qwen2.5:7b-instruct
+      api_base: http://localhost:11434
+      api_key_env: null
+      timeout_s: 120
+    - provider: groq
+      model: groq/llama-3.1-8b-instant
+      api_base: null
+      api_key_env: GROQ_API_KEY
+      timeout_s: 30
+    - provider: gemini
+      model: gemini/gemini-1.5-flash
+      api_base: null
+      api_key_env: GEMINI_API_KEY
+      timeout_s: 30
