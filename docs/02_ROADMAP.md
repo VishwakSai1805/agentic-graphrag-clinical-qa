@@ -8,12 +8,16 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done (add run_id/commit)
 
 ---
 
-## Phase 0 — Scaffold & environment  `[ ]`
+## Phase 0 — Scaffold & environment  `[x]` (8d457e5, 2026-09-04)
 - `pyproject.toml` (uv), `Makefile`, `.gitignore`, `.env.example`
 - `src/llm/client.py`: LiteLLM gateway + on-disk cache + token/cost accounting
 - `configs/base.yaml`; config loader with hash
 - `tests/test_llm_cache.py` (mocked)
 - **Exit test:** `pytest -q` green; `python -c "from src.llm.client import chat; print(chat('ping'))"` returns and the second call is a cache hit.
+- Deviation from the original phase text, see ADR-004: `client.py` is an
+  ordered fallback chain (Ollama primary, Groq/Gemini free-tier overflow)
+  rather than a single provider, to satisfy the zero-API-spend constraint.
+  Exit test verified live against Ollama alone, no API key present.
 
 ## Phase 1 — Corpora & lexical/dense indexes  `[ ]`
 - `scripts/fetch_datasets.py` — PubMedQA (pqa_labeled/pqa_artificial), MedQA-USMLE 4-opt, MedMCQA via HF `datasets`
