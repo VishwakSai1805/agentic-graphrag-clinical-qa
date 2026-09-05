@@ -53,7 +53,7 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done (add run_id/commit)
   All three modes print `torch.cuda.is_available()` and device capability unconditionally (real run:
   RTX 5070 Ti, capability (12,0), CUDA confirmed working — no silent CPU fallback).
 
-## Phase 2 — Knowledge graph layer  `[x]` (commit TBD, 2026-09-05)
+## Phase 2 — Knowledge graph layer  `[x]` (82f7824, 2026-09-05)
 - `docker/compose.yaml` Neo4j 5 + `scripts/load_primekg.py`
 - `src/kg/linker.py` (scispaCy UMLS linking, threshold tuned on 50 hand-checked items)
 - `src/kg/traversal.py` — 1–2 hop typed subgraph, edge-type allowlist, degree cap
