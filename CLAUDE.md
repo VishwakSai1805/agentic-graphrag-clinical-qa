@@ -118,6 +118,13 @@ paper/              LaTeX, generated tables + figures
 - **Record decisions.** Any deviation from this file → append an ADR entry to
   `docs/05_DECISIONS.md` with date, decision, alternatives, rationale.
 - **Don't touch `results/` by hand.** Ever.
+- **A delegated subagent's turn ending is final — it is not resumed by a
+  background job finishing.** When a subagent kicks off a long-running
+  command, its prompt must say explicitly to wait for and verify that
+  command's real output before ending its turn; "I'll resume when notified"
+  from a subagent means the task silently stalled, not that it will continue
+  (learned Phase 2: a subagent reported completion, then a check of the
+  worktree showed the real work was still running unattended).
 
 ## 6. Commands
 

@@ -768,7 +768,12 @@ top-40 by that score instead of traversal order, is the natural fix to test.
 **Decision.** Added `KGConfig.kg_rerank: bool = False` (default **off** —
 this must not silently change Phase 3's default behavior or the
 already-committed canonical `data/processed/kg_cache/` files) and
-`src/kg/rerank.py: select_triples_reranked`, which verbalizes each candidate
+`KGConfig.kg_rerank_pool_size: int = 150` — when `kg_rerank=True`, live
+traversal gathers this many candidates (wider than the final
+`max_triples_per_question=40`) for the reranker to choose among; the pool
+stays subject to ADR-015's degree cap and hop limit, so this is a larger
+*pre-selection* pool for the reranker, not a return to unbounded traversal.
+Also added `src/kg/rerank.py: select_triples_reranked`, which verbalizes each candidate
 triple and scores it against the question text using the existing
 `CrossEncoderReranker.rerank` (reused directly, not reimplemented), keeping
 the top-`max_triples_per_question` by score. Wired into
