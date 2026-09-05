@@ -47,6 +47,39 @@ retrieval:
     pubmed_subset_size: 20000   # fixed-seed subset of pqa_artificial (211k rows)
     pubmed_seed: 42
 
+# Knowledge graph (Phase 2): PrimeKG loaded into Neo4j 5 (docker/compose.yaml).
+# neo4j_password_env names an *env var*, never a literal password (see
+# .env.example: NEO4J_PASSWORD). Per ADR-007, neo4j_uri/neo4j_user/
+# neo4j_password_env are only read by scripts/load_primekg.py and
+# scripts/precompute_kg_cache.py -- eval-time code reads cache_dir only via
+# src/kg/traversal.py: get_subgraph_cached and never opens a Neo4j session.
+# edge_allowlist/max_hops/degree_cap bound every traversal query in
+# src/kg/queries.py -- see docs/03_DATASETS.md "Knowledge graph".
+# NOTE: "off-label use" is PrimeKG's real kg.csv `relation` string (verified
+# against the actual downloaded dump -- see src/config.py: KGConfig and the
+# ADR this phase adds), not "off_label_use" as written in docs/03_DATASETS.md.
+kg:
+  neo4j_uri: bolt://localhost:7687
+  neo4j_user: neo4j
+  neo4j_password_env: NEO4J_PASSWORD
+  linker_threshold: 0.85   # scispaCy UmlsEntityLinker, tuned on 50 hand-checked items
+  edge_allowlist:
+    - indication
+    - contraindication
+    - off-label use
+    - disease_phenotype_positive
+    - disease_protein
+    - drug_effect
+    - disease_disease
+  max_hops: 2
+  degree_cap: 200
+  # Per-question TOTAL triple cap (new this phase) -- degree_cap alone does
+  # not bound a multi-seed 2-hop traversal's total size; see src/config.py:
+  # KGConfig.max_triples_per_question and src/kg/traversal.py: traverse_live
+  # for the real hub-explosion finding that forced this.
+  max_triples_per_question: 40
+  cache_dir: data/processed/kg_cache
+
 llm:
   temperature: 0.0
   seed: 42

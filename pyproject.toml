@@ -11,6 +11,10 @@ dependencies = [
     "numpy>=1.26",
     "datasets>=2.20",
     "huggingface_hub>=0.24",
+    # Used directly by scripts/load_primekg.py (Dataverse download) and
+    # src/kg/linker.py (MONDO/HPO crosswalk file download) -- already a
+    # transitive dep of scispacy, declared explicitly since both call it directly.
+    "requests>=2.31,<3",
     "faiss-cpu>=1.8",
     "rank-bm25>=0.2.2",
     "sentence-transformers>=3.0",
@@ -19,6 +23,19 @@ dependencies = [
     # builds do not run on it (silent CPU fallback otherwise). See
     # [tool.uv.sources]/[tool.uv.index] below and ADR in docs/05_DECISIONS.md.
     "torch>=2.7",
+    # Phase 2 (KG layer): Neo4j Python driver, used only by scripts/load_primekg.py
+    # and scripts/precompute_kg_cache.py (ADR-007) -- never at eval time.
+    "neo4j>=5.20,<6",
+    # scispaCy pinned to 0.5.4: it is the last release with a matching
+    # en_core_sci_lg model artifact published on the scispaCy S3 bucket (0.5.5+
+    # ship no model tarball as of this writing -- verified against
+    # https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/). scispaCy
+    # 0.5.4 pins spacy<3.8, so spacy is pinned in lockstep below.
+    "scispacy==0.5.4",
+    "spacy>=3.7,<3.8",
+    # en_core_sci_lg model wheel, version-matched to scispacy==0.5.4 above --
+    # confirmed reachable via a real HTTP HEAD request before pinning.
+    "en_core_sci_lg @ https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_core_sci_lg-0.5.4.tar.gz",
 ]
 
 [dependency-groups]

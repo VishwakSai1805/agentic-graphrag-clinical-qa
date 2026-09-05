@@ -53,7 +53,7 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done (add run_id/commit)
   All three modes print `torch.cuda.is_available()` and device capability unconditionally (real run:
   RTX 5070 Ti, capability (12,0), CUDA confirmed working — no silent CPU fallback).
 
-## Phase 2 — Knowledge graph layer  `[ ]`
+## Phase 2 — Knowledge graph layer  `[x]` (commit TBD, 2026-09-05)
 - `docker/compose.yaml` Neo4j 5 + `scripts/load_primekg.py`
 - `src/kg/linker.py` (scispaCy UMLS linking, threshold tuned on 50 hand-checked items)
 - `src/kg/traversal.py` — 1–2 hop typed subgraph, edge-type allowlist, degree cap
@@ -68,7 +68,20 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done (add run_id/commit)
 - `src/kg/traversal.py` gains a cache-first read path: eval-time code reads
   the precomputed file and never opens a live Neo4j connection; only
   `precompute_kg_cache.py` and ad-hoc debugging talk to Neo4j directly.
-- **Exit test:** `python -m scripts.kg_probe --dataset medqa --limit 200` reports KG-hit rate ≥ 60% and dumps 10 sample subgraphs for manual inspection; then `docker compose down` (Neo4j stopped) and re-running the same 200 questions from the cache file reproduces identical KG-hit rate and subgraphs byte-for-byte.
+- **Amended scope (see the strategic framing at the top of this phase's
+  session and ADR-014–017):** the roadmap's original exit test is a routine
+  plumbing check on its literal reading, but the NFCorpus fusion result
+  (ADR-012) makes C1 depend almost entirely on the KG modality, so this
+  phase also delivers (a) MedQA KG-hit rate broken down by question category,
+  not just an aggregate, and (b) a marginal-value diagnostic — what fraction
+  of retrieved KG triples are both *not already stated* in the real 12-item
+  dense `EvidenceBundle` and *actually relevant* to the question
+  (`novel_and_relevant_rate`), since presence of a linked CUI is not evidence
+  of value on its own.
+- **Exit test (literal):** `python -m scripts.kg_probe --dataset medqa --limit 200` reports KG-hit rate ≥ 60% and dumps 10 sample subgraphs for manual inspection; then `docker compose down` (Neo4j stopped) and re-running the same 200 questions from the cache file reproduces identical KG-hit rate and subgraphs byte-for-byte.
+  **Literal result: PASSED.** Real run on n=200 MedQA test: `aggregate_hit_rate = 0.960` (≥0.60 floor); cache-reproducibility confirmed byte-for-byte (only the provenance timestamp differs) after a full `docker compose down`/container-removal cycle. Full artifact: `results/phase2_kg_probe/medqa_n200.json`; table: `docs/04_EVALUATION.md` §5.3.
+  **Substantive result (the one that matters for C1, per ADR-016 — do not read the literal PASS above as a coverage or value claim):** the 96% hit rate is an arithmetic artifact of high entity fan-out (`entity_level_mapping_rate = 0.1122`; `naive_expected_hit_rate_under_independence = 0.9998` — a hit is near-guaranteed by having ~74 linked entities/question, regardless of real coverage). The defensible C1 evidence figure is `overall_novel_and_relevant_rate = 0.4078` — real but middling, bottlenecked by retrieval precision (only `overall_relevant_rate = 0.4865` of kept triples are even on-topic; hub-node noise from ADR-015's 40-triple cap, saturated on 192/200 questions) more than by redundancy with dense passages (`overall_novel_given_relevant_rate = 0.8383` — when a triple *is* relevant, it usually is novel). **The KG modality's marginal value over dense retrieval is not yet established; this is the honest position Phase 3 inherits, not a result to soften.**
+  **Deferred, stated plainly rather than implied done:** `precompute_kg_cache.py` was run for real on MedQA test only (n=200) — PubMedQA and MedMCQA precompute (required before those datasets can be evaluated in Phase 3+, per ADR-007) is not yet run; the novelty/relevance diagnostics are measured on a disclosed alphabetical 10-triples-per-question subset, not the full ~38-triple mean (ADR-016); the CUI→PrimeKG crosswalk covers drug/gene entities via name-matching only, no licensed UMLS Metathesaurus (ADR-014).
 
 ## Phase 3 — Tri-modal bundle + baseline RAG  `[ ]`
 - `src/pipeline.py` assembling EvidenceBundle

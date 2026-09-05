@@ -1,0 +1,5292 @@
+{
+  "aggregate_hit_rate": 0.96,
+  "category_breakdown": {
+    "anatomy": {
+      "hit_rate": null,
+      "n": 8,
+      "n_hits": 8,
+      "n_novel": 73,
+      "n_novel_and_relevant": 34,
+      "n_relevant": 41,
+      "n_triples_scored_for_novelty": 80,
+      "novel_and_relevant_rate": null,
+      "novel_given_relevant_rate": null,
+      "novel_relation_rate": null,
+      "relevant_rate": null,
+      "triples_per_question": {
+        "max": 40,
+        "mean": 40,
+        "median": 40.0,
+        "min": 40,
+        "n": 8
+      },
+      "underpowered": true
+    },
+    "other": {
+      "hit_rate": 0.875,
+      "n": 40,
+      "n_hits": 35,
+      "n_novel": 307,
+      "n_novel_and_relevant": 103,
+      "n_relevant": 135,
+      "n_triples_scored_for_novelty": 350,
+      "novel_and_relevant_rate": 0.29428571428571426,
+      "novel_given_relevant_rate": 0.762962962962963,
+      "novel_relation_rate": 0.8771428571428571,
+      "relevant_rate": 0.38571428571428573,
+      "triples_per_question": {
+        "max": 40,
+        "mean": 35,
+        "median": 40.0,
+        "min": 0,
+        "n": 40
+      },
+      "underpowered": false
+    },
+    "pathology_diagnosis": {
+      "hit_rate": 1.0,
+      "n": 43,
+      "n_hits": 43,
+      "n_novel": 381,
+      "n_novel_and_relevant": 176,
+      "n_relevant": 209,
+      "n_triples_scored_for_novelty": 430,
+      "novel_and_relevant_rate": 0.40930232558139534,
+      "novel_given_relevant_rate": 0.8421052631578947,
+      "novel_relation_rate": 0.8860465116279069,
+      "relevant_rate": 0.48604651162790696,
+      "triples_per_question": {
+        "max": 40,
+        "mean": 40,
+        "median": 40,
+        "min": 40,
+        "n": 43
+      },
+      "underpowered": false
+    },
+    "pharmacology": {
+      "hit_rate": 1.0,
+      "n": 39,
+      "n_hits": 39,
+      "n_novel": 347,
+      "n_novel_and_relevant": 207,
+      "n_relevant": 239,
+      "n_triples_scored_for_novelty": 390,
+      "novel_and_relevant_rate": 0.5307692307692308,
+      "novel_given_relevant_rate": 0.8661087866108786,
+      "novel_relation_rate": 0.8897435897435897,
+      "relevant_rate": 0.6128205128205129,
+      "triples_per_question": {
+        "max": 40,
+        "mean": 40,
+        "median": 40,
+        "min": 40,
+        "n": 39
+      },
+      "underpowered": false
+    },
+    "physiology": {
+      "hit_rate": 0.9090909090909091,
+      "n": 22,
+      "n_hits": 20,
+      "n_novel": 165,
+      "n_novel_and_relevant": 63,
+      "n_relevant": 90,
+      "n_triples_scored_for_novelty": 200,
+      "novel_and_relevant_rate": 0.315,
+      "novel_given_relevant_rate": 0.7,
+      "novel_relation_rate": 0.825,
+      "relevant_rate": 0.45,
+      "triples_per_question": {
+        "max": 40,
+        "mean": 36.36363636363637,
+        "median": 40.0,
+        "min": 0,
+        "n": 22
+      },
+      "underpowered": false
+    },
+    "treatment_management": {
+      "hit_rate": 0.9791666666666666,
+      "n": 48,
+      "n_hits": 47,
+      "n_novel": 433,
+      "n_novel_and_relevant": 200,
+      "n_relevant": 220,
+      "n_triples_scored_for_novelty": 470,
+      "novel_and_relevant_rate": 0.425531914893617,
+      "novel_given_relevant_rate": 0.9090909090909091,
+      "novel_relation_rate": 0.9212765957446809,
+      "relevant_rate": 0.46808510638297873,
+      "triples_per_question": {
+        "max": 40,
+        "mean": 39.166666666666664,
+        "median": 40.0,
+        "min": 0,
+        "n": 48
+      },
+      "underpowered": false
+    }
+  },
+  "config": {
+    "kg_degree_cap": 200,
+    "kg_edge_allowlist": [
+      "indication",
+      "contraindication",
+      "off-label use",
+      "disease_phenotype_positive",
+      "disease_protein",
+      "drug_effect",
+      "disease_disease"
+    ],
+    "kg_linker_threshold": 0.85,
+    "kg_max_hops": 2,
+    "kg_max_triples_per_question": 40,
+    "novelty_entailment_threshold": 0.5,
+    "novelty_max_triples_scored_per_question": 10,
+    "novelty_nli_model": "MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli",
+    "novelty_top_k_dense": 12,
+    "novelty_top_k_dense_source": "retrieval.top_k_rerank",
+    "relevance_match_method": "case-insensitive substring match of triple head/tail against the question stem and each answer option's text"
+  },
+  "dataset": "medqa",
+  "entity_level_mapping_rate": 0.11224558793698018,
+  "generated_at_utc": "2026-09-05T17:28:10.938305+00:00",
+  "hit_definition": ">=1 of the question's linked entities resolves to a PrimeKG node (kg_node_id is not None) AND >=1 triple is retrieved from that node's subgraph. This is a PERMISSIVE, question-level definition: with ~74 linked entities/question and only ~11% of individual linked entities resolving (see entity_level_mapping_rate), a question-level hit is close to an arithmetic guarantee (see naive_expected_hit_rate_under_independence) rather than evidence that PrimeKG covers 96% of MedQA content. Read aggregate_hit_rate together with entity_level_mapping_rate, never alone.",
+  "hit_rate_floor": 0.6,
+  "hit_rate_floor_passed": true,
+  "kg_max_triples_per_question_cap": 40,
+  "mean_linked_entities_per_question": 73.945,
+  "min_category_n_for_rate": 15,
+  "n_cache_missing": 0,
+  "n_questions": 200,
+  "n_scored": 200,
+  "n_triples_novel": 1706,
+  "n_triples_novel_and_relevant": 783,
+  "n_triples_relevant": 934,
+  "n_triples_scored_for_novelty": 1920,
+  "naive_expected_hit_rate_under_independence": 0.9998498539164816,
+  "overall_novel_and_relevant_rate": 0.4078125,
+  "overall_novel_given_relevant_rate": 0.8383297644539615,
+  "overall_novel_relation_rate": 0.8885416666666667,
+  "overall_relevant_rate": 0.4864583333333333,
+  "sample_subgraphs": [
+    {
+      "category": "pharmacology",
+      "evidence_text": [
+        "Acitretin has the effect Pain.",
+        "Acyclovir has the effect Pain.",
+        "Alfentanil has the effect Pain.",
+        "Alitretinoin has the effect Pain.",
+        "Argatroban has the effect Pain.",
+        "Atenolol has the effect Pain.",
+        "Atezolizumab is indicated for transitional cell carcinoma.",
+        "Atomoxetine has the effect Pain.",
+        "Bartholin gland transitional cell carcinoma is related to the disease transitional cell carcinoma.",
+        "Beclomethasone dipropionate has the effect Pain.",
+        "Betamethasone has the effect Pain.",
+        "Budesonide has the effect Pain.",
+        "Buspirone has the effect Pain.",
+        "Carboplatin is used off-label for urinary bladder cancer.",
+        "Chlorhexidine has the effect Pain.",
+        "Ciprofloxacin has the effect Pain.",
+        "Cisplatin has the effect Pain.",
+        "Clonidine has the effect Pain.",
+        "Conjugated estrogens has the effect Pain.",
+        "Diazepam has the effect Pain.",
+        "Diclofenac has the effect Pain.",
+        "Didanosine has the effect Pain.",
+        "Diltiazem has the effect Pain.",
+        "Duloxetine has the effect Pain.",
+        "Durvalumab is indicated for transitional cell carcinoma.",
+        "Efavirenz has the effect Pain.",
+        "Emtricitabine has the effect Pain.",
+        "Erlotinib has the effect Pain.",
+        "Estradiol has the effect Pain.",
+        "Estrone has the effect Pain.",
+        "Etacrynic acid has the effect Pain.",
+        "Etodolac has the effect Pain.",
+        "Etonogestrel has the effect Pain.",
+        "Fentanyl has the effect Pain.",
+        "Fexofenadine has the effect Pain.",
+        "Flunisolide has the effect Pain.",
+        "Fluocinolone acetonide has the effect Pain.",
+        "Fluocinonide has the effect Pain.",
+        "Fluorometholone has the effect Pain.",
+        "Fluorouracil has the effect Pain."
+      ],
+      "linked_entities": [
+        {
+          "cui": "C0025266",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "man"
+        },
+        {
+          "cui": "C0086418",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "man"
+        },
+        {
+          "cui": "C0086582",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "man"
+        },
+        {
+          "cui": "C4724040",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "man"
+        },
+        {
+          "cui": "C0007138",
+          "kg_node_id": "36863",
+          "kg_node_type": "disease",
+          "match_method": "mondo_xref",
+          "text": "transitional cell carcinoma"
+        },
+        {
+          "cui": "C1319314",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "transitional cell carcinoma"
+        },
+        {
+          "cui": "C4289836",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "transitional cell carcinoma"
+        },
+        {
+          "cui": "C0577692",
+          "kg_node_id": "39614",
+          "kg_node_type": "disease",
+          "match_method": "mondo_xref",
+          "text": "transitional cell carcinoma"
+        },
+        {
+          "cui": "C1514430",
+          "kg_node_id": "37249",
+          "kg_node_type": "disease",
+          "match_method": "mondo_xref",
+          "text": "transitional cell carcinoma"
+        },
+        {
+          "cui": "C0005682",
+          "kg_node_id": "63704",
+          "kg_node_type": "anatomy",
+          "match_method": "name_match",
+          "text": "bladder"
+        },
+        {
+          "cui": "C0005684",
+          "kg_node_id": "31756",
+          "kg_node_type": "disease",
+          "match_method": "mondo_xref",
+          "text": "bladder"
+        },
+        {
+          "cui": "C0005686",
+          "kg_node_id": "36217",
+          "kg_node_type": "disease",
+          "match_method": "mondo_xref",
+          "text": "bladder"
+        },
+        {
+          "cui": "C0031831",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "physician"
+        },
+        {
+          "cui": "C0804815",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "physician"
+        },
+        {
+          "cui": "C0019664",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "history"
+        },
+        {
+          "cui": "C0019665",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "history"
+        },
+        {
+          "cui": "C0262512",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "history"
+        },
+        {
+          "cui": "C0262926",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "history"
+        },
+        {
+          "cui": "C1705255",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "history"
+        },
+        {
+          "cui": "C0013443",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "ear"
+        },
+        {
+          "cui": "C1546608",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "ear"
+        },
+        {
+          "cui": "C1550629",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "ear"
+        },
+        {
+          "cui": "C0750729",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "course"
+        },
+        {
+          "cui": "C5392214",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "neoadjuvant chemotherapy"
+        },
+        {
+          "cui": "C0085533",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "neoadjuvant chemotherapy"
+        },
+        {
+          "cui": "C0439230",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "week"
+        },
+        {
+          "cui": "C1561540",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "week"
+        },
+        {
+          "cui": "C0332174",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "week"
+        },
+        {
+          "cui": "C2987125",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "week"
+        },
+        {
+          "cui": "C0004286",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "audiometry"
+        },
+        {
+          "cui": "C0018784",
+          "kg_node_id": "33564",
+          "kg_node_type": "disease",
+          "match_method": "mondo_xref",
+          "text": "sensorineural hearing loss"
+        },
+        {
+          "cui": "C4021534",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "sensorineural hearing loss"
+        },
+        {
+          "cui": "C0452138",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "sensorineural hearing loss"
+        },
+        {
+          "cui": "C4021533",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "sensorineural hearing loss"
+        },
+        {
+          "cui": "C1865866",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "sensorineural hearing loss"
+        },
+        {
+          "cui": "C1280500",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "effect"
+        },
+        {
+          "cui": "C2348382",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "effect"
+        },
+        {
+          "cui": "C1301751",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "effect"
+        },
+        {
+          "cui": "C0543419",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "effect"
+        },
+        {
+          "cui": "C1368999",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "effect"
+        },
+        {
+          "cui": "C0013227",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "drug"
+        },
+        {
+          "cui": "C1254351",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "drug"
+        },
+        {
+          "cui": "C0687133",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "drug"
+        },
+        {
+          "cui": "C3273588",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "drug"
+        },
+        {
+          "cui": "C0683368",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "symptoms"
+        },
+        {
+          "cui": "C1457887",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "symptoms"
+        },
+        {
+          "cui": "C0030193",
+          "kg_node_id": "22982",
+          "kg_node_type": "effect/phenotype",
+          "match_method": "name_match",
+          "text": "symptoms"
+        },
+        {
+          "cui": "C0441472",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "actions"
+        },
+        {
+          "cui": "C0021467",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Inhibition"
+        },
+        {
+          "cui": "C0021469",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Inhibition"
+        },
+        {
+          "cui": "C3463820",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Inhibition"
+        },
+        {
+          "cui": "C1628982",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Inhibition"
+        },
+        {
+          "cui": "C0208355",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "proteasome"
+        },
+        {
+          "cui": "C1325620",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "proteasome"
+        },
+        {
+          "cui": "C0026046",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "microtubules"
+        },
+        {
+          "cui": "C1367884",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "microtubules"
+        },
+        {
+          "cui": "C0079411",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Generation"
+        },
+        {
+          "cui": "C3146294",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Generation"
+        },
+        {
+          "cui": "C0016693",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "free radicals"
+        },
+        {
+          "cui": "C0332220",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Cross-linking"
+        }
+      ],
+      "n_triples_total": 40,
+      "question": "A 67-year-old man with transitional cell carcinoma of the bladder comes to the physician because of a 2-day history of ringing sensation in his ear. He received this first course of neoadjuvant chemotherapy 1 week ago. Pure tone audiometry shows a sensorineural hearing loss of 45 dB. The expected beneficial effect of the drug that caused this patient's symptoms is most likely due to which of the following actions?",
+      "question_id": "test_00001",
+      "triples": [
+        {
+          "head": "Acitretin",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": false,
+          "tail": "Pain"
+        },
+        {
+          "head": "Acyclovir",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": false,
+          "tail": "Pain"
+        },
+        {
+          "head": "Alfentanil",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": false,
+          "tail": "Pain"
+        },
+        {
+          "head": "Alitretinoin",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": false,
+          "tail": "Pain"
+        },
+        {
+          "head": "Argatroban",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": false,
+          "tail": "Pain"
+        },
+        {
+          "head": "Atenolol",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": false,
+          "tail": "Pain"
+        },
+        {
+          "head": "Atezolizumab",
+          "novel": true,
+          "relation": "indication",
+          "relevant": true,
+          "tail": "transitional cell carcinoma"
+        },
+        {
+          "head": "Atomoxetine",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": false,
+          "tail": "Pain"
+        },
+        {
+          "head": "Bartholin gland transitional cell carcinoma",
+          "novel": false,
+          "relation": "disease_disease",
+          "relevant": true,
+          "tail": "transitional cell carcinoma"
+        },
+        {
+          "head": "Beclomethasone dipropionate",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": false,
+          "tail": "Pain"
+        }
+      ],
+      "triples_note": "showing the 10/40 triples actually scored for novelty/relevance (see NOVELTY_MAX_TRIPLES_SCORED); the rest of entry.triples exist in the cache but were not scored in this run."
+    },
+    {
+      "category": "anatomy",
+      "evidence_text": [
+        "Acebutolol is contraindicated in peripheral arterial disease.",
+        "Acebutolol is contraindicated in peripheral vascular disease.",
+        "Acetohexamide is indicated for diabetes mellitus (disease).",
+        "Acitretin is contraindicated in diabetes mellitus (disease).",
+        "Acyclovir is contraindicated in diabetes mellitus (disease).",
+        "Acyclovir is contraindicated in peripheral arterial disease.",
+        "Acyclovir is contraindicated in peripheral vascular disease.",
+        "Alfuzosin is indicated for benign prostatic hyperplasia (disease).",
+        "Almotriptan is contraindicated in peripheral arterial disease.",
+        "Almotriptan is contraindicated in peripheral vascular disease.",
+        "Alphaprodine is contraindicated in urethral stricture (disease).",
+        "Alprostadil is contraindicated in urethral stricture (disease).",
+        "Alprostadil is used off-label for peripheral arterial disease.",
+        "Alprostadil is used off-label for peripheral vascular disease.",
+        "Amcinonide is contraindicated in peripheral arterial disease.",
+        "Amcinonide is contraindicated in peripheral vascular disease.",
+        "Amitriptyline is contraindicated in benign prostatic hyperplasia (disease).",
+        "Ammonia is contraindicated in peripheral arterial disease.",
+        "Ammonia is contraindicated in peripheral vascular disease.",
+        "Ammonium lactate is contraindicated in peripheral arterial disease.",
+        "Ammonium lactate is contraindicated in peripheral vascular disease.",
+        "Amoxapine is contraindicated in benign prostatic hyperplasia (disease).",
+        "Antipyrine is contraindicated in benign prostatic hyperplasia (disease).",
+        "Antipyrine is contraindicated in peripheral arterial disease.",
+        "Antipyrine is contraindicated in peripheral vascular disease.",
+        "Ascorbic acid is contraindicated in diabetes mellitus (disease).",
+        "Atenolol is contraindicated in diabetes mellitus (disease).",
+        "Azapetine is indicated for peripheral arterial disease.",
+        "Azapetine is indicated for peripheral vascular disease.",
+        "Azatadine is contraindicated in benign prostatic hyperplasia (disease).",
+        "Bacitracin is contraindicated in peripheral arterial disease.",
+        "Bacitracin is contraindicated in peripheral vascular disease.",
+        "Benzatropine is contraindicated in benign prostatic hyperplasia (disease).",
+        "Benzoyl peroxide is contraindicated in peripheral arterial disease.",
+        "Benzoyl peroxide is contraindicated in peripheral vascular disease.",
+        "Benzyl alcohol is contraindicated in benign prostatic hyperplasia (disease).",
+        "Betamethasone is contraindicated in diabetes mellitus (disease).",
+        "Betamethasone is contraindicated in peripheral arterial disease.",
+        "Betamethasone is contraindicated in peripheral vascular disease.",
+        "Biperiden is contraindicated in benign prostatic hyperplasia (disease)."
+      ],
+      "linked_entities": [
+        {
+          "cui": "C0086582",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "male"
+        },
+        {
+          "cui": "C1706180",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "male"
+        },
+        {
+          "cui": "C1706428",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "male"
+        },
+        {
+          "cui": "C1706429",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "male"
+        },
+        {
+          "cui": "C0031831",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "physician"
+        },
+        {
+          "cui": "C0804815",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "physician"
+        },
+        {
+          "cui": "C0220825",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "evaluation"
+        },
+        {
+          "cui": "C1261322",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "evaluation"
+        },
+        {
+          "cui": "C0376306",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "evaluation"
+        },
+        {
+          "cui": "C0423640",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "right flank pain"
+        },
+        {
+          "cui": "C0019664",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "history"
+        },
+        {
+          "cui": "C0019665",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "history"
+        },
+        {
+          "cui": "C0262512",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "history"
+        },
+        {
+          "cui": "C0262926",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "history"
+        },
+        {
+          "cui": "C1705255",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "history"
+        },
+        {
+          "cui": "C0011847",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "diabetes"
+        },
+        {
+          "cui": "C0011849",
+          "kg_node_id": "33575",
+          "kg_node_type": "disease",
+          "match_method": "mondo_xref",
+          "text": "diabetes"
+        },
+        {
+          "cui": "C0362046",
+          "kg_node_id": "84173",
+          "kg_node_type": "disease",
+          "match_method": "mondo_xref",
+          "text": "diabetes"
+        },
+        {
+          "cui": "C1704436",
+          "kg_node_id": "39798",
+          "kg_node_type": "disease",
+          "match_method": "mondo_xref",
+          "text": "peripheral artery disease"
+        },
+        {
+          "cui": "C4025272",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "peripheral artery disease"
+        },
+        {
+          "cui": "C0085096",
+          "kg_node_id": "35931",
+          "kg_node_type": "disease",
+          "match_method": "mondo_xref",
+          "text": "peripheral artery disease"
+        },
+        {
+          "cui": "C0005823",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "His blood pressure"
+        },
+        {
+          "cui": "C0005824",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "His blood pressure"
+        },
+        {
+          "cui": "C1271104",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "His blood pressure"
+        },
+        {
+          "cui": "C1272641",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "His blood pressure"
+        },
+        {
+          "cui": "C0031809",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Physical examination"
+        },
+        {
+          "cui": "C2826940",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Physical examination"
+        },
+        {
+          "cui": "C2826756",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Physical examination"
+        },
+        {
+          "cui": "C2826761",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Physical examination"
+        },
+        {
+          "cui": "C2826643",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Physical examination"
+        },
+        {
+          "cui": "C0232498",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "abdominal tenderness"
+        },
+        {
+          "cui": "C0041618",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "ultrasound"
+        },
+        {
+          "cui": "C0041621",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "ultrasound"
+        },
+        {
+          "cui": "C0220934",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "ultrasound"
+        },
+        {
+          "cui": "C1315081",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "ultrasound"
+        },
+        {
+          "cui": "C1456803",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "ultrasound"
+        },
+        {
+          "cui": "C0012359",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "dilation"
+        },
+        {
+          "cui": "C0700124",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "dilation"
+        },
+        {
+          "cui": "C1322279",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "dilation"
+        },
+        {
+          "cui": "C0227682",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "right ureter"
+        },
+        {
+          "cui": "C0227666",
+          "kg_node_id": "63673",
+          "kg_node_type": "anatomy",
+          "match_method": "name_match",
+          "text": "renal pelvis"
+        },
+        {
+          "cui": "C0348080",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "condition"
+        },
+        {
+          "cui": "C1705253",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "condition"
+        },
+        {
+          "cui": "C3864998",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "condition"
+        },
+        {
+          "cui": "C0035067",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Renal artery stenosis"
+        },
+        {
+          "cui": "C0038449",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Renal artery stenosis"
+        },
+        {
+          "cui": "C1704272",
+          "kg_node_id": "31395",
+          "kg_node_type": "disease",
+          "match_method": "mondo_xref",
+          "text": "Benign prostatic hyperplasia"
+        },
+        {
+          "cui": "C2937421",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Benign prostatic hyperplasia"
+        },
+        {
+          "cui": "C0162870",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "iliac artery aneurysm"
+        },
+        {
+          "cui": "C0041974",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Urethral stricture"
+        },
+        {
+          "cui": "C4551691",
+          "kg_node_id": "33684",
+          "kg_node_type": "disease",
+          "match_method": "mondo_xref",
+          "text": "Urethral stricture"
+        }
+      ],
+      "n_triples_total": 40,
+      "question": "A 68-year-old male comes to the physician for evaluation of right flank pain. He has a history of diabetes and peripheral artery disease. His blood pressure is 160/90 mm Hg. Physical examination shows abdominal tenderness and right flank tenderness. An ultrasound shows dilation of the right ureter and renal pelvis. Which of the following is the most likely underlying cause of this patient's condition?",
+      "question_id": "test_00006",
+      "triples": [
+        {
+          "head": "Acebutolol",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "peripheral arterial disease"
+        },
+        {
+          "head": "Acebutolol",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "peripheral vascular disease"
+        },
+        {
+          "head": "Acetohexamide",
+          "novel": true,
+          "relation": "indication",
+          "relevant": false,
+          "tail": "diabetes mellitus (disease)"
+        },
+        {
+          "head": "Acitretin",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "diabetes mellitus (disease)"
+        },
+        {
+          "head": "Acyclovir",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "diabetes mellitus (disease)"
+        },
+        {
+          "head": "Acyclovir",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "peripheral arterial disease"
+        },
+        {
+          "head": "Acyclovir",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "peripheral vascular disease"
+        },
+        {
+          "head": "Alfuzosin",
+          "novel": true,
+          "relation": "indication",
+          "relevant": false,
+          "tail": "benign prostatic hyperplasia (disease)"
+        },
+        {
+          "head": "Almotriptan",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "peripheral arterial disease"
+        },
+        {
+          "head": "Almotriptan",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "peripheral vascular disease"
+        }
+      ],
+      "triples_note": "showing the 10/40 triples actually scored for novelty/relevance (see NOVELTY_MAX_TRIPLES_SCORED); the rest of entry.triples exist in the cache but were not scored in this run."
+    },
+    {
+      "category": "pathology_diagnosis",
+      "evidence_text": [
+        "Acanthamoeba infectious disease is related to the disease infectious disease.",
+        "Aminoglutethimide is contraindicated in infectious disease.",
+        "Arenaviridae infectious disease is related to the disease infectious disease.",
+        "Azathioprine is contraindicated in infectious disease.",
+        "Beclomethasone dipropionate is contraindicated in infectious disease.",
+        "Betamethasone is contraindicated in infectious disease.",
+        "Budesonide is contraindicated in infectious disease.",
+        "Bunyaviridae infectious disease is related to the disease infectious disease.",
+        "Busulfan is contraindicated in infectious disease.",
+        "Capecitabine is contraindicated in infectious disease.",
+        "Carmustine is contraindicated in infectious disease.",
+        "Clofarabine is contraindicated in infectious disease.",
+        "Cortisone acetate is contraindicated in infectious disease.",
+        "Cyclosporine is contraindicated in infectious disease.",
+        "Cytarabine is contraindicated in infectious disease.",
+        "Daunorubicin is contraindicated in infectious disease.",
+        "Desonide is contraindicated in infectious disease.",
+        "Dexamethasone is contraindicated in infectious disease.",
+        "Doxorubicin is contraindicated in infectious disease.",
+        "Epstein-Barr virus infection is related to the disease Herpesviridae infectious disease.",
+        "Epstein-Barr virus infection is related to the disease infectious mononucleosis.",
+        "Epstein-Barr virus infection is related to the disease skin disease caused by infection.",
+        "Epstein-Barr virus infection is related to the disease viral hepatitis.",
+        "Etidronic acid is contraindicated in infectious disease.",
+        "Flaviviridae infectious disease is related to the disease infectious disease.",
+        "Flunisolide is contraindicated in infectious disease.",
+        "Fluticasone furoate is contraindicated in infectious disease.",
+        "Fluticasone propionate is contraindicated in infectious disease.",
+        "Gemcitabine is contraindicated in infectious disease.",
+        "Glimepiride is contraindicated in infectious disease.",
+        "Glipizide is contraindicated in infectious disease.",
+        "Glutethimide is contraindicated in infectious disease.",
+        "Glyburide is contraindicated in infectious disease.",
+        "Herpesviridae infectious disease is related to the disease Epstein-Barr virus infection.",
+        "Hydrocortisone is contraindicated in infectious disease.",
+        "Hydrocortisone acetate is contraindicated in infectious disease.",
+        "Indomethacin is contraindicated in infectious disease.",
+        "Lidocaine is contraindicated in infectious disease.",
+        "Lomustine is contraindicated in infectious disease.",
+        "Maraviroc is contraindicated in infectious disease."
+      ],
+      "linked_entities": [
+        {
+          "cui": "C0260010",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "microbiologist"
+        },
+        {
+          "cui": "C1520022",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "virulent"
+        },
+        {
+          "cui": "C0080194",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "strain"
+        },
+        {
+          "cui": "C0442694",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "strain"
+        },
+        {
+          "cui": "C0456178",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "strain"
+        },
+        {
+          "cui": "C1518614",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "strain"
+        },
+        {
+          "cui": "C1548152",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "strain"
+        },
+        {
+          "cui": "C0042776",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "virus"
+        },
+        {
+          "cui": "C0319157",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "virus"
+        },
+        {
+          "cui": "C0008972",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "study"
+        },
+        {
+          "cui": "C0557651",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "study"
+        },
+        {
+          "cui": "C0947630",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "study"
+        },
+        {
+          "cui": "C1705923",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "study"
+        },
+        {
+          "cui": "C2603343",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "study"
+        },
+        {
+          "cui": "C0023675",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "life cycle"
+        },
+        {
+          "cui": "C0871935",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "theory"
+        },
+        {
+          "cui": "C1819995",
+          "kg_node_id": "126430",
+          "kg_node_type": "cellular_component",
+          "match_method": "name_match",
+          "text": "host cell"
+        },
+        {
+          "cui": "C0042776",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "viruses"
+        },
+        {
+          "cui": "C0521026",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "viruses"
+        },
+        {
+          "cui": "C0019378",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "viruses"
+        },
+        {
+          "cui": "C0521115",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "concomitant"
+        },
+        {
+          "cui": "C2347852",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "concomitant"
+        },
+        {
+          "cui": "C0033268",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "production"
+        },
+        {
+          "cui": "C1548180",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "production"
+        },
+        {
+          "cui": "C0017428",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "genome"
+        },
+        {
+          "cui": "C2338314",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "genome"
+        },
+        {
+          "cui": "C1710548",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "unique"
+        },
+        {
+          "cui": "C0597177",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "particle"
+        },
+        {
+          "cui": "C4085054",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "particle"
+        },
+        {
+          "cui": "C0205360",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "stable"
+        },
+        {
+          "cui": "C1547311",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "stable"
+        },
+        {
+          "cui": "C0443348",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "viable"
+        },
+        {
+          "cui": "C0012652",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "outbreak"
+        },
+        {
+          "cui": "C0009450",
+          "kg_node_id": "35584",
+          "kg_node_type": "disease",
+          "match_method": "mondo_xref",
+          "text": "infection"
+        },
+        {
+          "cui": "C3714514",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "infection"
+        },
+        {
+          "cui": "C0205339",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "infection"
+        },
+        {
+          "cui": "C0014644",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Epstein-Barr virus"
+        },
+        {
+          "cui": "C0851107",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Epstein-Barr virus"
+        },
+        {
+          "cui": "C0369169",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Epstein-Barr virus"
+        },
+        {
+          "cui": "C0149678",
+          "kg_node_id": "37856",
+          "kg_node_type": "disease",
+          "match_method": "mondo_xref",
+          "text": "Epstein-Barr virus"
+        },
+        {
+          "cui": "C0019682",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Human immunodeficiency virus"
+        },
+        {
+          "cui": "C0019704",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Human immunodeficiency virus"
+        },
+        {
+          "cui": "C0019707",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Human immunodeficiency virus"
+        },
+        {
+          "cui": "C4330330",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Human immunodeficiency virus"
+        },
+        {
+          "cui": "C1321876",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Human immunodeficiency virus"
+        }
+      ],
+      "n_triples_total": 40,
+      "question": "A microbiologist is studying the emergence of a virulent strain of the virus. After a detailed study of the virus and its life cycle, he proposes a theory: Initially, a host cell is co-infected with 2 viruses from the same virus family. Within the host cell, concomitant production of various genome segments from both viruses occurs. Ultimately, the different genome segments from the viruses are packaged into a unique and novel virus particle. The newly formed virus particle is both stable and viable and is a new strain from the virus family that caused the outbreak of infection. Which of the following viruses is capable of undergoing the above-mentioned process?",
+      "question_id": "test_00014",
+      "triples": [
+        {
+          "head": "Acanthamoeba infectious disease",
+          "novel": true,
+          "relation": "disease_disease",
+          "relevant": false,
+          "tail": "infectious disease"
+        },
+        {
+          "head": "Aminoglutethimide",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "infectious disease"
+        },
+        {
+          "head": "Arenaviridae infectious disease",
+          "novel": false,
+          "relation": "disease_disease",
+          "relevant": false,
+          "tail": "infectious disease"
+        },
+        {
+          "head": "Azathioprine",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "infectious disease"
+        },
+        {
+          "head": "Beclomethasone dipropionate",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "infectious disease"
+        },
+        {
+          "head": "Betamethasone",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "infectious disease"
+        },
+        {
+          "head": "Budesonide",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "infectious disease"
+        },
+        {
+          "head": "Bunyaviridae infectious disease",
+          "novel": false,
+          "relation": "disease_disease",
+          "relevant": false,
+          "tail": "infectious disease"
+        },
+        {
+          "head": "Busulfan",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "infectious disease"
+        },
+        {
+          "head": "Capecitabine",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "infectious disease"
+        }
+      ],
+      "triples_note": "showing the 10/40 triples actually scored for novelty/relevance (see NOVELTY_MAX_TRIPLES_SCORED); the rest of entry.triples exist in the cache but were not scored in this run."
+    },
+    {
+      "category": "other",
+      "evidence_text": [
+        "Acetaminophen has the effect Fever.",
+        "Acitretin has the effect Fever.",
+        "Acyclovir is contraindicated in stroke disorder.",
+        "Acyclovir has the effect Fever.",
+        "Adenosine is contraindicated in hypotensive disorder.",
+        "Alfentanil is contraindicated in hypotensive disorder.",
+        "Alfentanil has the effect Fever.",
+        "Alitretinoin has the effect Fever.",
+        "Almotriptan is contraindicated in stroke disorder.",
+        "Alprazolam has the effect Fever.",
+        "Amitriptyline has the effect Fever.",
+        "Amlodipine is contraindicated in hypotensive disorder.",
+        "Amlodipine is indicated for stroke disorder.",
+        "Amphetamine is contraindicated in stroke disorder.",
+        "Ampicillin has the effect Fever.",
+        "Argatroban has the effect Fever.",
+        "Aripiprazole is contraindicated in hypotensive disorder.",
+        "Asenapine is contraindicated in stroke disorder.",
+        "Atenolol has the effect Fever.",
+        "Atomoxetine is contraindicated in hypotensive disorder.",
+        "Atomoxetine is contraindicated in stroke disorder.",
+        "Atomoxetine has the effect Fever.",
+        "Atorvastatin is contraindicated in hypotensive disorder.",
+        "Atorvastatin is indicated for stroke disorder.",
+        "Benazepril is contraindicated in hypotensive disorder.",
+        "Benzatropine is contraindicated in hypotensive disorder.",
+        "Benzatropine has the effect Fever.",
+        "Betamethasone is contraindicated in tuberculosis.",
+        "Betamethasone has the effect Fever.",
+        "Bortezomib is contraindicated in hypotensive disorder.",
+        "Bromocriptine is contraindicated in stroke disorder.",
+        "Budesonide is contraindicated in tuberculosis.",
+        "Budesonide has the effect Fever.",
+        "Bupivacaine is contraindicated in hypotensive disorder.",
+        "Buspirone has the effect Fever.",
+        "Butabarbital is contraindicated in stroke disorder.",
+        "Caffeine is contraindicated in hypotensive disorder.",
+        "Candesartan cilexetil is contraindicated in hypotensive disorder.",
+        "Capsaicin is contraindicated in stroke disorder.",
+        "Captopril is contraindicated in hypotensive disorder."
+      ],
+      "linked_entities": [
+        {
+          "cui": "C0030705",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "patient"
+        },
+        {
+          "cui": "C1550655",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "patient"
+        },
+        {
+          "cui": "C1578481",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "patient"
+        },
+        {
+          "cui": "C1578483",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "patient"
+        },
+        {
+          "cui": "C1578484",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "patient"
+        },
+        {
+          "cui": "C0701159",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "hospitalized"
+        },
+        {
+          "cui": "C0439230",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "week"
+        },
+        {
+          "cui": "C1561540",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "week"
+        },
+        {
+          "cui": "C0332174",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "week"
+        },
+        {
+          "cui": "C2987125",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "week"
+        },
+        {
+          "cui": "C0038454",
+          "kg_node_id": "33598",
+          "kg_node_type": "disease",
+          "match_method": "mondo_xref",
+          "text": "stroke"
+        },
+        {
+          "cui": "C0019993",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "hospitalization"
+        },
+        {
+          "cui": "C0015967",
+          "kg_node_id": "22952",
+          "kg_node_type": "effect/phenotype",
+          "match_method": "name_match",
+          "text": "fever"
+        },
+        {
+          "cui": "C0424755",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "fever"
+        },
+        {
+          "cui": "C0018810",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "heart rate"
+        },
+        {
+          "cui": "C0488794",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "heart rate"
+        },
+        {
+          "cui": "C0231832",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "respiratory rate"
+        },
+        {
+          "cui": "C0489258",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "respiratory rate"
+        },
+        {
+          "cui": "C0231837",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "respiratory rate"
+        },
+        {
+          "cui": "C0521346",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "respiratory rate"
+        },
+        {
+          "cui": "C0005903",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "temperature"
+        },
+        {
+          "cui": "C0039476",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "temperature"
+        },
+        {
+          "cui": "C0886414",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "temperature"
+        },
+        {
+          "cui": "C0009264",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "temperature"
+        },
+        {
+          "cui": "C0005823",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "blood pressure"
+        },
+        {
+          "cui": "C0005824",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "blood pressure"
+        },
+        {
+          "cui": "C1271104",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "blood pressure"
+        },
+        {
+          "cui": "C1272641",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "blood pressure"
+        },
+        {
+          "cui": "C0020649",
+          "kg_node_id": "33605",
+          "kg_node_type": "disease",
+          "match_method": "mondo_xref",
+          "text": "blood pressure"
+        },
+        {
+          "cui": "C0031809",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "physical examination"
+        },
+        {
+          "cui": "C2826940",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "physical examination"
+        },
+        {
+          "cui": "C2826756",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "physical examination"
+        },
+        {
+          "cui": "C2826761",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "physical examination"
+        },
+        {
+          "cui": "C2826643",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "physical examination"
+        },
+        {
+          "cui": "C0205090",
+          "kg_node_id": "89583",
+          "kg_node_type": "effect/phenotype",
+          "match_method": "name_match",
+          "text": "right side"
+        },
+        {
+          "cui": "C0817096",
+          "kg_node_id": "63890",
+          "kg_node_type": "anatomy",
+          "match_method": "name_match",
+          "text": "chest"
+        },
+        {
+          "cui": "C1527391",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "chest"
+        },
+        {
+          "cui": "C0039985",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Chest radiography"
+        },
+        {
+          "cui": "C0521530",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "consolidation"
+        },
+        {
+          "cui": "C0702116",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "consolidation"
+        },
+        {
+          "cui": "C0009555",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Complete blood count"
+        },
+        {
+          "cui": "C0008721",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Hemoglobin"
+        },
+        {
+          "cui": "C0019046",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Hemoglobin"
+        },
+        {
+          "cui": "C0019016",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Hemoglobin"
+        },
+        {
+          "cui": "C1440677",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Hemoglobin"
+        },
+        {
+          "cui": "C0019019",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Hemoglobin"
+        },
+        {
+          "cui": "C0018935",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Hematocrit"
+        },
+        {
+          "cui": "C0518014",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Hematocrit"
+        },
+        {
+          "cui": "C1542366",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Hematocrit"
+        },
+        {
+          "cui": "C0744727",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Hematocrit"
+        },
+        {
+          "cui": "C0023508",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Leukocyte count"
+        },
+        {
+          "cui": "C5206336",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Leukocyte count"
+        },
+        {
+          "cui": "C0027950",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Neutrophils"
+        },
+        {
+          "cui": "C0014467",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Eosinophils"
+        },
+        {
+          "cui": "C1546620",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Eosinophils"
+        },
+        {
+          "cui": "C1550634",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Eosinophils"
+        },
+        {
+          "cui": "C0004827",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Basophils"
+        },
+        {
+          "cui": "C1546562",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Basophils"
+        },
+        {
+          "cui": "C1550610",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Basophils"
+        },
+        {
+          "cui": "C0024264",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Lymphocytes"
+        },
+        {
+          "cui": "C1546705",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Lymphocytes"
+        },
+        {
+          "cui": "C1550651",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Lymphocytes"
+        },
+        {
+          "cui": "C4018897",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Lymphocytes"
+        },
+        {
+          "cui": "C0004561",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Lymphocytes"
+        },
+        {
+          "cui": "C0026473",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Monocytes"
+        },
+        {
+          "cui": "C0032181",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Platelet count"
+        },
+        {
+          "cui": "C1287267",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Platelet count"
+        },
+        {
+          "cui": "C5201036",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Platelet count"
+        },
+        {
+          "cui": "C0038410",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Streptococcus pneumoniae"
+        },
+        {
+          "cui": "C1441245",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Streptococcus pneumoniae"
+        },
+        {
+          "cui": "C1545600",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Streptococcus pneumoniae"
+        },
+        {
+          "cui": "C1441252",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Streptococcus pneumoniae"
+        },
+        {
+          "cui": "C1441256",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Streptococcus pneumoniae"
+        },
+        {
+          "cui": "C0026926",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Mycobacterium tuberculosis"
+        },
+        {
+          "cui": "C0085442",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Mycobacterium tuberculosis"
+        },
+        {
+          "cui": "C0026913",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Mycobacterium tuberculosis"
+        },
+        {
+          "cui": "C1032649",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Mycobacterium tuberculosis"
+        },
+        {
+          "cui": "C0041296",
+          "kg_node_id": "32505",
+          "kg_node_type": "disease",
+          "match_method": "mondo_xref",
+          "text": "Mycobacterium tuberculosis"
+        }
+      ],
+      "n_triples_total": 40,
+      "question": "A 62-year-old patient has been hospitalized for a week due to a stroke. One week into the hospitalization, he develops a fever and purulent cough. His vitals include: heart rate 88/min, respiratory rate 20/min, temperature 38.4\u00b0C (101.1\u00b0F), and blood pressure 110/85 mm Hg. On physical examination, he has basal crackles on the right side of the chest. Chest radiography shows a new consolidation on the same side. Complete blood count is as follows:\nHemoglobin 16 mg/dL\nHematocrit 50%\nLeukocyte count 8,900/mm3\nNeutrophils 72%\nBands 4%\nEosinophils 2%\nBasophils 0%\nLymphocytes 17%\nMonocytes 5%\nPlatelet count 280,000/mm3\nWhat is the most likely causal microorganism?",
+      "question_id": "test_00023",
+      "triples": [
+        {
+          "head": "Acetaminophen",
+          "novel": false,
+          "relation": "drug_effect",
+          "relevant": true,
+          "tail": "Fever"
+        },
+        {
+          "head": "Acitretin",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": true,
+          "tail": "Fever"
+        },
+        {
+          "head": "Acyclovir",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "stroke disorder"
+        },
+        {
+          "head": "Acyclovir",
+          "novel": false,
+          "relation": "drug_effect",
+          "relevant": true,
+          "tail": "Fever"
+        },
+        {
+          "head": "Adenosine",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "hypotensive disorder"
+        },
+        {
+          "head": "Alfentanil",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "hypotensive disorder"
+        },
+        {
+          "head": "Alfentanil",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": true,
+          "tail": "Fever"
+        },
+        {
+          "head": "Alitretinoin",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": true,
+          "tail": "Fever"
+        },
+        {
+          "head": "Almotriptan",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "stroke disorder"
+        },
+        {
+          "head": "Alprazolam",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": true,
+          "tail": "Fever"
+        }
+      ],
+      "triples_note": "showing the 10/40 triples actually scored for novelty/relevance (see NOVELTY_MAX_TRIPLES_SCORED); the rest of entry.triples exist in the cache but were not scored in this run."
+    },
+    {
+      "category": "treatment_management",
+      "evidence_text": [
+        "Acenocoumarol is indicated for pulmonary embolism (disease).",
+        "Acyclovir is contraindicated in coronary thrombosis.",
+        "Acyclovir is contraindicated in hemoglobinopathy.",
+        "Acyclovir is contraindicated in myocardial infarction.",
+        "Acyclovir is contraindicated in myocardial infarction (disease).",
+        "Acyclovir is contraindicated in obsolete susceptibility to ischemic stroke.",
+        "Acyclovir is contraindicated in stroke disorder.",
+        "Adomiparin is indicated for pulmonary embolism (disease).",
+        "Almotriptan is contraindicated in obsolete susceptibility to ischemic stroke.",
+        "Almotriptan is contraindicated in stroke disorder.",
+        "Alteplase is indicated for coronary thrombosis.",
+        "Alteplase is indicated for hemoglobinopathy.",
+        "Alteplase is indicated for myocardial infarction.",
+        "Alteplase is indicated for myocardial infarction (disease).",
+        "Alteplase is indicated for obsolete susceptibility to ischemic stroke.",
+        "Alteplase is indicated for pulmonary embolism (disease).",
+        "Alteplase is indicated for stroke disorder.",
+        "Amitriptyline is contraindicated in coronary thrombosis.",
+        "Amitriptyline is contraindicated in hemoglobinopathy.",
+        "Amitriptyline is contraindicated in myocardial infarction.",
+        "Amitriptyline is contraindicated in myocardial infarction (disease).",
+        "Amlodipine is indicated for obsolete susceptibility to ischemic stroke.",
+        "Amlodipine is indicated for stroke disorder.",
+        "Amphetamine is contraindicated in obsolete susceptibility to ischemic stroke.",
+        "Amphetamine is contraindicated in stroke disorder.",
+        "Ardeparin is indicated for pulmonary embolism (disease).",
+        "Aripiprazole is contraindicated in coronary thrombosis.",
+        "Aripiprazole is contraindicated in hemoglobinopathy.",
+        "Aripiprazole is contraindicated in myocardial infarction.",
+        "Aripiprazole is contraindicated in myocardial infarction (disease).",
+        "Asenapine is contraindicated in coronary thrombosis.",
+        "Asenapine is contraindicated in hemoglobinopathy.",
+        "Asenapine is contraindicated in myocardial infarction.",
+        "Asenapine is contraindicated in myocardial infarction (disease).",
+        "Asenapine is contraindicated in obsolete susceptibility to ischemic stroke.",
+        "Asenapine is contraindicated in stroke disorder.",
+        "Atenolol is indicated for coronary thrombosis.",
+        "Atenolol is indicated for hemoglobinopathy.",
+        "Atenolol is indicated for myocardial infarction.",
+        "Atenolol is indicated for myocardial infarction (disease)."
+      ],
+      "linked_entities": [
+        {
+          "cui": "C0086582",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "male"
+        },
+        {
+          "cui": "C1706180",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "male"
+        },
+        {
+          "cui": "C1706428",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "male"
+        },
+        {
+          "cui": "C1706429",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "male"
+        },
+        {
+          "cui": "C0027855",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "neurology"
+        },
+        {
+          "cui": "C0234856",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "speaking"
+        },
+        {
+          "cui": "C0205178",
+          "kg_node_id": "25836",
+          "kg_node_type": "effect/phenotype",
+          "match_method": "name_match",
+          "text": "acute"
+        },
+        {
+          "cui": "C1547229",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "acute"
+        },
+        {
+          "cui": "C1547295",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "acute"
+        },
+        {
+          "cui": "C0039798",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "treatment"
+        },
+        {
+          "cui": "C0087111",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "treatment"
+        },
+        {
+          "cui": "C1522326",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "treatment"
+        },
+        {
+          "cui": "C1533734",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "treatment"
+        },
+        {
+          "cui": "C1705169",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "treatment"
+        },
+        {
+          "cui": "C0032143",
+          "kg_node_id": "16589",
+          "kg_node_type": "drug",
+          "match_method": "name_match",
+          "text": "tissue plasminogen activator ("
+        },
+        {
+          "cui": "C0084796",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "tissue plasminogen activator ("
+        },
+        {
+          "cui": "C1367601",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "tissue plasminogen activator ("
+        },
+        {
+          "cui": "C0032143",
+          "kg_node_id": "16589",
+          "kg_node_type": "drug",
+          "match_method": "name_match",
+          "text": "tPA"
+        },
+        {
+          "cui": "C0039654",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "tPA"
+        },
+        {
+          "cui": "C0084796",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "tPA"
+        },
+        {
+          "cui": "C1367601",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "tPA"
+        },
+        {
+          "cui": "C1623117",
+          "kg_node_id": "120171",
+          "kg_node_type": "molecular_function",
+          "match_method": "name_match",
+          "text": "tPA"
+        },
+        {
+          "cui": "C0030705",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "patient"
+        },
+        {
+          "cui": "C1550655",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "patient"
+        },
+        {
+          "cui": "C1578481",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "patient"
+        },
+        {
+          "cui": "C1578483",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "patient"
+        },
+        {
+          "cui": "C1578484",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "patient"
+        },
+        {
+          "cui": "C0037817",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "speech"
+        },
+        {
+          "cui": "C0302828",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "instructions"
+        },
+        {
+          "cui": "C1442085",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "instructions"
+        },
+        {
+          "cui": "C3263700",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "instructions"
+        },
+        {
+          "cui": "C0039401",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "instructions"
+        },
+        {
+          "cui": "C0392185",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "verbal repetition"
+        },
+        {
+          "cui": "C1609982",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Residual"
+        },
+        {
+          "cui": "C0010957",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "damage"
+        },
+        {
+          "cui": "C1883709",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "damage"
+        },
+        {
+          "cui": "C2681922",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "damage"
+        },
+        {
+          "cui": "C0678594",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "structures"
+        },
+        {
+          "cui": "C0262950",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "structures"
+        },
+        {
+          "cui": "C0228270",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Arcuate fasciculus"
+        },
+        {
+          "cui": "C2329633",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Arcuate fasciculus"
+        },
+        {
+          "cui": "C0152309",
+          "kg_node_id": "65177",
+          "kg_node_type": "anatomy",
+          "match_method": "name_match",
+          "text": "Superior temporal gyrus"
+        },
+        {
+          "cui": "C0152298",
+          "kg_node_id": "65390",
+          "kg_node_type": "anatomy",
+          "match_method": "name_match",
+          "text": "Inferior frontal gyrus"
+        },
+        {
+          "cui": "C0152309",
+          "kg_node_id": "65177",
+          "kg_node_type": "anatomy",
+          "match_method": "name_match",
+          "text": "superior temporal gyrus"
+        },
+        {
+          "cui": "C0152298",
+          "kg_node_id": "65390",
+          "kg_node_type": "anatomy",
+          "match_method": "name_match",
+          "text": "inferior frontal gyrus"
+        }
+      ],
+      "n_triples_total": 40,
+      "question": "A 67-year-old male is seen by neurology after he was noticed to be speaking strangely by his family. After acute treatment with tissue plasminogen activator (tPA), the patient is able to recover most of his speech. Subsequent neurologic exam finds that the patient is fluent while speaking and is able to comprehend both one and two step instructions. Noticeably the patient remains unable to complete tasks involving verbal repetition. Residual damage to which of the following structures is most likely responsible for this patient's syndrome?",
+      "question_id": "test_00039",
+      "triples": [
+        {
+          "head": "Acenocoumarol",
+          "novel": true,
+          "relation": "indication",
+          "relevant": false,
+          "tail": "pulmonary embolism (disease)"
+        },
+        {
+          "head": "Acyclovir",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "coronary thrombosis"
+        },
+        {
+          "head": "Acyclovir",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "hemoglobinopathy"
+        },
+        {
+          "head": "Acyclovir",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "myocardial infarction"
+        },
+        {
+          "head": "Acyclovir",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "myocardial infarction (disease)"
+        },
+        {
+          "head": "Acyclovir",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "obsolete susceptibility to ischemic stroke"
+        },
+        {
+          "head": "Acyclovir",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "stroke disorder"
+        },
+        {
+          "head": "Adomiparin",
+          "novel": true,
+          "relation": "indication",
+          "relevant": false,
+          "tail": "pulmonary embolism (disease)"
+        },
+        {
+          "head": "Almotriptan",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "obsolete susceptibility to ischemic stroke"
+        },
+        {
+          "head": "Almotriptan",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "stroke disorder"
+        }
+      ],
+      "triples_note": "showing the 10/40 triples actually scored for novelty/relevance (see NOVELTY_MAX_TRIPLES_SCORED); the rest of entry.triples exist in the cache but were not scored in this run."
+    },
+    {
+      "category": "physiology",
+      "evidence_text": [
+        "Acetaminophen has the effect Fatigue.",
+        "Acitretin has the effect Fatigue.",
+        "Acyclovir is contraindicated in hypertensive disorder.",
+        "Acyclovir has the effect Fatigue.",
+        "Adenosine is contraindicated in hypotensive disorder.",
+        "Progressive is a phenotype associated with Aicardi-Goutieres syndrome.",
+        "Alfentanil is contraindicated in hypotensive disorder.",
+        "Alfentanil has the effect Fatigue.",
+        "Alitretinoin has the effect Fatigue.",
+        "Alprazolam has the effect Fatigue.",
+        "Amitriptyline has the effect Fatigue.",
+        "Amlodipine is contraindicated in agranulocytosis.",
+        "Amlodipine is contraindicated in benign recurrent intrahepatic cholestasis.",
+        "Amlodipine is contraindicated in bone disease.",
+        "Amlodipine is contraindicated in cartilage disease.",
+        "Amlodipine is contraindicated in congenital hypothyroidism.",
+        "Amlodipine is contraindicated in connective tissue disease.",
+        "Amlodipine is contraindicated in diabetes mellitus (disease).",
+        "Amlodipine is contraindicated in diabetic ketoacidosis.",
+        "Amlodipine is contraindicated in familial intrahepatic cholestasis.",
+        "Amlodipine is contraindicated in gallbladder disease.",
+        "Amlodipine is contraindicated in hepatic encephalopathy.",
+        "Amlodipine is contraindicated in hereditary angioedema.",
+        "Amlodipine is contraindicated in hereditary angioedema with C1Inh deficiency.",
+        "Amlodipine is contraindicated in hypercalcemia disease.",
+        "Amlodipine is contraindicated in hyperparathyroidism.",
+        "Amlodipine is contraindicated in hypotensive disorder.",
+        "Amlodipine is contraindicated in hypothyroidism.",
+        "Amlodipine is contraindicated in impaired renal function disease.",
+        "Amlodipine is contraindicated in injury.",
+        "Amlodipine is contraindicated in kidney disease.",
+        "Amlodipine is contraindicated in liver disease.",
+        "Amlodipine is contraindicated in muscular disease.",
+        "Amlodipine is contraindicated in myopathy.",
+        "Amlodipine is contraindicated in myxedema.",
+        "Amlodipine is contraindicated in neutropenia.",
+        "Amlodipine is contraindicated in nodular fasciitis.",
+        "Amlodipine is contraindicated in pancreatitis.",
+        "Amlodipine is contraindicated in pediatric systemic lupus erythematosus.",
+        "Amlodipine is contraindicated in phosphorus metabolism disease."
+      ],
+      "linked_entities": [
+        {
+          "cui": "C0025266",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "man"
+        },
+        {
+          "cui": "C0086418",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "man"
+        },
+        {
+          "cui": "C0086582",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "man"
+        },
+        {
+          "cui": "C4724040",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "man"
+        },
+        {
+          "cui": "C0019664",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "history"
+        },
+        {
+          "cui": "C0019665",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "history"
+        },
+        {
+          "cui": "C0262512",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "history"
+        },
+        {
+          "cui": "C0262926",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "history"
+        },
+        {
+          "cui": "C1705255",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "history"
+        },
+        {
+          "cui": "C0020538",
+          "kg_node_id": "33577",
+          "kg_node_type": "disease",
+          "match_method": "mondo_xref",
+          "text": "hypertension"
+        },
+        {
+          "cui": "C0235222",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "hypertension"
+        },
+        {
+          "cui": "C1696708",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "hypertension"
+        },
+        {
+          "cui": "C0221155",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "hypertension"
+        },
+        {
+          "cui": "C0031831",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "physician"
+        },
+        {
+          "cui": "C0804815",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "physician"
+        },
+        {
+          "cui": "C0205329",
+          "kg_node_id": "85586",
+          "kg_node_type": "effect/phenotype",
+          "match_method": "name_match",
+          "text": "progressive"
+        },
+        {
+          "cui": "C0015672",
+          "kg_node_id": "25620",
+          "kg_node_type": "effect/phenotype",
+          "match_method": "name_match",
+          "text": "fatigue"
+        },
+        {
+          "cui": "C3165508",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "fatigue"
+        },
+        {
+          "cui": "C4744662",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "fatigue"
+        },
+        {
+          "cui": "C0026821",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "muscle cramps"
+        },
+        {
+          "cui": "C0037763",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "muscle cramps"
+        },
+        {
+          "cui": "C0023218",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "muscle cramps"
+        },
+        {
+          "cui": "C5237734",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "muscle cramps"
+        },
+        {
+          "cui": "C0392747",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "changes"
+        },
+        {
+          "cui": "C0443172",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "changes"
+        },
+        {
+          "cui": "C0237125",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "medication regimen"
+        },
+        {
+          "cui": "C0020261",
+          "kg_node_id": "14276",
+          "kg_node_type": "drug",
+          "match_method": "name_match",
+          "text": "hydrochlorothiazide"
+        },
+        {
+          "cui": "C0065374",
+          "kg_node_id": "16690",
+          "kg_node_type": "drug",
+          "match_method": "name_match",
+          "text": "lisinopril"
+        },
+        {
+          "cui": "C0051696",
+          "kg_node_id": "14944",
+          "kg_node_type": "drug",
+          "match_method": "name_match",
+          "text": "amlodipine"
+        },
+        {
+          "cui": "C0005903",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "temperature"
+        },
+        {
+          "cui": "C0039476",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "temperature"
+        },
+        {
+          "cui": "C0886414",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "temperature"
+        },
+        {
+          "cui": "C0009264",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "temperature"
+        },
+        {
+          "cui": "C0005823",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "blood pressure"
+        },
+        {
+          "cui": "C0005824",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "blood pressure"
+        },
+        {
+          "cui": "C1271104",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "blood pressure"
+        },
+        {
+          "cui": "C1272641",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "blood pressure"
+        },
+        {
+          "cui": "C0020649",
+          "kg_node_id": "33605",
+          "kg_node_type": "disease",
+          "match_method": "mondo_xref",
+          "text": "blood pressure"
+        },
+        {
+          "cui": "C0439475",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "mmHg"
+        },
+        {
+          "cui": "C0034107",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "pulse"
+        },
+        {
+          "cui": "C0232117",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "pulse"
+        },
+        {
+          "cui": "C0391850",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "pulse"
+        },
+        {
+          "cui": "C1947910",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "pulse"
+        },
+        {
+          "cui": "C0035203",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "respirations"
+        },
+        {
+          "cui": "C0282636",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "respirations"
+        },
+        {
+          "cui": "C1160636",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "respirations"
+        },
+        {
+          "cui": "C0369768",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "oxygen saturation"
+        },
+        {
+          "cui": "C0483415",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "oxygen saturation"
+        },
+        {
+          "cui": "C0523807",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "oxygen saturation"
+        },
+        {
+          "cui": "C0746961",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "oxygen saturation"
+        },
+        {
+          "cui": "C3846005",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "room air"
+        },
+        {
+          "cui": "C0205307",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "unremarkable"
+        },
+        {
+          "cui": "C4277633",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Laboratory values"
+        },
+        {
+          "cui": "C1705176",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "ordered"
+        },
+        {
+          "cui": "C1705178",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "ordered"
+        },
+        {
+          "cui": "C0229671",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Serum"
+        },
+        {
+          "cui": "C1546774",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Serum"
+        },
+        {
+          "cui": "C1550100",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Serum"
+        },
+        {
+          "cui": "C5575602",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Serum"
+        },
+        {
+          "cui": "C0597484",
+          "kg_node_id": "21027",
+          "kg_node_type": "drug",
+          "match_method": "name_match",
+          "text": "Na+"
+        },
+        {
+          "cui": "C0005845",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "BUN"
+        },
+        {
+          "cui": "C0600137",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "BUN"
+        },
+        {
+          "cui": "C0015127",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "etiology"
+        },
+        {
+          "cui": "C1314792",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "etiology"
+        },
+        {
+          "cui": "C1524003",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "etiology"
+        },
+        {
+          "cui": "C0002006",
+          "kg_node_id": "14688",
+          "kg_node_type": "drug",
+          "match_method": "name_match",
+          "text": "Aldosterone"
+        },
+        {
+          "cui": "C0020488",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "excess"
+        },
+        {
+          "cui": "C0020268",
+          "kg_node_id": "14028",
+          "kg_node_type": "drug",
+          "match_method": "name_match",
+          "text": "Cortisol"
+        }
+      ],
+      "n_triples_total": 40,
+      "question": "A 56-year-old man with a history of hypertension presents to his physician with progressive fatigue and new onset muscle cramps. He has had no recent changes to his medication regimen, which includes hydrochlorothiazide, lisinopril, and amlodipine. His temperature is 98.0\u00b0F (36.7\u00b0C), blood pressure is 174/111 mmHg, pulse is 70/min, respirations are 12/min, and oxygen saturation is 98% on room air. The patient's cardiopulmonary and abdominal exams are unremarkable. Laboratory values are ordered as seen below.\n\nSerum:\nNa+: 138 mEq/L\nCl-: 100 mEq/L\nK+: 3.3 mEq/L\nHCO3-: 33 mEq/L\nBUN: 20 mg/dL\nGlucose: 129 mg/dL\n\nWhat is the most likely underlying etiology of this patient's hypertension?",
+      "question_id": "test_00051",
+      "triples": [
+        {
+          "head": "Acetaminophen",
+          "novel": false,
+          "relation": "drug_effect",
+          "relevant": true,
+          "tail": "Fatigue"
+        },
+        {
+          "head": "Acitretin",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": true,
+          "tail": "Fatigue"
+        },
+        {
+          "head": "Acyclovir",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "hypertensive disorder"
+        },
+        {
+          "head": "Acyclovir",
+          "novel": false,
+          "relation": "drug_effect",
+          "relevant": true,
+          "tail": "Fatigue"
+        },
+        {
+          "head": "Adenosine",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "hypotensive disorder"
+        },
+        {
+          "head": "Aicardi-Goutieres syndrome",
+          "novel": true,
+          "relation": "disease_phenotype_positive",
+          "relevant": true,
+          "tail": "Progressive"
+        },
+        {
+          "head": "Alfentanil",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "hypotensive disorder"
+        },
+        {
+          "head": "Alfentanil",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": true,
+          "tail": "Fatigue"
+        },
+        {
+          "head": "Alitretinoin",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": true,
+          "tail": "Fatigue"
+        },
+        {
+          "head": "Alprazolam",
+          "novel": false,
+          "relation": "drug_effect",
+          "relevant": true,
+          "tail": "Fatigue"
+        }
+      ],
+      "triples_note": "showing the 10/40 triples actually scored for novelty/relevance (see NOVELTY_MAX_TRIPLES_SCORED); the rest of entry.triples exist in the cache but were not scored in this run."
+    },
+    {
+      "category": "other",
+      "evidence_text": [
+        "Acetophenazine is contraindicated in tardive dyskinesia (disease).",
+        "Acitretin has the effect Pain.",
+        "Acyclovir has the effect Pain.",
+        "Alfentanil has the effect Pain.",
+        "Alimemazine is contraindicated in tardive dyskinesia (disease).",
+        "Alitretinoin has the effect Pain.",
+        "Amitriptyline is contraindicated in tardive dyskinesia (disease).",
+        "Amoxapine is contraindicated in tardive dyskinesia (disease).",
+        "Argatroban has the effect Pain.",
+        "Aripiprazole is contraindicated in tardive dyskinesia (disease).",
+        "Asenapine is contraindicated in tardive dyskinesia (disease).",
+        "Atenolol has the effect Pain.",
+        "Atomoxetine has the effect Pain.",
+        "Beclomethasone dipropionate has the effect Pain.",
+        "Benzatropine is contraindicated in tardive dyskinesia (disease).",
+        "Betamethasone has the effect Pain.",
+        "Biperiden is contraindicated in tardive dyskinesia (disease).",
+        "Budesonide has the effect Pain.",
+        "Buspirone has the effect Pain.",
+        "Chlorhexidine has the effect Pain.",
+        "Chlorpromazine is contraindicated in tardive dyskinesia (disease).",
+        "Chlorprothixene is contraindicated in tardive dyskinesia (disease).",
+        "Ciprofloxacin has the effect Pain.",
+        "Cisplatin has the effect Pain.",
+        "Clonidine has the effect Pain.",
+        "Clozapine is contraindicated in tardive dyskinesia (disease).",
+        "Conjugated estrogens has the effect Pain.",
+        "Deutetrabenazine is indicated for tardive dyskinesia (disease).",
+        "Diazepam has the effect Pain.",
+        "Diclofenac has the effect Pain.",
+        "Didanosine has the effect Pain.",
+        "Diltiazem has the effect Pain.",
+        "Duloxetine has the effect Pain.",
+        "Efavirenz has the effect Pain.",
+        "Emtricitabine has the effect Pain.",
+        "Erlotinib has the effect Pain.",
+        "Estradiol has the effect Pain.",
+        "Estrone has the effect Pain.",
+        "Etacrynic acid has the effect Pain.",
+        "Etodolac has the effect Pain."
+      ],
+      "linked_entities": [
+        {
+          "cui": "C0025266",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "man"
+        },
+        {
+          "cui": "C0086418",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "man"
+        },
+        {
+          "cui": "C0086582",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "man"
+        },
+        {
+          "cui": "C4724040",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "man"
+        },
+        {
+          "cui": "C0036341",
+          "kg_node_id": "28313",
+          "kg_node_type": "disease",
+          "match_method": "mondo_xref",
+          "text": "schizophrenia"
+        },
+        {
+          "cui": "C0220702",
+          "kg_node_id": "28313",
+          "kg_node_type": "disease",
+          "match_method": "mondo_xref",
+          "text": "schizophrenia"
+        },
+        {
+          "cui": "C0021562",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "inpatient"
+        },
+        {
+          "cui": "C1555324",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "inpatient"
+        },
+        {
+          "cui": "C2700116",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "unusual"
+        },
+        {
+          "cui": "C0023759",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "lips"
+        },
+        {
+          "cui": "C0005757",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "blinking"
+        },
+        {
+          "cui": "C0683368",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "symptoms"
+        },
+        {
+          "cui": "C1457887",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "symptoms"
+        },
+        {
+          "cui": "C0030193",
+          "kg_node_id": "22982",
+          "kg_node_type": "effect/phenotype",
+          "match_method": "name_match",
+          "text": "symptoms"
+        },
+        {
+          "cui": "C0439230",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "weeks"
+        },
+        {
+          "cui": "C0030705",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "patient"
+        },
+        {
+          "cui": "C1550655",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "patient"
+        },
+        {
+          "cui": "C1578481",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "patient"
+        },
+        {
+          "cui": "C1578483",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "patient"
+        },
+        {
+          "cui": "C1578484",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "patient"
+        },
+        {
+          "cui": "C1709763",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "psychiatric facility"
+        },
+        {
+          "cui": "C0332293",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "treated with"
+        },
+        {
+          "cui": "C1522326",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "treated with"
+        },
+        {
+          "cui": "C0018546",
+          "kg_node_id": "14952",
+          "kg_node_type": "drug",
+          "match_method": "name_match",
+          "text": "haloperidol"
+        },
+        {
+          "cui": "C0919241",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "haloperidol"
+        },
+        {
+          "cui": "C0439231",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "months"
+        },
+        {
+          "cui": "C0031809",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "physical exam"
+        },
+        {
+          "cui": "C1509143",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "physical exam"
+        },
+        {
+          "cui": "C0442816",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "normal limits"
+        },
+        {
+          "cui": "C0686347",
+          "kg_node_id": "31348",
+          "kg_node_type": "disease",
+          "match_method": "mondo_xref",
+          "text": "Tardive dyskinesia"
+        },
+        {
+          "cui": "C3714760",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Tardive dyskinesia"
+        }
+      ],
+      "n_triples_total": 40,
+      "question": "A 61-year-old man with schizophrenia in a locked inpatient psychiatry unit was observed making an unusual smacking motion with his lips, pursing his mouth, and blinking excessively. These symptoms started slowly about 2 weeks ago and have become more pronounced, but they do not seem to bother the patient. He resides in an inpatient psychiatric facility where he has been successfully treated with haloperidol for the past several months. His physical exam and vitals are within normal limits. Which of the following accurately describes his symptoms?",
+      "question_id": "test_00054",
+      "triples": [
+        {
+          "head": "Acetophenazine",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "tardive dyskinesia (disease)"
+        },
+        {
+          "head": "Acitretin",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": false,
+          "tail": "Pain"
+        },
+        {
+          "head": "Acyclovir",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": false,
+          "tail": "Pain"
+        },
+        {
+          "head": "Alfentanil",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": false,
+          "tail": "Pain"
+        },
+        {
+          "head": "Alimemazine",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "tardive dyskinesia (disease)"
+        },
+        {
+          "head": "Alitretinoin",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": false,
+          "tail": "Pain"
+        },
+        {
+          "head": "Amitriptyline",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "tardive dyskinesia (disease)"
+        },
+        {
+          "head": "Amoxapine",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "tardive dyskinesia (disease)"
+        },
+        {
+          "head": "Argatroban",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": false,
+          "tail": "Pain"
+        },
+        {
+          "head": "Aripiprazole",
+          "novel": true,
+          "relation": "contraindication",
+          "relevant": false,
+          "tail": "tardive dyskinesia (disease)"
+        }
+      ],
+      "triples_note": "showing the 10/40 triples actually scored for novelty/relevance (see NOVELTY_MAX_TRIPLES_SCORED); the rest of entry.triples exist in the cache but were not scored in this run."
+    },
+    {
+      "category": "physiology",
+      "evidence_text": [
+        "Acetaminophen has the effect Dyspnea.",
+        "Acetaminophen has the effect Headache.",
+        "Acetaminophen has the effect Nausea.",
+        "Acetaminophen has the effect Pruritus.",
+        "Acetaminophen has the effect Tachycardia.",
+        "Acitretin has the effect Headache.",
+        "Acitretin has the effect Nausea.",
+        "Acitretin has the effect Pain.",
+        "Acitretin has the effect Pruritus.",
+        "Acyclovir has the effect Dyspnea.",
+        "Acyclovir has the effect Pain.",
+        "Acyclovir has the effect Pruritus.",
+        "Acyclovir has the effect Tachycardia.",
+        "Alclometasone has the effect Pruritus.",
+        "Alfentanil has the effect Pain.",
+        "Alfentanil has the effect Pruritus.",
+        "Alfentanil has the effect Tachycardia.",
+        "Alitretinoin has the effect Dyspnea.",
+        "Alitretinoin has the effect Headache.",
+        "Alitretinoin has the effect Nausea.",
+        "Alitretinoin has the effect Pain.",
+        "Alitretinoin has the effect Pruritus.",
+        "Alitretinoin has the effect Tachycardia.",
+        "Alprazolam has the effect Dyspnea.",
+        "Alprazolam has the effect Headache.",
+        "Alprazolam has the effect Nausea.",
+        "Alprazolam has the effect Pruritus.",
+        "Alprazolam has the effect Tachycardia.",
+        "Amiodarone has the effect Tachycardia.",
+        "Amitriptyline has the effect Headache.",
+        "Amitriptyline has the effect Nausea.",
+        "Amitriptyline has the effect Pruritus.",
+        "Amitriptyline has the effect Tachycardia.",
+        "Ampicillin has the effect Nausea.",
+        "Ampicillin has the effect Pruritus.",
+        "Apomorphine has the effect Dyspnea.",
+        "Apomorphine has the effect Headache.",
+        "Apomorphine has the effect Nausea.",
+        "Apomorphine has the effect Pruritus.",
+        "Argatroban has the effect Dyspnea."
+      ],
+      "linked_entities": [
+        {
+          "cui": "C0043210",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "female"
+        },
+        {
+          "cui": "C0086287",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "female"
+        },
+        {
+          "cui": "C1705497",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "female"
+        },
+        {
+          "cui": "C1705498",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "female"
+        },
+        {
+          "cui": "C0557806",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "college"
+        },
+        {
+          "cui": "C0038492",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "student"
+        },
+        {
+          "cui": "C0038493",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "student"
+        },
+        {
+          "cui": "C0332293",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "treated with"
+        },
+        {
+          "cui": "C1522326",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "treated with"
+        },
+        {
+          "cui": "C0025872",
+          "kg_node_id": "14980",
+          "kg_node_type": "drug",
+          "match_method": "name_match",
+          "text": "metronidazole"
+        },
+        {
+          "cui": "C0018747",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "health services"
+        },
+        {
+          "cui": "C0025355",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "health services"
+        },
+        {
+          "cui": "C0011365",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "health services"
+        },
+        {
+          "cui": "C0085141",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "health services"
+        },
+        {
+          "cui": "C0033774",
+          "kg_node_id": "25945",
+          "kg_node_type": "effect/phenotype",
+          "match_method": "name_match",
+          "text": "itching"
+        },
+        {
+          "cui": "C0033775",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "itching"
+        },
+        {
+          "cui": "C0012621",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "discharge"
+        },
+        {
+          "cui": "C0030685",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "discharge"
+        },
+        {
+          "cui": "C0600083",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "discharge"
+        },
+        {
+          "cui": "C1546601",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "discharge"
+        },
+        {
+          "cui": "C2926602",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "discharge"
+        },
+        {
+          "cui": "C0030193",
+          "kg_node_id": "22982",
+          "kg_node_type": "effect/phenotype",
+          "match_method": "name_match",
+          "text": "pain"
+        },
+        {
+          "cui": "C1549543",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "pain"
+        },
+        {
+          "cui": "C2598155",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "pain"
+        },
+        {
+          "cui": "C0042232",
+          "kg_node_id": "63465",
+          "kg_node_type": "anatomy",
+          "match_method": "name_match",
+          "text": "vagina"
+        },
+        {
+          "cui": "C1519910",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "vagina"
+        },
+        {
+          "cui": "C4482396",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "vagina"
+        },
+        {
+          "cui": "C1522570",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "vagina"
+        },
+        {
+          "cui": "C0596545",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "experiences"
+        },
+        {
+          "cui": "C0016382",
+          "kg_node_id": "22577",
+          "kg_node_type": "effect/phenotype",
+          "match_method": "name_match",
+          "text": "facial flushing"
+        },
+        {
+          "cui": "C0027497",
+          "kg_node_id": "84409",
+          "kg_node_type": "effect/phenotype",
+          "match_method": "name_match",
+          "text": "nausea"
+        },
+        {
+          "cui": "C4255480",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "nausea"
+        },
+        {
+          "cui": "C0039231",
+          "kg_node_id": "23833",
+          "kg_node_type": "effect/phenotype",
+          "match_method": "name_match",
+          "text": "tachycardia"
+        },
+        {
+          "cui": "C3827868",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "tachycardia"
+        },
+        {
+          "cui": "C0013404",
+          "kg_node_id": "23011",
+          "kg_node_type": "effect/phenotype",
+          "match_method": "name_match",
+          "text": "dyspnea"
+        },
+        {
+          "cui": "C0743330",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "dyspnea"
+        },
+        {
+          "cui": "C0018681",
+          "kg_node_id": "23002",
+          "kg_node_type": "effect/phenotype",
+          "match_method": "name_match",
+          "text": "headache"
+        },
+        {
+          "cui": "C0000729",
+          "kg_node_id": "91606",
+          "kg_node_type": "effect/phenotype",
+          "match_method": "name_match",
+          "text": "abdominal cramps"
+        },
+        {
+          "cui": "C1261155",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Serum levels"
+        },
+        {
+          "cui": "C0205250",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "elevated"
+        },
+        {
+          "cui": "C3163633",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "elevated"
+        },
+        {
+          "cui": "C0520886",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "elevated"
+        },
+        {
+          "cui": "C0151904",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "elevated"
+        },
+        {
+          "cui": "C0221106",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "elevated"
+        },
+        {
+          "cui": "C0030705",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "patient"
+        },
+        {
+          "cui": "C1550655",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "patient"
+        },
+        {
+          "cui": "C1578481",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "patient"
+        },
+        {
+          "cui": "C1578483",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "patient"
+        },
+        {
+          "cui": "C1578484",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "patient"
+        },
+        {
+          "cui": "C0001948",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "alcohol consumption"
+        },
+        {
+          "cui": "C0556346",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "alcohol consumption"
+        },
+        {
+          "cui": "C0010762",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Cytochrome P-450 enzymes"
+        },
+        {
+          "cui": "C0002712",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Amylase"
+        },
+        {
+          "cui": "C0002245",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Amylase"
+        }
+      ],
+      "n_triples_total": 40,
+      "question": "A 22-year-old female college student is treated with metronidazole after presenting to student health services with itching, discharge, and pain in her vagina. At a party shortly afterward she experiences facial flushing, nausea, tachycardia, dyspnea, headache, and abdominal cramps after consuming alcohol. Serum levels of which of the following are likely elevated in this patient following alcohol consumption:",
+      "question_id": "test_00061",
+      "triples": [
+        {
+          "head": "Acetaminophen",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": true,
+          "tail": "Dyspnea"
+        },
+        {
+          "head": "Acetaminophen",
+          "novel": false,
+          "relation": "drug_effect",
+          "relevant": true,
+          "tail": "Headache"
+        },
+        {
+          "head": "Acetaminophen",
+          "novel": false,
+          "relation": "drug_effect",
+          "relevant": true,
+          "tail": "Nausea"
+        },
+        {
+          "head": "Acetaminophen",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": false,
+          "tail": "Pruritus"
+        },
+        {
+          "head": "Acetaminophen",
+          "novel": false,
+          "relation": "drug_effect",
+          "relevant": true,
+          "tail": "Tachycardia"
+        },
+        {
+          "head": "Acitretin",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": true,
+          "tail": "Headache"
+        },
+        {
+          "head": "Acitretin",
+          "novel": false,
+          "relation": "drug_effect",
+          "relevant": true,
+          "tail": "Nausea"
+        },
+        {
+          "head": "Acitretin",
+          "novel": false,
+          "relation": "drug_effect",
+          "relevant": true,
+          "tail": "Pain"
+        },
+        {
+          "head": "Acitretin",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": false,
+          "tail": "Pruritus"
+        },
+        {
+          "head": "Acyclovir",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": true,
+          "tail": "Dyspnea"
+        }
+      ],
+      "triples_note": "showing the 10/40 triples actually scored for novelty/relevance (see NOVELTY_MAX_TRIPLES_SCORED); the rest of entry.triples exist in the cache but were not scored in this run."
+    },
+    {
+      "category": "pharmacology",
+      "evidence_text": [
+        "Abnormal blistering of the skin is a phenotype associated with Bazex syndrome.",
+        "Abnormal blistering of the skin is a phenotype associated with Behcet disease.",
+        "Abnormal blistering of the skin is a phenotype associated with Bloom syndrome.",
+        "Abnormal blistering of the skin is a phenotype associated with Hartnup disease.",
+        "Abnormal blistering of the skin is a phenotype associated with KRT14-related epidermolysis bullosa simplex.",
+        "Abnormal blistering of the skin is a phenotype associated with Kikuchi-Fujimoto disease.",
+        "Abnormal blistering of the skin is a phenotype associated with Kindler syndrome.",
+        "Abnormal blistering of the skin is a phenotype associated with Lyell syndrome.",
+        "Abnormal blistering of the skin is a phenotype associated with Rothmund-Thomson syndrome.",
+        "Abnormal blistering of the skin is a phenotype associated with Stevens-Johnson syndrome.",
+        "Abnormal blistering of the skin is a phenotype associated with Wells syndrome.",
+        "Abnormal blistering of the skin is a phenotype associated with Zygomycosis.",
+        "Abnormal blistering of the skin is a phenotype associated with absence of fingerprints-congenital milia syndrome.",
+        "Abnormal blistering of the skin is a phenotype associated with acquired purpura fulminans.",
+        "Abnormal blistering of the skin is a phenotype associated with acral peeling skin syndrome.",
+        "Abnormal blistering of the skin is a phenotype associated with acrodermatitis enteropathica.",
+        "Abnormal blistering of the skin is a phenotype associated with autoimmune polyendocrine.",
+        "Abnormal blistering of the skin is a phenotype associated with bullous dystrophy, macular type.",
+        "Abnormal blistering of the skin is a phenotype associated with bullous impetigo.",
+        "Abnormal blistering of the skin is a phenotype associated with bullous pemphigoid.",
+        "Abnormal blistering of the skin is a phenotype associated with chikungunya.",
+        "Abnormal blistering of the skin is a phenotype associated with chromosome 1p36 deletion syndrome.",
+        "Abnormal blistering of the skin is a phenotype associated with congenital nephrotic syndrome - interstitial lung disease - epidermolysis bullosa syndrome.",
+        "Abnormal blistering of the skin is a phenotype associated with cutaneous mastocytosis.",
+        "Abnormal blistering of the skin is a phenotype associated with cutaneous porphyria.",
+        "Abnormal blistering of the skin is a phenotype associated with dermatitis herpetiformis.",
+        "Abnormal blistering of the skin is a phenotype associated with diffuse cutaneous mastocytosis.",
+        "Abnormal blistering of the skin is a phenotype associated with dracunculiasis.",
+        "Abnormal blistering of the skin is a phenotype associated with dyskeratosis congenita.",
+        "Abnormal blistering of the skin is a phenotype associated with dystrophic epidermolysis bullosa.",
+        "Abnormal blistering of the skin is a phenotype associated with epidermolysis bullosa simplex.",
+        "Abnormal blistering of the skin is a phenotype associated with epidermolysis bullosa simplex due to plakophilin deficiency.",
+        "Abnormal blistering of the skin is a phenotype associated with epidermolysis bullosa simplex with anodontia/hypodontia.",
+        "Abnormal blistering of the skin is a phenotype associated with epidermolysis bullosa simplex with circinate migratory erythema.",
+        "Abnormal blistering of the skin is a phenotype associated with epidermolysis bullosa simplex with mottled pigmentation.",
+        "Abnormal blistering of the skin is a phenotype associated with epidermolysis bullosa simplex with pyloric atresia.",
+        "Abnormal blistering of the skin is a phenotype associated with epidermolysis bullosa with deficiency of galactosylhydroxylysyl glucosyltransferase.",
+        "Abnormal blistering of the skin is a phenotype associated with epidermolysis bullosa with diaphragmatic hernia.",
+        "Abnormal blistering of the skin is a phenotype associated with epidermolytic hyperkeratosis.",
+        "Abnormal blistering of the skin is a phenotype associated with erythema elevatum diutinum."
+      ],
+      "linked_entities": [
+        {
+          "cui": "C3898900",
+          "kg_node_id": "91716",
+          "kg_node_type": "effect/phenotype",
+          "match_method": "name_match",
+          "text": "healthy"
+        },
+        {
+          "cui": "C0025266",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "man"
+        },
+        {
+          "cui": "C0086418",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "man"
+        },
+        {
+          "cui": "C0086582",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "man"
+        },
+        {
+          "cui": "C4724040",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "man"
+        },
+        {
+          "cui": "C1547431",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "primary care provider"
+        },
+        {
+          "cui": "C2735025",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "primary care provider"
+        },
+        {
+          "cui": "C2735026",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "primary care provider"
+        },
+        {
+          "cui": "C0234226",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "painless"
+        },
+        {
+          "cui": "C0005758",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "blisters"
+        },
+        {
+          "cui": "C0344311",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "blisters"
+        },
+        {
+          "cui": "C2132198",
+          "kg_node_id": "23440",
+          "kg_node_type": "effect/phenotype",
+          "match_method": "name_match",
+          "text": "blisters"
+        },
+        {
+          "cui": "C0226896",
+          "kg_node_id": "63230",
+          "kg_node_type": "anatomy",
+          "match_method": "name_match",
+          "text": "mouth"
+        },
+        {
+          "cui": "C0230028",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "mouth"
+        },
+        {
+          "cui": "C0684224",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "reports"
+        },
+        {
+          "cui": "C0700287",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "reports"
+        },
+        {
+          "cui": "C0040408",
+          "kg_node_id": "64165",
+          "kg_node_type": "anatomy",
+          "match_method": "name_match",
+          "text": "tongue"
+        },
+        {
+          "cui": "C0439228",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "days"
+        },
+        {
+          "cui": "C0439505",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "days"
+        },
+        {
+          "cui": "C0086296",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "film"
+        },
+        {
+          "cui": "C1561570",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "film"
+        },
+        {
+          "cui": "C1561572",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "film"
+        },
+        {
+          "cui": "C1704608",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "film"
+        },
+        {
+          "cui": "C1704609",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "film"
+        },
+        {
+          "cui": "C0085624",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "burning"
+        },
+        {
+          "cui": "C0175627",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "burning"
+        },
+        {
+          "cui": "C0011168",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "dysphagia"
+        },
+        {
+          "cui": "C4683638",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "dysphagia"
+        },
+        {
+          "cui": "C0019825",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "hoarseness"
+        },
+        {
+          "cui": "C0013227",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "medications"
+        },
+        {
+          "cui": "C0802604",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "medications"
+        },
+        {
+          "cui": "C2598133",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "medications"
+        },
+        {
+          "cui": "C4284232",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "medications"
+        },
+        {
+          "cui": "C0150270",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "medications"
+        },
+        {
+          "cui": "C0679932",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "competitive"
+        },
+        {
+          "cui": "C0450068",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "swimmer"
+        },
+        {
+          "cui": "C0021355",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "swimmer"
+        },
+        {
+          "cui": "C0036911",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "sexual partners"
+        },
+        {
+          "cui": "C4086728",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "past year"
+        },
+        {
+          "cui": "C1706912",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "barrier"
+        },
+        {
+          "cui": "C1545588",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "protection"
+        },
+        {
+          "cui": "C0582103",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "exam"
+        },
+        {
+          "cui": "C4284036",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "exam"
+        },
+        {
+          "cui": "C0376306",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "oral examination"
+        },
+        {
+          "cui": "C0750862",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "oral examination"
+        },
+        {
+          "cui": "C0994894",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "patches"
+        },
+        {
+          "cui": "C0240821",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "white pseudomembranes"
+        },
+        {
+          "cui": "C5575038",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "white pseudomembranes"
+        },
+        {
+          "cui": "C0013227",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "medication"
+        },
+        {
+          "cui": "C3244316",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "medication"
+        },
+        {
+          "cui": "C4284232",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "medication"
+        },
+        {
+          "cui": "C0150270",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "medication"
+        },
+        {
+          "cui": "C0441712",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "mechanisms"
+        },
+        {
+          "cui": "C0441472",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "action"
+        },
+        {
+          "cui": "C1552007",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "action"
+        },
+        {
+          "cui": "C3266814",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "action"
+        },
+        {
+          "cui": "C1879547",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "action"
+        },
+        {
+          "cui": "C0040597",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "action"
+        },
+        {
+          "cui": "C0030705",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "patient"
+        },
+        {
+          "cui": "C1550655",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "patient"
+        },
+        {
+          "cui": "C1578481",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "patient"
+        },
+        {
+          "cui": "C1578483",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "patient"
+        },
+        {
+          "cui": "C1578484",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "patient"
+        },
+        {
+          "cui": "C0332453",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Disruption"
+        },
+        {
+          "cui": "C0007605",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "cell membrane permeability"
+        },
+        {
+          "cui": "C3893391",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "microtubule formation"
+        },
+        {
+          "cui": "C0021467",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Inhibition"
+        },
+        {
+          "cui": "C0021469",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Inhibition"
+        },
+        {
+          "cui": "C3463820",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Inhibition"
+        },
+        {
+          "cui": "C1628982",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Inhibition"
+        },
+        {
+          "cui": "C1152124",
+          "kg_node_id": "115508",
+          "kg_node_type": "molecular_function",
+          "match_method": "name_match",
+          "text": "beta-glucan synthase"
+        }
+      ],
+      "n_triples_total": 40,
+      "question": "A healthy 19-year-old man presents to his primary care provider complaining of painless \u201cblisters\u201d in his mouth. He reports that he noticed a white film on his tongue and the sides of his mouth 2 days ago while brushing his teeth. The film was easily brushed off. He also complains of a bitter metallic taste in his mouth but otherwise denies pain, burning, dysphagia, or hoarseness. He is otherwise healthy and takes no medications. He is a competitive swimmer and has had 8 sexual partners in the past year. He intermittently uses barrier protection. On exam, he is well-appearing and in no acute distress. His oral examination demonstrates patches of white pseudomembranes that can be wiped away to reveal erythematous mucosa. A medication with which of the following mechanisms of action is most appropriate in this patient?",
+      "question_id": "test_00064",
+      "triples": [
+        {
+          "head": "Bazex syndrome",
+          "novel": true,
+          "relation": "disease_phenotype_positive",
+          "relevant": false,
+          "tail": "Abnormal blistering of the skin"
+        },
+        {
+          "head": "Behcet disease",
+          "novel": true,
+          "relation": "disease_phenotype_positive",
+          "relevant": false,
+          "tail": "Abnormal blistering of the skin"
+        },
+        {
+          "head": "Bloom syndrome",
+          "novel": true,
+          "relation": "disease_phenotype_positive",
+          "relevant": false,
+          "tail": "Abnormal blistering of the skin"
+        },
+        {
+          "head": "Hartnup disease",
+          "novel": true,
+          "relation": "disease_phenotype_positive",
+          "relevant": false,
+          "tail": "Abnormal blistering of the skin"
+        },
+        {
+          "head": "KRT14-related epidermolysis bullosa simplex",
+          "novel": true,
+          "relation": "disease_phenotype_positive",
+          "relevant": false,
+          "tail": "Abnormal blistering of the skin"
+        },
+        {
+          "head": "Kikuchi-Fujimoto disease",
+          "novel": true,
+          "relation": "disease_phenotype_positive",
+          "relevant": false,
+          "tail": "Abnormal blistering of the skin"
+        },
+        {
+          "head": "Kindler syndrome",
+          "novel": true,
+          "relation": "disease_phenotype_positive",
+          "relevant": false,
+          "tail": "Abnormal blistering of the skin"
+        },
+        {
+          "head": "Lyell syndrome",
+          "novel": true,
+          "relation": "disease_phenotype_positive",
+          "relevant": false,
+          "tail": "Abnormal blistering of the skin"
+        },
+        {
+          "head": "Rothmund-Thomson syndrome",
+          "novel": true,
+          "relation": "disease_phenotype_positive",
+          "relevant": false,
+          "tail": "Abnormal blistering of the skin"
+        },
+        {
+          "head": "Stevens-Johnson syndrome",
+          "novel": true,
+          "relation": "disease_phenotype_positive",
+          "relevant": false,
+          "tail": "Abnormal blistering of the skin"
+        }
+      ],
+      "triples_note": "showing the 10/40 triples actually scored for novelty/relevance (see NOVELTY_MAX_TRIPLES_SCORED); the rest of entry.triples exist in the cache but were not scored in this run."
+    },
+    {
+      "category": "other",
+      "evidence_text": [
+        "Acitretin has the effect Pain.",
+        "Acyclovir has the effect Pain.",
+        "Alectinib is indicated for non-small cell lung carcinoma (disease).",
+        "Alfentanil has the effect Pain.",
+        "Alitretinoin has the effect Pain.",
+        "Argatroban has the effect Pain.",
+        "Atenolol has the effect Pain.",
+        "Atomoxetine has the effect Pain.",
+        "Beclomethasone dipropionate has the effect Pain.",
+        "Belotecan is indicated for non-small cell lung carcinoma (disease).",
+        "Betamethasone has the effect Pain.",
+        "Brigatinib is indicated for non-small cell lung carcinoma (disease).",
+        "Budesonide has the effect Pain.",
+        "Buspirone has the effect Pain.",
+        "Carboplatin is used off-label for non-small cell lung carcinoma (disease).",
+        "Ceritinib is indicated for non-small cell lung carcinoma (disease).",
+        "Chlorhexidine has the effect Pain.",
+        "Ciprofloxacin has the effect Pain.",
+        "Cisplatin has the effect Pain.",
+        "Clonidine has the effect Pain.",
+        "Coenzyme M is used off-label for non-small cell lung carcinoma (disease).",
+        "Conjugated estrogens has the effect Pain.",
+        "Crizotinib is indicated for non-small cell lung carcinoma (disease).",
+        "Diazepam has the effect Pain.",
+        "Diclofenac has the effect Pain.",
+        "Didanosine has the effect Pain.",
+        "Diltiazem has the effect Pain.",
+        "Docetaxel is indicated for non-small cell lung carcinoma (disease).",
+        "Duloxetine has the effect Pain.",
+        "Efavirenz has the effect Pain.",
+        "Emtricitabine has the effect Pain.",
+        "Erlotinib has the effect Pain.",
+        "Erlotinib is indicated for non-small cell lung carcinoma (disease).",
+        "Estradiol has the effect Pain.",
+        "Estrone has the effect Pain.",
+        "Etacrynic acid has the effect Pain.",
+        "Etodolac has the effect Pain.",
+        "Etonogestrel has the effect Pain.",
+        "Etoposide is used off-label for non-small cell lung carcinoma (disease).",
+        "Fentanyl has the effect Pain."
+      ],
+      "linked_entities": [
+        {
+          "cui": "C0025266",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "man"
+        },
+        {
+          "cui": "C0086418",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "man"
+        },
+        {
+          "cui": "C0086582",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "man"
+        },
+        {
+          "cui": "C4724040",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "man"
+        },
+        {
+          "cui": "C0002424",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "clinic"
+        },
+        {
+          "cui": "C0442592",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "clinic"
+        },
+        {
+          "cui": "C1547115",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "clinic"
+        },
+        {
+          "cui": "C1548528",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "clinic"
+        },
+        {
+          "cui": "C0332177",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "month"
+        },
+        {
+          "cui": "C0439231",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "month"
+        },
+        {
+          "cui": "C1561541",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "month"
+        },
+        {
+          "cui": "C1561542",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "month"
+        },
+        {
+          "cui": "C0030193",
+          "kg_node_id": "22982",
+          "kg_node_type": "effect/phenotype",
+          "match_method": "name_match",
+          "text": "pain"
+        },
+        {
+          "cui": "C1549543",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "pain"
+        },
+        {
+          "cui": "C2598155",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "pain"
+        },
+        {
+          "cui": "C0278144",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "dull"
+        },
+        {
+          "cui": "C0443208",
+          "kg_node_id": "89938",
+          "kg_node_type": "effect/phenotype",
+          "match_method": "name_match",
+          "text": "dull"
+        },
+        {
+          "cui": "C1455762",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "dull"
+        },
+        {
+          "cui": "C0240526",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "night"
+        },
+        {
+          "cui": "C2350309",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "night"
+        },
+        {
+          "cui": "C0441471",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "event"
+        },
+        {
+          "cui": "C0681644",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "amateur"
+        },
+        {
+          "cui": "C0439231",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "months"
+        },
+        {
+          "cui": "C0262926",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "medical history"
+        },
+        {
+          "cui": "C0455458",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "medical history"
+        },
+        {
+          "cui": "C0007131",
+          "kg_node_id": "33688",
+          "kg_node_type": "disease",
+          "match_method": "mondo_xref",
+          "text": "non-small cell lung cancer"
+        },
+        {
+          "cui": "C0278504",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "non-small cell lung cancer"
+        },
+        {
+          "cui": "C0278987",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "non-small cell lung cancer"
+        },
+        {
+          "cui": "C0278505",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "non-small cell lung cancer"
+        },
+        {
+          "cui": "C1336119",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "non-small cell lung cancer"
+        },
+        {
+          "cui": "C0011900",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "diagnosed"
+        },
+        {
+          "cui": "C1522326",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "treated"
+        },
+        {
+          "cui": "C0031809",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Physical exam"
+        },
+        {
+          "cui": "C1509143",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Physical exam"
+        },
+        {
+          "cui": "C0011923",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "imaging"
+        },
+        {
+          "cui": "C0079595",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "imaging"
+        },
+        {
+          "cui": "C1704382",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "imaging"
+        },
+        {
+          "cui": "C0030705",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "patient"
+        },
+        {
+          "cui": "C1550655",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "patient"
+        },
+        {
+          "cui": "C1578481",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "patient"
+        },
+        {
+          "cui": "C1578483",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "patient"
+        },
+        {
+          "cui": "C1578484",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "patient"
+        },
+        {
+          "cui": "C0228897",
+          "kg_node_id": "69339",
+          "kg_node_type": "anatomy",
+          "match_method": "name_match",
+          "text": "lumbar spinal nerve"
+        },
+        {
+          "cui": "C0221204",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Lytic lesions"
+        },
+        {
+          "cui": "C0024091",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "lumbar spine"
+        },
+        {
+          "cui": "C3887615",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "lumbar spine"
+        },
+        {
+          "cui": "C4299162",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "lumbar spine"
+        },
+        {
+          "cui": "C0848642",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "Sacroilitis"
+        },
+        {
+          "cui": "C0332466",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "fusion"
+        },
+        {
+          "cui": "C1293131",
+          "kg_node_id": null,
+          "kg_node_type": null,
+          "match_method": null,
+          "text": "fusion"
+        }
+      ],
+      "n_triples_total": 40,
+      "question": "A 56-year-old man presents to the clinic complaining of subacute back pain for the past month. The pain is described as a dull, constant ache that is worse at night. He could not recall any precipitating event except for an amateur weight-lifting competition that he participated in 2 months ago. Past medical history is significant for non-small cell lung cancer that was diagnosed and successfully treated. A PET scan 1 year ago demonstrated no recurrence. Physical exam was unremarkable except for some point tenderness along the lumbosacral area. What is the most likely imaging finding in this patient?",
+      "question_id": "test_00065",
+      "triples": [
+        {
+          "head": "Acitretin",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": true,
+          "tail": "Pain"
+        },
+        {
+          "head": "Acyclovir",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": true,
+          "tail": "Pain"
+        },
+        {
+          "head": "Alectinib",
+          "novel": true,
+          "relation": "indication",
+          "relevant": false,
+          "tail": "non-small cell lung carcinoma (disease)"
+        },
+        {
+          "head": "Alfentanil",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": true,
+          "tail": "Pain"
+        },
+        {
+          "head": "Alitretinoin",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": true,
+          "tail": "Pain"
+        },
+        {
+          "head": "Argatroban",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": true,
+          "tail": "Pain"
+        },
+        {
+          "head": "Atenolol",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": true,
+          "tail": "Pain"
+        },
+        {
+          "head": "Atomoxetine",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": true,
+          "tail": "Pain"
+        },
+        {
+          "head": "Beclomethasone dipropionate",
+          "novel": true,
+          "relation": "drug_effect",
+          "relevant": true,
+          "tail": "Pain"
+        },
+        {
+          "head": "Belotecan",
+          "novel": true,
+          "relation": "indication",
+          "relevant": false,
+          "tail": "non-small cell lung carcinoma (disease)"
+        }
+      ],
+      "triples_note": "showing the 10/40 triples actually scored for novelty/relevance (see NOVELTY_MAX_TRIPLES_SCORED); the rest of entry.triples exist in the cache but were not scored in this run."
+    }
+  ],
+  "seed": 42,
+  "split": "test",
+  "triples_per_question": {
+    "max": 40,
+    "mean": 38.4,
+    "median": 40.0,
+    "min": 0,
+    "n": 200
+  },
+  "unmapped_cui": {
+    "distinct_unmapped_cuis": 4094,
+    "total_linked_entities": 14789,
+    "unmapped_count": 13129,
+    "unmapped_rate": 0.8877544120630199
+  },
+  "wall_clock_seconds": 829.6187851428986
+}

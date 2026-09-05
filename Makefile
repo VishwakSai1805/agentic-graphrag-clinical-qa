@@ -17,5 +17,5 @@ index:
 	@exit 1
 
 kg-up:
-	@echo "make kg-up: not implemented until Phase 2 (see docs/02_ROADMAP.md)"
-	@exit 1
+	docker compose -f docker/compose.yaml up -d
+	uv run python -m scripts.load_primekg

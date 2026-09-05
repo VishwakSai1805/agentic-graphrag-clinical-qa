@@ -136,5 +136,70 @@
       "bm25_build_s": 0.37964487075805664
     },
     "built_at_utc": "2026-09-05T07:35:15.820456+00:00"
+  },
+  "primekg": {
+    "source": {
+      "dataverse_doi": "doi:10.7910/DVN/IXA7BM",
+      "dataverse_url": "https://doi.org/10.7910/DVN/IXA7BM",
+      "citation": "Chandak, Payal; Huang, Kexin; Zitnik, Marinka (2022), \"PrimeKG\", Harvard Dataverse, V2, doi:10.7910/DVN/IXA7BM",
+      "license": "CC0 1.0",
+      "files": {
+        "nodes.csv": {
+          "dataverse_file_id": 6180617,
+          "url": "https://dataverse.harvard.edu/api/access/datafile/6180617?format=original",
+          "md5": "7f9ab4109c54049e819ecd14e15a6038"
+        },
+        "kg.csv": {
+          "dataverse_file_id": 6180620,
+          "url": "https://dataverse.harvard.edu/api/access/datafile/6180620",
+          "md5": "aac8191d4fbc5bf09cdf8c3c78b4e75f"
+        }
+      }
+    },
+    "edge_allowlist": [
+      "indication",
+      "contraindication",
+      "off-label use",
+      "disease_phenotype_positive",
+      "disease_protein",
+      "drug_effect",
+      "disease_disease"
+    ],
+    "neo4j_uri": "bolt://localhost:7687",
+    "n_node_rows_seen_in_csv": 129375,
+    "n_edge_rows_seen_in_csv_after_allowlist": 740674,
+    "edge_rows_seen_by_relation": {
+      "contraindication": 61350,
+      "indication": 18776,
+      "off-label use": 5136,
+      "disease_phenotype_positive": 300634,
+      "disease_protein": 160822,
+      "disease_disease": 64388,
+      "drug_effect": 129568
+    },
+    "real_node_count_in_neo4j": 129375,
+    "real_edge_count_in_neo4j": 740674,
+    "real_edges_by_relation_in_neo4j": {
+      "disease_phenotype_positive": 300634,
+      "disease_protein": 160822,
+      "drug_effect": 129568,
+      "disease_disease": 64388,
+      "contraindication": 61350,
+      "indication": 18776,
+      "off-label use": 5136
+    },
+    "real_nodes_by_type_in_neo4j": {
+      "biological_process": 28642,
+      "gene/protein": 27671,
+      "disease": 17080,
+      "effect/phenotype": 15311,
+      "anatomy": 14035,
+      "molecular_function": 11169,
+      "drug": 7957,
+      "cellular_component": 4176,
+      "pathway": 2516,
+      "exposure": 818
+    },
+    "loaded_at_utc": "2026-09-05T13:21:08.914392+00:00"
   }
 }

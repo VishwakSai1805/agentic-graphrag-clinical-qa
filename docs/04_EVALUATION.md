@@ -166,6 +166,49 @@ while significantly beating BM25 alone. If V1 (dense-only) matches or beats
 hybrid/agent variants on MedQA downstream accuracy in the §5 grid, report it
 as such.
 
+### 5.3 Phase 2 KG-layer validation (real numbers, NOT part of the ablation grid)
+
+Reproduce via `python -m scripts.kg_probe --dataset medqa --limit 200`,
+reading real PrimeKG data cached under `data/processed/kg_cache/medqa/`
+(Neo4j not required — cache-first per ADR-007). Full artifact:
+`results/phase2_kg_probe/medqa_n200.json`. See ADR-014, ADR-015, ADR-016,
+ADR-017 for complete context; this table is the numeric summary only.
+
+| Metric | Value | Reading |
+|---|---|---|
+| `aggregate_hit_rate` (question-level) | 0.960 | Clears the roadmap's ≥0.60 floor, but see the next row before citing this as coverage |
+| `entity_level_mapping_rate` | 0.1122 | The real per-entity PrimeKG resolution rate — read together with the row above, never alone |
+| `naive_expected_hit_rate_under_independence` | 0.9998 | At ~74 linked entities/question and 11.22% per-entity mapping, a question-level hit is arithmetically near-certain — the 0.960 above is this artifact, not evidence PrimeKG covers 96% of MedQA content |
+| `overall_novel_relation_rate` (vs. real 12-item `EvidenceBundle`) | 0.8885 | Fraction of scored KG triples not entailed by top-12 dense passages (corrected from an initial, wrong top-3 measurement — see ADR-016) |
+| `overall_relevant_rate` | 0.4865 | Fraction of scored triples mentioning an entity the question/options are about |
+| **`overall_novel_and_relevant_rate`** | **0.4078** | **The actual C1 evidence figure** — on-topic *and* not already in dense passages. Middling, not strong; bottlenecked by retrieval precision (only ~49% relevant), not by redundancy with dense retrieval |
+| `overall_novel_given_relevant_rate` | 0.8383 | Conditional on relevance, KG evidence is usually novel — the encouraging half of the finding |
+| `unmapped_cui.unmapped_rate` | 0.8878 | 13,129/14,789 linked entities have no PrimeKG crosswalk hit (ADR-014: disease/phenotype via real ontology xrefs, drug/gene via name-match only) |
+| Per-question triples (post ADR-015 cap) | median 40.0, mean 38.4 (n=200) | 192/200 questions (96%) saturate the 40-triple cap — the cap is the normal case, not a backstop |
+
+Per-category breakdown (`n` shown per this phase's stated discipline; `anatomy`
+n=8 is below `MIN_CATEGORY_N_FOR_RATE=15` and its rates are suppressed —
+see ADR-017):
+
+| Category | n | hit_rate | novel_and_relevant_rate |
+|---|---|---|---|
+| pharmacology | 39 | 1.000 | 0.531 |
+| pathology_diagnosis | 43 | 1.000 | 0.409 |
+| treatment_management | 48 | 0.979 | 0.426 |
+| physiology | 22 | 0.909 | 0.315 |
+| other | 40 | 0.875 | 0.294 |
+| anatomy | 8 | *suppressed (n<15)* | *suppressed (n<15)* |
+
+**The honest position going into Phase 3, per ADR-016:** Phase 2's
+infrastructure is real and correct (verified PrimeKG source, real Neo4j
+load, cache-first reproducibility confirmed byte-for-byte). But **the KG
+modality's marginal value over dense retrieval is not yet established** — the
+widely-visible 96% hit rate is an arithmetic artifact of entity fan-out, and
+the defensible C1 evidence figure (`novel_and_relevant_rate = 0.4078`) is
+real but middling, limited primarily by retrieval precision (hub-node noise,
+ADR-015) and partial entity crosswalk coverage (ADR-014), not by redundancy
+with dense passages. This is not a result to soften before Phase 3.
+
 ## 6. Run discipline
 - `results/<run_id>/config.yaml` — full resolved config incl. model ids + seed
 - `results/<run_id>/predictions.jsonl` — one row per question: options, p vector,

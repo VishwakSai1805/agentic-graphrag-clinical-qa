@@ -427,3 +427,342 @@ negation; a wildcard-on-contents ignore does not). Consequence: any future
 addition of another data/ file meant to be tracked (e.g. a splits manifest)
 needs its own negation line, following this same pattern — a plain `data/`
 re-ignore would silently break this again.
+
+## ADR-014 — PrimeKG ingestion: real-data corrections to the documented plan
+Date: 2026-09-05 · Phase: 2 · Status: accepted
+
+**Context.** `docs/03_DATASETS.md`'s PrimeKG section was written from prior
+knowledge of the dataset, before the real dump was downloaded and loaded.
+Implementing `scripts/load_primekg.py` and `src/kg/traversal.py` against the
+actual data surfaced several places where the documented plan didn't match
+reality. Source verified: Harvard Dataverse `doi:10.7910/DVN/IXA7BM`
+(Chandak/Huang/Zitnik, CC0) — no official HF mirror exists; confirmed by real
+HTTP GETs whose local MD5s matched Dataverse's own reported checksums exactly
+(`nodes.csv` `7f9ab4109c54049e819ecd14e15a6038`; `kg.csv`,
+981,751,236 bytes, `aac8191d4fbc5bf09cdf8c3c78b4e75f`). Real load into Neo4j:
+129,375 nodes, 740,674 edges after the edge-type allowlist filter
+(`disease_phenotype_positive` 300,634; `disease_protein` 160,822;
+`drug_effect` 129,568; `disease_disease` 64,388; `contraindication` 61,350;
+`indication` 18,776; `off-label use` 5,136).
+
+**Decision — six corrections, each forced by the real data, not a preference:**
+1. **Allowlist string fix:** `docs/03_DATASETS.md` wrote `off_label_use`;
+   PrimeKG's real `kg.csv` `relation` column uses the literal string
+   `"off-label use"` (zero rows match the underscored form). `KGConfig`,
+   `configs/base.yaml`, and `src/kg/verbalize.py` all use the verified string;
+   `docs/03_DATASETS.md` is out of date on this one point and this ADR is the
+   correction of record.
+2. **Bidirectional-edge canonicalization:** `kg.csv` stores every allowlisted
+   relation as two literal rows per fact (`x=A,y=B` and `x=B,y=A`), PrimeKG's
+   way of encoding an "undirected" edge even for semantically asymmetric
+   relations (e.g. `indication` is always drug→disease, never disease→drug).
+   Naively trusting Neo4j's per-row `startNode`/`endNode` produced genuinely
+   backwards sentences on the reverse-direction row roughly half the time
+   (observed live: "Hearing impairment has the effect Acetylsalicylic acid").
+   Fixed via `src/kg/traversal.py: _canonicalize` + `_EXPECTED_SUBJECT_TYPE`,
+   which reorients (and dedupes) both directions into one consistently-phrased
+   triple per relation, type-aware. `disease_disease` is deliberately excluded
+   from dedup (both sides are type "disease", so there's no wrong-direction
+   *phrasing* risk, but its reverse row is a disclosed, uncorrected minor
+   redundancy — a caller needing exactly-once undirected `disease_disease`
+   triples needs a separate canonical-ordering step, not implemented here).
+3. **`nodes.csv` fetched via `?format=original`** rather than Dataverse's
+   default served format, so the local file's MD5 matches the dataset's own
+   published checksum exactly — needed for honest provenance, not just a
+   working parse.
+4. **scispaCy pinned to 0.5.4** — the last release with a published
+   `en_core_sci_lg` model artifact compatible with this project's pinned
+   `spacy`/`torch` versions; later scispaCy releases had no matching model
+   wheel available at implementation time.
+5. **Neo4j schema uses one generic `:KG_EDGE{relation}` relationship type**
+   (relation stored as a property, filtered via `WHERE r.relation IN
+   $edge_allowlist`), not one Neo4j relationship type per PrimeKG relation.
+   Dynamic relationship-type creation from data needs the APOC plugin, which
+   is not loaded in `docker/compose.yaml` (keeps the Neo4j image smaller and
+   the compose file simpler); the property-filter approach is equivalent for
+   this project's fixed 7-item allowlist and every Cypher string lives in
+   `src/kg/queries.py` regardless.
+6. **CUI→PrimeKG crosswalk is honestly partial, not fully solved.**
+   Disease/phenotype linking uses real ontology cross-references (MONDO/HPO
+   xrefs present in PrimeKG's own node table). Drug/gene/protein linking falls
+   back to name-matching only — there is no free/open UMLS↔DrugBank or
+   UMLS↔NCBI-gene crosswalk available without a licensed UMLS Metathesaurus
+   (out of scope, see `docs/03_DATASETS.md`'s "Optional later: UMLS RRF
+   subset... only if licence is in place"). On a 5-question real MedQA sample:
+   107 unique entity mentions, 27 (25.2%) resolved to a real PrimeKG node (21
+   via ontology xref, 21 via name-match — some overlap). Unmapped CUIs are
+   logged per `docs/03_DATASETS.md`'s existing instruction, not hidden.
+
+**Alternatives considered:** silently "fixing" the allowlist spelling in
+`docs/03_DATASETS.md` with no record (rejected — CLAUDE.md requires
+non-obvious deviations logged here, and a future reader hitting zero
+`off_label_use` rows deserves the real explanation, not a quiet edit);
+trusting Neo4j's raw per-row direction and accepting backwards sentences
+(rejected — an evidence object handed to the audit/conflict agents in Phase 4
+with a factually-reversed relation is exactly the kind of silent correctness
+bug CLAUDE.md's hygiene rules exist to prevent); loading APOC to get native
+per-relation Neo4j types (rejected — adds a plugin dependency for a cosmetic
+schema preference with no query-correctness benefit given the allowlist is
+fixed and small); pursuing a paid/licensed UMLS Metathesaurus crosswalk to
+close the drug/gene mapping gap (rejected — violates the zero-cost constraint
+for a coverage improvement whose actual size is unmeasured; revisit only if
+Phase 2's KG-hit-rate exit test result makes closing this gap look
+worthwhile).
+
+**Consequences:** `docs/03_DATASETS.md`'s edge-type list should be read
+alongside this ADR for the corrected `off-label use` spelling. Any future
+PrimeKG re-download must re-verify the checksums above before re-trusting a
+cached `data/raw/primekg/` copy. The partial drug/gene crosswalk means
+Phase 2's KG-hit-rate result (next entry, once `kg_probe.py` runs for real)
+should be read knowing that disease/phenotype-heavy MedQA questions have a
+structurally better chance of a KG hit than drug/gene-heavy ones purely from
+crosswalk coverage, independent of whether PrimeKG's actual graph content
+would otherwise support a hit — this is exactly the kind of category-level
+confound the per-question-category hit-rate breakdown (this phase's amended
+exit test) is designed to surface rather than hide behind an aggregate.
+
+## ADR-015 — KG traversal degree cap alone is insufficient; added a per-question triple cap
+Date: 2026-09-05 · Phase: 2 · Status: accepted
+
+**Context.** `docs/03_DATASETS.md`'s degree cap (200 edges per expanded node
+per hop) was designed against the classic single-hub-node scenario (its own
+example: aspirin). Running `traverse_live` for real against real MedQA
+questions surfaced a compounding case the per-node cap doesn't bound: a
+question can link to *multiple* seed entities (a real MedQA vignette linked
+8), each independently capped at 200 edges per hop, over 2 hops — the
+per-node cap is respected at every step but the union across seeds and hops
+is not capped at all. Real, observed, not hypothetical: one real MedQA test
+question (`test_00001`) produced a 15,212-triple, 7.6MB single-question cache
+file this way.
+
+**Decision.** Add `max_triples: int | None = None` to `traverse_live`
+(`src/kg/traversal.py`) — an early-stop across the hop-expansion loop plus a
+final deterministic (sorted) truncation — and a new `KGConfig.
+max_triples_per_question: int = 40`. This caps total *evidence volume per
+question*, which is the quantity that actually matters for downstream
+agent-context budgets (`docs/01_ARCHITECTURE.md`'s `max_evidence=12` budget
+guard already implies KG evidence must be pre-trimmed well below 40 before
+Phase 4, but 40 is a reasonable precompute-time ceiling ahead of that
+downstream trim), not the per-node degree cap docs/03_DATASETS.md specified.
+
+**Real consequence, disclosed rather than hidden:** measured directly from
+the 200 real cache files (not estimated): triples/question distribution is
+min=0, median=40.0, mean=38.4, max=40, and **192/200 questions (96%) hit the
+cap exactly**. The cap is not an occasional backstop, it is the normal case —
+the real constraint on subgraph *content quality* is which 40 triples the
+deterministic sort keeps, not the cap's existence. Manual inspection of the
+kept triples (see ADR-016's sample subgraphs) shows broad, low-specificity
+PrimeKG hub nodes (e.g. the symptom node "Pain", which has hundreds of
+`drug_effect` edges) frequently crowd out more question-specific facts.
+ADR-016's real, measured `relevant_rate = 0.4865` quantifies this directly:
+fewer than half of the 40-per-question kept triples even mention an entity
+the question or its options are about. This is a real coverage-quality
+finding for the paper, not a solved problem — the cap makes traversal
+*tractable*, it does not make the retrieved subgraph *relevant*. A
+ranked/scored triple-selection step (e.g. by seed-entity proximity or
+specificity, not just Neo4j traversal order) is a candidate Phase 3+
+improvement, not implemented here.
+
+**Alternatives considered:** raising the per-node degree cap's scope to be
+global-per-question instead of per-node-per-hop in a single Cypher query
+(rejected for this session — deterministic post-hoc truncation is simpler to
+reason about and test, and preserves the existing per-node cap's own
+hub-explosion protection as a first line of defense); dropping hub nodes by
+an in/out-degree threshold at query time (a real improvement candidate,
+deferred — needs a defensible degree threshold, which is a modeling decision
+better made after Phase 3 shows whether hub noise measurably hurts downstream
+accuracy).
+
+**Consequences:** any future re-run of `precompute_kg_cache.py` after
+changing `max_triples_per_question` invalidates existing cache files for
+questions that hit the cap — no automatic cache-invalidation is implemented
+(re-run with `--force` for affected questions). The 40-cap value should be
+revisited once Phase 4's real `max_evidence=12` trim is implemented and its
+interaction with a noisy 40-triple KG pool is measured.
+
+## ADR-016 — KG-hit rate is an arithmetic artifact of entity fan-out, not KG coverage; novel-relation-rate must be relevance-conditioned to say anything about C1
+Date: 2026-09-05 · Phase: 2 · Status: accepted (supersedes this ADR's own first-draft numbers, corrected within the same phase, before any commit)
+
+**Context.** Per this phase's second amended requirement, `scripts/kg_probe.py`
+measures what fraction of retrieved KG triples express a relation not already
+entailed by that question's top-k dense passages — the number meant to
+substantiate contribution C1 beyond mere KG-hit presence. A first pass at
+this diagnostic (implementation problems below) produced numbers that were
+methodologically flawed in four distinct ways, all caught by the project
+owner reading `results/phase2_kg_probe/medqa_n200.json` directly before this
+phase closed, not discovered later. This ADR is written from the corrected,
+final run.
+
+**Implementation problems, real and fixed:**
+1. **The NLI model CLAUDE.md/`docs/04_EVALUATION.md` §3 pin does not exist.**
+   `MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli` was verified (via a live
+   `HfApi.model_info` call, not memory) to 404 on the real Hugging Face Hub.
+   Substituted `MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli` —
+   same author, same MNLI+Fever+ANLI lineage plus LingNLI/WANLI, same 3-way
+   entailment/neutral/contradiction head (verified via `AutoConfig.id2label`
+   against the real downloaded config). Recorded as `src/kg/novelty.py:
+   NLI_MODEL_NAME`, the single source of truth Phase 6 should import rather
+   than re-typing CLAUDE.md's (incorrect) string; CLAUDE.md §3's stack table
+   needs a follow-up correction to match.
+2. **The 96% aggregate "KG-hit rate" is a permissive-definition arithmetic
+   artifact, not evidence of PrimeKG content coverage.** The linker resolves
+   only `entity_level_mapping_rate = 0.1122` of linked entities to a real
+   PrimeKG node (13,129/14,789 unmapped — see ADR-014's crosswalk gap). But a
+   question links ~74 entities on average
+   (`mean_linked_entities_per_question = 73.945`), and the hit definition is
+   *question*-level ("≥1 linked entity resolves AND ≥1 triple is retrieved").
+   With that many independent low-probability draws per question, a hit is
+   close to arithmetically guaranteed:
+   `naive_expected_hit_rate_under_independence = 1 - (1 - 0.1122)^73.945 =
+   0.99985`. The real observed `aggregate_hit_rate = 0.96` sits *below* this
+   naive prediction (some correlation across a question's repeated-synonym
+   entity mentions), which if anything makes the artifact story stronger, not
+   weaker: **96% must never be read or cited as "PrimeKG covers 96% of MedQA
+   content"** — it is a restated fact about entity fan-out at ~11% per-entity
+   mapping, not a coverage result. `results/phase2_kg_probe/medqa_n200.json`
+   now carries `entity_level_mapping_rate`,
+   `naive_expected_hit_rate_under_independence`, and an explicit
+   `hit_definition` string precisely so a future reader cannot make this
+   mistake from the JSON alone.
+3. **Novelty was first measured against the wrong evidence-bundle size.**
+   `docs/01_ARCHITECTURE.md`'s tri-modal pipeline reranks to a real top-n=12
+   `EvidenceBundle` (`configs/base.yaml: retrieval.top_k_rerank = 12`); the
+   first pass scored novelty against only the top-3 dense passages, which
+   structurally inflates apparent novelty (fewer chances for a passage to
+   already state the relation). Corrected to score against the real 12.
+   **Real effect of the fix:** `overall_novel_relation_rate` dropped from the
+   first pass's 0.9563 to **0.8885** at the corrected k=12 — a genuine 6.8-point
+   drop, confirming the review's prediction. The `novelty_max_triples_scored_
+   per_question=10` scope cut (out of a ~38.4-triple/question mean, see
+   ADR-015) remains uncorrected in this phase — the scored subset is a
+   deterministic alphabetical-first-10 slice, which structurally
+   over-represents alphabetically-early entity names (visible directly in the
+   sample subgraphs: "Ac-" drug names like Acitretin/Acyclovir/Alfentanil
+   recur across unrelated questions' scored subsets). A full-scope (all ~38
+   triples × 12 passages) re-run is a legitimate ~55-minute follow-up if an
+   unqualified figure is later needed; not run in this session.
+4. **Novel ≠ useful — added a relevance-conditioned figure, since a high raw
+   novelty rate is exactly what you'd expect from an NLI model correctly
+   failing to entail irrelevant graph noise, novel or not.** Added
+   `src/kg/novelty.py: is_triple_relevant` (pure, case-insensitive substring
+   match of the triple's head/tail entity string against the question stem
+   and each answer option — deliberately simple, not new ML). Real results:
+   - `overall_relevant_rate = 0.4865` — **fewer than half** of retrieved
+     triples even mention an entity the question or its options are about.
+   - **`overall_novel_and_relevant_rate = 0.4078`** — this, not the raw 0.8885
+     novelty figure, is the number that actually substantiates or undercuts
+     C1's "KG evidence adds question-specific value" claim. It is **middling,
+     not strong**: fewer than half of retrieved triples are both on-topic and
+     something dense retrieval didn't already surface.
+   - `overall_novel_given_relevant_rate = 0.8383` — conditional on a triple
+     actually being relevant, it is still novel 84% of the time. This is the
+     encouraging half: *when* the KG surfaces something on-topic, it usually
+     adds information dense retrieval missed. **The bottleneck is precision
+     of what gets retrieved (only 48.7% relevant), not novelty conditional on
+     relevance** — this reframes ADR-015's hub-noise finding quantitatively
+     rather than just qualitatively.
+   - By category (non-suppressed): `pharmacology` 0.531 (highest — drug
+     indication/contraindication triples map cleanly onto MCQ options),
+     `treatment_management` 0.426, `pathology_diagnosis` 0.409, `physiology`
+     0.315, `other` 0.294 (lowest — consistent with ADR-017's finding that
+     `other` is a keyword-coverage residual, not a coherent category, which
+     is itself a confound on this number: `other`'s low relevance may partly
+     reflect the categorizer's own miss rate, not KG value specifically).
+   - **The relevance heuristic's bias runs conservative, not inflationary**:
+     plain substring matching under-counts paraphrases (a triple about
+     "myocardial infarction" won't match a stem saying "MI" or "heart
+     attack"), so `relevant_rate`/`novel_and_relevant_rate` are likely
+     understated versions of the true ceiling — this cuts in the safer
+     direction for any paper claim built on 0.4078, but means the number
+     should be read as a floor, not a precise estimate.
+5. Any category with `n < 15` (`MIN_CATEGORY_N_FOR_RATE`) has its rates
+   suppressed to `null` in the output (raw counts remain visible) rather than
+   showing a misleadingly precise percentage — currently only `anatomy`
+   (n=8) is affected; see ADR-017.
+
+**The honest bottom line for Phase 3 planning, stated plainly per the
+project owner's explicit instruction:** PrimeKG's real entity-level coverage
+of MedQA content is ~11%, the widely-reported 96% "hit rate" is a
+question-level arithmetic artifact of high entity fan-out and must never be
+cited as coverage, and **the KG modality's marginal value over dense
+retrieval is not yet established** — the best available estimate
+(`novel_and_relevant_rate ≈ 0.41`) is real but middling, bottlenecked by
+retrieval precision (only ~49% of retrieved triples are even on-topic) more
+than by redundancy with dense passages. This is the honest position C1 goes
+into Phase 3 with, not a headline win.
+
+**Alternatives considered:** a cheap string/entity-overlap heuristic instead
+of NLI for the novelty check itself (rejected — less principled, and this
+project already commits to the NLI model for the structurally identical
+hallucination-rate calculation in Phase 6); scoring all triples against all
+12 passages within this session (rejected — background-job-scale cost,
+~55min, better spent once a hub-noise mitigation exists to test); reporting
+only the raw `overall_novel_relation_rate` without the relevance-conditioned
+figures (rejected outright by the project owner's review — "novelty without
+relevance cannot support C1").
+
+**Consequences:** any paper table or claim built on this phase's diagnostics
+must cite `novel_and_relevant_rate` (0.4078, disclosed subset) as the C1
+evidence figure, never the raw novelty rate (0.8885) alone, and must state
+the entity-level mapping rate (0.1122) alongside any question-level hit rate
+it reports. Improving the honest 0.41 requires either better crosswalk
+coverage (ADR-014, currently drug/gene name-match only), better triple
+selection to reduce hub noise (ADR-015, not yet implemented), or a
+paraphrase-aware relevance check (this ADR, currently exact-substring only) —
+three distinct, now-quantified follow-up targets for Phase 3+, not a single
+fix.
+
+## ADR-017 — MedQA question-category heuristic (no gold subject label exists)
+Date: 2026-09-05 · Phase: 2 · Status: accepted
+
+**Context.** This phase's first amended requirement is a per-category
+KG-hit-rate breakdown for MedQA. Unlike MedMCQA (`docs/03_DATASETS.md`: 21
+official `subject_name` tags), MedQA-USMLE ships no gold question-category
+label at all, so any category breakdown needs its own, necessarily
+imperfect, categorization step.
+
+**Decision.** `src/kg/categorize.py: categorize_medqa_question` is a
+plain keyword-bucket heuristic (a dict of category → keyword list, no ML)
+over six fixed categories: `pharmacology`, `physiology`,
+`pathology_diagnosis`, `anatomy`, `treatment_management`, `other` (fallback).
+Deliberately simple and inspectable — CLAUDE.md's "don't add abstractions
+beyond what the task requires" applies here; this is a diagnostic label, not
+a modeling contribution, and dressing it up as more sophisticated than a
+keyword match would misrepresent its evidentiary weight.
+
+**Real result on the n=200 MedQA test slice used by `kg_probe.py`:**
+`treatment_management` 48, `pathology_diagnosis` 43, `other` 40,
+`pharmacology` 39, `physiology` 22, `anatomy` 8. Two honest weaknesses
+observed directly, not hypothesized:
+1. **`other` absorbs 20% of the real sample** (40/200) — a real, disclosed
+   gap in keyword coverage, not force-fit into one of the five named
+   buckets.
+2. **Single-keyword misclassification is real and observed**: `test_00006`
+   was bucketed `anatomy` solely because the stem contains the substring
+   "artery" (inside "peripheral artery disease", a vascular-pathology
+   question, not an anatomy-recall question) — a substring-count heuristic
+   has no semantic disambiguation. `anatomy`'s n=8 is also the smallest
+   bucket; per ADR-016, `kg_probe.py` enforces `MIN_CATEGORY_N_FOR_RATE = 15`
+   and reports `anatomy`'s `hit_rate`/`novel_relation_rate`/relevance figures
+   as `null` with `"underpowered": true` (raw counts still shown) rather than
+   a naked 100% — this phase's own stated exit-test discipline (rate + n
+   always shown together) is enforced in the artifact itself, not left to a
+   reader's judgment.
+
+**Alternatives considered:** using an LLM call to classify each question
+(rejected — CLAUDE.md's zero-cost/determinism constraints make an
+LLM-in-the-loop classifier for a diagnostic label disproportionate, and it
+would need its own accuracy validation against hand-labels, which a 6-bucket
+keyword heuristic doesn't need to claim); leaving MedQA unbroken-down by
+category and accepting only the MedMCQA subject breakdown as "the" category
+result (rejected — MedQA is the primary novelty benchmark per
+`docs/03_DATASETS.md`, so its category breakdown is the one this phase's
+strategic framing explicitly asked for).
+
+**Consequences:** any paper table citing MedQA's per-category KG-hit rate
+must also show `n` per category (already `kg_probe.py`'s convention) and
+should flag `other` as a residual, not a category with its own coherent
+identity. If a future session wants a less noisy breakdown, replacing this
+heuristic with hand-labelled categories on a sample (mirroring
+`docs/03_DATASETS.md`'s "tuned on 50 hand-checked items" precedent for the
+UMLS linker threshold) is the natural upgrade path, not implemented here.

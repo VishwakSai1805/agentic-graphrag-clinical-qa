@@ -94,11 +94,70 @@ class RetrievalConfig(BaseModel):
     corpus: CorpusConfig = CorpusConfig()
 
 
+class KGConfig(BaseModel):
+    """PrimeKG / Neo4j knobs (Phase 2). See docs/03_DATASETS.md "Knowledge
+    graph"/"Entity linking" and ADR-007 (docs/05_DECISIONS.md).
+
+    Only scripts/load_primekg.py and scripts/precompute_kg_cache.py (and ad
+    hoc debugging) open a live Neo4j connection using neo4j_uri/neo4j_user/
+    neo4j_password_env. All eval-time code reads cache_dir only -- see
+    src/kg/traversal.py: get_subgraph_cached.
+    """
+
+    neo4j_uri: str = "bolt://localhost:7687"
+    neo4j_user: str = "neo4j"
+    # Name of the env var holding the password -- never the password itself.
+    neo4j_password_env: str = "NEO4J_PASSWORD"
+    # scispaCy UmlsEntityLinker threshold, tuned on 50 hand-checked items
+    # (docs/03_DATASETS.md "Entity linking"; tuning recorded in an ADR when
+    # changed).
+    linker_threshold: float = 0.85
+    # Edge-type allowlist for traversal, docs/03_DATASETS.md "Knowledge graph".
+    # Bounded traversal only -- an edge type not in this list is never
+    # followed, regardless of what's in the loaded graph.
+    # NOTE: "off-label use" (hyphen + space) is PrimeKG's real on-disk
+    # `relation` column value in kg.csv, verified against the actual
+    # downloaded dump -- docs/03_DATASETS.md's "off_label_use" (underscore)
+    # does not occur anywhere in the real data (0 matching rows). Using the
+    # underscored form here would silently load zero off-label-use edges.
+    # See the ADR this phase adds to docs/05_DECISIONS.md.
+    edge_allowlist: list[str] = [
+        "indication",
+        "contraindication",
+        "off-label use",
+        "disease_phenotype_positive",
+        "disease_protein",
+        "drug_effect",
+        "disease_disease",
+    ]
+    max_hops: int = 2
+    # Per-node degree cap to avoid hub explosion (e.g. aspirin) -- see
+    # docs/03_DATASETS.md.
+    degree_cap: int = 200
+    # Per-question TOTAL triple cap, added this phase after a real hub-
+    # explosion finding: degree_cap alone bounds edges per *node* per hop,
+    # not the total size of a multi-seed 2-hop traversal. A real MedQA
+    # question with 8 resolved seed entities produced 15,212 triples at
+    # degree_cap=200/max_hops=2 (several broad disease/anatomy seed nodes
+    # each independently near-saturating the per-node cap, compounding over
+    # 2 hops) -- CLAUDE.md's "unbounded traversal on a hub node is a bug"
+    # rule, just triggered by seed-set compounding rather than one classic
+    # hub node. See src/kg/traversal.py: traverse_live's max_triples
+    # docstring and the ADR this phase adds. 40 is a practical ceiling given
+    # the project's actual downstream use (EvidenceBundle targets ~12 items
+    # total across ALL modalities, docs/04_EVALUATION.md §0.1) -- 40 KG
+    # triples/question is already generous headroom relative to that, not a
+    # tight squeeze.
+    max_triples_per_question: int = 40
+    cache_dir: Path = Path("data/processed/kg_cache")
+
+
 class AppConfig(BaseModel):
     seed: int = 42
     llm: LLMConfig
     eval: EvalConfig = EvalConfig()
     retrieval: RetrievalConfig = RetrievalConfig()
+    kg: KGConfig = KGConfig()
     cache_dir: Path = Path(".cache/llm")
 
 
