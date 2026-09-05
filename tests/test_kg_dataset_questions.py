@@ -135,3 +135,42 @@ def test_load_question_sample_missing_file_raises_file_not_found(tmp_path, monke
     monkeypatch.setitem(dq._SPLIT_PATHS, ("medqa", "test"), tmp_path / "nope.jsonl")
     with pytest.raises(FileNotFoundError):
         dq.load_question_sample("medqa", "test", limit=None)
+
+
+def test_pubmedqa_test_and_dev_are_disjoint_and_cover_the_whole_file(tmp_path, monkeypatch):
+    """docs/03_DATASETS.md: pqa_labeled's 1,000 rows split into a disjoint
+    500-question test + 500-question dev set, not two independent samples
+    that could overlap."""
+    path = tmp_path / "pqa_labeled.jsonl"
+    rows = [
+        {"pubid": i, "question": f"Q{i}?", "final_decision": "yes"} for i in range(1000)
+    ]
+    write_jsonl(path, rows)
+    monkeypatch.setitem(dq._SPLIT_PATHS, ("pubmedqa", "test"), path)
+    monkeypatch.setattr(dq, "_PUBMEDQA_LABELED_PARTITION_SIZE", 500)
+
+    test_qs = dq.load_question_sample("pubmedqa", "test", limit=500, seed=42)
+    dev_qs = dq.load_question_sample("pubmedqa", "dev", limit=500, seed=42)
+
+    test_ids = {q.native_id for q in test_qs}
+    dev_ids = {q.native_id for q in dev_qs}
+    assert len(test_qs) == 500
+    assert len(dev_qs) == 500
+    assert test_ids.isdisjoint(dev_ids)
+    assert test_ids | dev_ids == {str(i) for i in range(1000)}
+    assert all(q.split == "dev" for q in dev_qs)
+    assert all(q.question_id.startswith("dev_") for q in dev_qs)
+
+
+def test_pubmedqa_dev_sample_is_deterministic(tmp_path, monkeypatch):
+    path = tmp_path / "pqa_labeled.jsonl"
+    rows = [
+        {"pubid": i, "question": f"Q{i}?", "final_decision": "yes"} for i in range(1000)
+    ]
+    write_jsonl(path, rows)
+    monkeypatch.setitem(dq._SPLIT_PATHS, ("pubmedqa", "test"), path)
+    monkeypatch.setattr(dq, "_PUBMEDQA_LABELED_PARTITION_SIZE", 500)
+
+    dev1 = dq.load_question_sample("pubmedqa", "dev", limit=500, seed=42)
+    dev2 = dq.load_question_sample("pubmedqa", "dev", limit=500, seed=42)
+    assert [q.question_id for q in dev1] == [q.question_id for q in dev2]

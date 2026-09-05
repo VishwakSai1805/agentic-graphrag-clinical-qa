@@ -439,11 +439,35 @@ reality. Source verified: Harvard Dataverse `doi:10.7910/DVN/IXA7BM`
 (Chandak/Huang/Zitnik, CC0) — no official HF mirror exists; confirmed by real
 HTTP GETs whose local MD5s matched Dataverse's own reported checksums exactly
 (`nodes.csv` `7f9ab4109c54049e819ecd14e15a6038`; `kg.csv`,
-981,751,236 bytes, `aac8191d4fbc5bf09cdf8c3c78b4e75f`). Real load into Neo4j:
-129,375 nodes, 740,674 edges after the edge-type allowlist filter
-(`disease_phenotype_positive` 300,634; `disease_protein` 160,822;
+981,751,236 bytes, `aac8191d4fbc5bf09cdf8c3c78b4e75f`).
+
+**Real raw edge count vs. the post-allowlist loaded count — stated explicitly
+so neither number is mistaken for the other (follow-up correction, see the
+2026-09-05 Phase 2 follow-up session):** the real, downloaded `kg.csv` file
+contains **8,100,498 raw data rows** (verified by parsing the file with
+Python's `csv` module and counting rows after the header, not `wc -l` alone —
+the file does end in a newline so the two agree here, but the exact figure is
+from a real parse, not an estimate). Of those 8,100,498 raw rows, **740,674
+(9.1%) were loaded into Neo4j** — this is the count *after* deliberately
+filtering to the project's fixed 7-item `KGConfig.edge_allowlist`
+(`docs/03_DATASETS.md`), **not** a sign of an incomplete or failed load.
+PrimeKG's authors' own published edge count for the *full* graph (all ~30
+relation types they define, not just this project's 7-item allowlist) is
+commonly cited as ~4M edges (`docs/03_DATASETS.md`'s "129k nodes / 4M edges"
+line) because `kg.csv` stores every relation as **two** literal directional
+rows per undirected fact (point 2 below) — 8,100,498 raw rows / 2 ≈ 4,050,249
+unique undirected edges, consistent with that ~4M figure to within rounding.
+So, reading the two headline numbers together: **8,100,498 raw directional
+rows in the downloaded file → ~4.05M unique PrimeKG edges across all relation
+types → 740,674 directional rows survive this project's 7-item allowlist
+filter and are what's actually loaded into Neo4j.** The per-relation
+breakdown of that final 740,674 (verified via `COUNT_EDGES_BY_RELATION`, and
+independently reproduced byte-for-byte after a full volume wipe + reload in
+the same follow-up session that added this paragraph):
+`disease_phenotype_positive` 300,634; `disease_protein` 160,822;
 `drug_effect` 129,568; `disease_disease` 64,388; `contraindication` 61,350;
-`indication` 18,776; `off-label use` 5,136).
+`indication` 18,776; `off-label use` 5,136. Real load into Neo4j: 129,375
+nodes, 740,674 edges.
 
 **Decision — six corrections, each forced by the real data, not a preference:**
 1. **Allowlist string fix:** `docs/03_DATASETS.md` wrote `off_label_use`;
@@ -631,49 +655,62 @@ final run.
    structurally inflates apparent novelty (fewer chances for a passage to
    already state the relation). Corrected to score against the real 12.
    **Real effect of the fix:** `overall_novel_relation_rate` dropped from the
-   first pass's 0.9563 to **0.8885** at the corrected k=12 — a genuine 6.8-point
+   first pass's 0.9563 to 0.8885 at the corrected k=12 — a genuine 6.8-point
    drop, confirming the review's prediction. The `novelty_max_triples_scored_
    per_question=10` scope cut (out of a ~38.4-triple/question mean, see
-   ADR-015) remains uncorrected in this phase — the scored subset is a
-   deterministic alphabetical-first-10 slice, which structurally
-   over-represents alphabetically-early entity names (visible directly in the
-   sample subgraphs: "Ac-" drug names like Acitretin/Acyclovir/Alfentanil
-   recur across unrelated questions' scored subsets). A full-scope (all ~38
-   triples × 12 passages) re-run is a legitimate ~55-minute follow-up if an
-   unqualified figure is later needed; not run in this session.
+   ADR-015) remains a disclosed cut — full-scope (all ~38 triples × 12
+   passages) scoring is a legitimate ~55-minute follow-up if an unqualified
+   figure is later needed, not run in this phase.
+   **Follow-up fix, same phase, before commit:** the scored subset was
+   originally a deterministic alphabetical-first-10 slice, which structurally
+   over-represented alphabetically-early entity names (visible directly in
+   the sample subgraphs: "Ac-" drug names like Acitretin/Acyclovir/Alfentanil
+   recurring across unrelated questions' scored subsets) — flagged by the
+   project owner as biasing `novel_and_relevant_rate` in an unknown direction.
+   Fixed: `scripts/kg_probe.py`'s selection now uses a **seeded random
+   sample** of up to 10 triples per question, seeded per-question via
+   `sha256(f"{seed}:{question_id}")` (reproducible independent of loop order,
+   not just seeded once globally). **Real measured effect of the bias itself,
+   now that it's fixed:** the alphabetical bias was real but small —
+   `overall_novel_relation_rate` moved 0.8885→0.9016, `overall_relevant_rate`
+   0.4865→0.4734, and critically **`overall_novel_and_relevant_rate` moved
+   only 0.4078→0.4063** (Δ=−0.0016). The headline C1 figure barely moved; the
+   *fix* mattered for methodological defensibility, not because the original
+   number was substantially wrong.
 4. **Novel ≠ useful — added a relevance-conditioned figure, since a high raw
    novelty rate is exactly what you'd expect from an NLI model correctly
    failing to entail irrelevant graph noise, novel or not.** Added
    `src/kg/novelty.py: is_triple_relevant` (pure, case-insensitive substring
    match of the triple's head/tail entity string against the question stem
    and each answer option — deliberately simple, not new ML). Real results:
-   - `overall_relevant_rate = 0.4865` — **fewer than half** of retrieved
+   - `overall_relevant_rate = 0.4734` (seeded-random subset, superseding the
+     alphabetical-subset 0.4865 above) — **fewer than half** of retrieved
      triples even mention an entity the question or its options are about.
-   - **`overall_novel_and_relevant_rate = 0.4078`** — this, not the raw 0.8885
+   - **`overall_novel_and_relevant_rate = 0.4063`** — this, not the raw
      novelty figure, is the number that actually substantiates or undercuts
      C1's "KG evidence adds question-specific value" claim. It is **middling,
      not strong**: fewer than half of retrieved triples are both on-topic and
      something dense retrieval didn't already surface.
-   - `overall_novel_given_relevant_rate = 0.8383` — conditional on a triple
-     actually being relevant, it is still novel 84% of the time. This is the
-     encouraging half: *when* the KG surfaces something on-topic, it usually
-     adds information dense retrieval missed. **The bottleneck is precision
-     of what gets retrieved (only 48.7% relevant), not novelty conditional on
-     relevance** — this reframes ADR-015's hub-noise finding quantitatively
-     rather than just qualitatively.
-   - By category (non-suppressed): `pharmacology` 0.531 (highest — drug
-     indication/contraindication triples map cleanly onto MCQ options),
-     `treatment_management` 0.426, `pathology_diagnosis` 0.409, `physiology`
-     0.315, `other` 0.294 (lowest — consistent with ADR-017's finding that
-     `other` is a keyword-coverage residual, not a coherent category, which
-     is itself a confound on this number: `other`'s low relevance may partly
-     reflect the categorizer's own miss rate, not KG value specifically).
+   - `overall_novel_given_relevant_rate = 0.8581` — conditional on a triple
+     actually being relevant, it is still novel about 86% of the time. This
+     is the encouraging half: *when* the KG surfaces something on-topic, it
+     usually adds information dense retrieval missed. **The bottleneck is
+     precision of what gets retrieved (only ~47% relevant), not novelty
+     conditional on relevance** — this reframes ADR-015's hub-noise finding
+     quantitatively rather than just qualitatively. See ADR-018 for a real,
+     significance-tested attempt to fix this precision bottleneck via
+     cross-encoder reranking.
+   - By category (non-suppressed, seeded-random subset): `pharmacology`
+     highest, `other` lowest — consistent with ADR-017's finding that `other`
+     is a keyword-coverage residual, not a coherent category, which is itself
+     a confound on this number: `other`'s low relevance may partly reflect
+     the categorizer's own miss rate, not KG value specifically.
    - **The relevance heuristic's bias runs conservative, not inflationary**:
      plain substring matching under-counts paraphrases (a triple about
      "myocardial infarction" won't match a stem saying "MI" or "heart
      attack"), so `relevant_rate`/`novel_and_relevant_rate` are likely
      understated versions of the true ceiling — this cuts in the safer
-     direction for any paper claim built on 0.4078, but means the number
+     direction for any paper claim built on 0.4063, but means the number
      should be read as a floor, not a precise estimate.
 5. Any category with `n < 15` (`MIN_CATEGORY_N_FOR_RATE`) has its rates
    suppressed to `null` in the output (raw counts remain visible) rather than
@@ -686,10 +723,13 @@ of MedQA content is ~11%, the widely-reported 96% "hit rate" is a
 question-level arithmetic artifact of high entity fan-out and must never be
 cited as coverage, and **the KG modality's marginal value over dense
 retrieval is not yet established** — the best available estimate
-(`novel_and_relevant_rate ≈ 0.41`) is real but middling, bottlenecked by
-retrieval precision (only ~49% of retrieved triples are even on-topic) more
-than by redundancy with dense passages. This is the honest position C1 goes
-into Phase 3 with, not a headline win.
+(`novel_and_relevant_rate ≈ 0.41`, 0.4063 at the final seeded-random
+measurement) is real but middling, bottlenecked by retrieval precision (only
+~47% of retrieved triples are even on-topic) more than by redundancy with
+dense passages. This is the honest position C1 goes into Phase 3 with, not a
+headline win. See ADR-018: a real attempt to fix the precision bottleneck via
+cross-encoder reranking gives a marginal, partially-significant improvement,
+not a solved problem.
 
 **Alternatives considered:** a cheap string/entity-overlap heuristic instead
 of NLI for the novelty check itself (rejected — less principled, and this
@@ -702,15 +742,101 @@ figures (rejected outright by the project owner's review — "novelty without
 relevance cannot support C1").
 
 **Consequences:** any paper table or claim built on this phase's diagnostics
-must cite `novel_and_relevant_rate` (0.4078, disclosed subset) as the C1
-evidence figure, never the raw novelty rate (0.8885) alone, and must state
+must cite `novel_and_relevant_rate` (0.4063, seeded-random disclosed subset)
+as the C1 evidence figure, never the raw novelty rate alone, and must state
 the entity-level mapping rate (0.1122) alongside any question-level hit rate
-it reports. Improving the honest 0.41 requires either better crosswalk
+it reports. Improving the honest ~0.41 requires either better crosswalk
 coverage (ADR-014, currently drug/gene name-match only), better triple
-selection to reduce hub noise (ADR-015, not yet implemented), or a
-paraphrase-aware relevance check (this ADR, currently exact-substring only) —
-three distinct, now-quantified follow-up targets for Phase 3+, not a single
-fix.
+selection to reduce hub noise (ADR-015; see ADR-018 for a first real attempt
+via cross-encoder reranking), or a paraphrase-aware relevance check (this
+ADR, currently exact-substring only) — three distinct, now-quantified
+follow-up targets for Phase 3+, not a single fix.
+
+## ADR-018 — KG triple reranking (kg_rerank): a marginal, only partially significant fix to the retrieval-precision bottleneck; ships off by default
+Date: 2026-09-06 · Phase: 2 · Status: accepted
+
+**Context.** ADR-016 identified retrieval *precision*, not redundancy with
+dense passages, as the real bottleneck on `novel_and_relevant_rate`: only
+`overall_relevant_rate ≈ 0.47` of the 40 triples kept per question (ADR-015's
+cap, saturated on 96% of questions) are even on-topic, because selection
+into that cap was by raw Neo4j traversal order / a deterministic sort, not
+by relevance to the question. The project already has a MedCPT cross-encoder
+reranker (`src/retrieval/rerank.py`) used for dense+BM25 passages — reusing
+it to score verbalized KG triples against the question, and selecting the
+top-40 by that score instead of traversal order, is the natural fix to test.
+
+**Decision.** Added `KGConfig.kg_rerank: bool = False` (default **off** —
+this must not silently change Phase 3's default behavior or the
+already-committed canonical `data/processed/kg_cache/` files) and
+`src/kg/rerank.py: select_triples_reranked`, which verbalizes each candidate
+triple and scores it against the question text using the existing
+`CrossEncoderReranker.rerank` (reused directly, not reimplemented), keeping
+the top-`max_triples_per_question` by score. Wired into
+`scripts/precompute_kg_cache.py` via `--kg-rerank`/`--cache-dir`, writing to
+a separate `data/processed/kg_cache_kg_rerank/` location so the canonical
+cache is untouched. `scripts/kg_rerank_ablation.py` compares the two
+variants on the same 200 real MedQA test questions.
+
+**Per the project owner's explicit instruction, this is reported as a
+measured ablation result, not folded in as a silent improvement — including
+running it through the exact same paired-bootstrap significance discipline
+ADR-012 already established for this project, since CLAUDE.md forbids any
+"A beats B" claim from a raw mean inequality alone.** Real point estimates
+(n=200 MedQA test, naive traversal-order vs. kg_rerank):
+
+| metric | naive | kg_rerank | raw Δ |
+|---|---|---|---|
+| `overall_relevant_rate` | 0.4734 | 0.5276 | +0.0542 |
+| `overall_novel_and_relevant_rate` | 0.4063 | 0.4443 | +0.0380 |
+
+Both deltas look like wins on point estimates alone. Real paired-bootstrap
+check (10k resamples, seed 42, `src/retrieval/metrics.py:
+paired_bootstrap_ci`, paired by `question_id`, n=192 after excluding 8
+questions with zero scoreable triples in *both* variants — not a
+variant-specific exclusion bias):
+
+| metric | paired mean diff | 95% CI | verdict (ADR-012 rule) |
+|---|---|---|---|
+| `relevant_rate_for_question` | +0.0542 | **[+0.0026, +0.1052]** | **significant win** (but the lower bound sits close to zero — a marginal, not robust, win) |
+| `novel_and_relevant_rate_for_question` (primary, per ADR-016) | +0.0380 | **[−0.0125, +0.0875]** | **tie** (CI includes 0) |
+
+**Real, honest verdict, exactly the ADR-012 scenario repeating:** the
+primary C1 evidence metric (`novel_and_relevant_rate`) does **not** survive
+significance testing at n=200 — reranking's positive point estimate on this
+metric is a tie, not a demonstrated win, and must not be reported as
+"reranking measurably helps" (an earlier draft of this finding said exactly
+that, from the point estimate alone, before the significance check ran).
+The secondary, more direct precision metric (`relevant_rate`) is a real but
+narrow significant win — MedCPT reranking does plausibly select more
+on-topic triples, but the effect is not yet large enough to also carry the
+noisier, doubly-conditioned primary metric past significance at this sample
+size. n=200 (192 paired) may simply be underpowered for an effect this size,
+given the CI width relative to the point estimate.
+
+**Decision on shipping:** `kg_rerank` ships as a real, tested,
+config-gated **off-by-default** option — implemented and available for
+Phase 3+ to opt into and re-test at larger n (e.g. the full 500-question
+MedQA slice, or as part of the Phase 7 ablation grid, where it would earn
+its own V-variant-style row rather than a Phase 2 side-diagnostic), but not
+adopted as this phase's default because the evidence for it is not yet
+strong enough to justify changing already-committed baseline behavior.
+
+**Alternatives considered:** shipping `kg_rerank=True` as the new default on
+the strength of the raw point estimate (rejected outright — exactly the
+methodology CLAUDE.md's significance rule and ADR-012 exist to prevent);
+declaring the feature a failure and dropping it because the primary metric
+tied (rejected — the secondary metric's real, if narrow, significant win is
+genuine signal that the underlying mechanism is doing something real; a tie
+on an underpowered n=200 sample is not evidence of zero effect); running a
+larger n immediately to resolve the tie (deferred — better spent as part of
+Phase 3+'s planned larger-scale runs than as more Phase 2 wall-clock).
+
+**Consequences:** any future claim that `kg_rerank` improves KG evidence
+quality must cite the paired-bootstrap verdict above (tie on the primary
+metric), not the raw point-estimate table, until a larger-n re-test changes
+that verdict. The feature, its cache location, and its ablation script are
+real and committed, so re-testing at scale requires no new implementation —
+only a bigger run and a fresh significance check.
 
 ## ADR-017 — MedQA question-category heuristic (no gold subject label exists)
 Date: 2026-09-05 · Phase: 2 · Status: accepted

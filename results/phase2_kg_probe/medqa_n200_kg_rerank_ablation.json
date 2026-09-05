@@ -1,0 +1,147 @@
+{
+  "category_breakdown": {
+    "anatomy": {
+      "delta_novel_and_relevant_rate": null,
+      "kg_rerank_novel_and_relevant_rate": null,
+      "n_kg_rerank": 8,
+      "n_naive": 8,
+      "naive_novel_and_relevant_rate": null
+    },
+    "other": {
+      "delta_novel_and_relevant_rate": 0.08285714285714285,
+      "kg_rerank_novel_and_relevant_rate": 0.36,
+      "n_kg_rerank": 40,
+      "n_naive": 40,
+      "naive_novel_and_relevant_rate": 0.27714285714285714
+    },
+    "pathology_diagnosis": {
+      "delta_novel_and_relevant_rate": 0.06511627906976747,
+      "kg_rerank_novel_and_relevant_rate": 0.4813953488372093,
+      "n_kg_rerank": 43,
+      "n_naive": 43,
+      "naive_novel_and_relevant_rate": 0.41627906976744183
+    },
+    "pharmacology": {
+      "delta_novel_and_relevant_rate": -0.03589743589743588,
+      "kg_rerank_novel_and_relevant_rate": 0.5205128205128206,
+      "n_kg_rerank": 39,
+      "n_naive": 39,
+      "naive_novel_and_relevant_rate": 0.5564102564102564
+    },
+    "physiology": {
+      "delta_novel_and_relevant_rate": 0.065,
+      "kg_rerank_novel_and_relevant_rate": 0.42,
+      "n_kg_rerank": 22,
+      "n_naive": 22,
+      "naive_novel_and_relevant_rate": 0.355
+    },
+    "treatment_management": {
+      "delta_novel_and_relevant_rate": 0.023404255319148914,
+      "kg_rerank_novel_and_relevant_rate": 0.40425531914893614,
+      "n_kg_rerank": 48,
+      "n_naive": 48,
+      "naive_novel_and_relevant_rate": 0.38085106382978723
+    }
+  },
+  "generated_at_utc": "2026-09-05T19:33:38.249174+00:00",
+  "kg_rerank_config": {
+    "cache_dir": "data\\processed\\kg_cache_kg_rerank",
+    "kg_degree_cap": 200,
+    "kg_edge_allowlist": [
+      "indication",
+      "contraindication",
+      "off-label use",
+      "disease_phenotype_positive",
+      "disease_protein",
+      "drug_effect",
+      "disease_disease"
+    ],
+    "kg_linker_threshold": 0.85,
+    "kg_max_hops": 2,
+    "kg_max_triples_per_question": 40,
+    "novelty_entailment_threshold": 0.5,
+    "novelty_max_triples_scored_per_question": 10,
+    "novelty_nli_model": "MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli",
+    "novelty_top_k_dense": 12,
+    "novelty_top_k_dense_source": "retrieval.top_k_rerank",
+    "novelty_triple_selection_method": "seeded random sample per question (seed derived from sha256(seed:question_id)), not the earlier deterministic alphabetical-first-N selection -- see ADR-016 addendum, 2026-09-05 follow-up",
+    "relevance_match_method": "case-insensitive substring match of triple head/tail against the question stem and each answer option's text"
+  },
+  "kg_rerank_n_questions": 200,
+  "kg_rerank_source_file": "results/phase2_kg_probe/medqa_n200_kg_rerank_variant.json",
+  "naive_config": {
+    "cache_dir": "data\\processed\\kg_cache",
+    "kg_degree_cap": 200,
+    "kg_edge_allowlist": [
+      "indication",
+      "contraindication",
+      "off-label use",
+      "disease_phenotype_positive",
+      "disease_protein",
+      "drug_effect",
+      "disease_disease"
+    ],
+    "kg_linker_threshold": 0.85,
+    "kg_max_hops": 2,
+    "kg_max_triples_per_question": 40,
+    "novelty_entailment_threshold": 0.5,
+    "novelty_max_triples_scored_per_question": 10,
+    "novelty_nli_model": "MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli",
+    "novelty_top_k_dense": 12,
+    "novelty_top_k_dense_source": "retrieval.top_k_rerank",
+    "novelty_triple_selection_method": "seeded random sample per question (seed derived from sha256(seed:question_id)), not the earlier deterministic alphabetical-first-N selection -- see ADR-016 addendum, 2026-09-05 follow-up",
+    "relevance_match_method": "case-insensitive substring match of triple head/tail against the question stem and each answer option's text"
+  },
+  "naive_n_questions": 200,
+  "naive_source_file": "results/phase2_kg_probe/medqa_n200.json",
+  "overall": {
+    "aggregate_hit_rate": {
+      "delta": 0.0,
+      "kg_rerank": 0.96,
+      "naive": 0.96
+    },
+    "overall_novel_and_relevant_rate": {
+      "delta": 0.03802083333333334,
+      "kg_rerank": 0.44427083333333334,
+      "naive": 0.40625
+    },
+    "overall_novel_given_relevant_rate": {
+      "delta": -0.016032501571973556,
+      "kg_rerank": 0.8420533070088845,
+      "naive": 0.858085808580858
+    },
+    "overall_novel_relation_rate": {
+      "delta": -0.01822916666666674,
+      "kg_rerank": 0.8833333333333333,
+      "naive": 0.9015625
+    },
+    "overall_relevant_rate": {
+      "delta": 0.05416666666666664,
+      "kg_rerank": 0.5276041666666667,
+      "naive": 0.4734375
+    }
+  },
+  "significance": {
+    "decision_rule": "ADR-012 (docs/05_DECISIONS.md): ci_lo > 0 -> significant_win, ci_hi < 0 -> significant_loss, otherwise -> tie (CI includes 0, not evidence of a difference).",
+    "metrics": {
+      "novel_and_relevant_rate_for_question": {
+        "ci_hi": 0.08750000000000001,
+        "ci_lo": -0.012499999999999964,
+        "mean_diff": 0.03802083333333338,
+        "n_excluded": 8,
+        "n_paired": 192,
+        "verdict": "tie"
+      },
+      "relevant_rate_for_question": {
+        "ci_hi": 0.1052083333333333,
+        "ci_lo": 0.0026041666666666865,
+        "mean_diff": 0.05416666666666666,
+        "n_excluded": 8,
+        "n_paired": 192,
+        "verdict": "significant_win"
+      }
+    },
+    "n_resamples": 10000,
+    "seed": 42
+  }
+}

@@ -57,11 +57,30 @@ _SPLIT_PATHS: dict[tuple[str, str], Path] = {
     ("medqa", "test"): DATA_RAW / "medqa_usmle" / "test.jsonl",
     ("medqa", "train"): DATA_RAW / "medqa_usmle" / "train.jsonl",
     ("pubmedqa", "test"): DATA_RAW / "pubmedqa" / "pqa_labeled_train.jsonl",
+    # "dev" does NOT get its own raw file -- see _load_pubmedqa_dev_sample
+    # below. It is listed here only so _split_path's error message lists it
+    # as a valid split name; load_question_sample special-cases split=="dev"
+    # for dataset=="pubmedqa" before this dict is ever consulted for it.
+    ("pubmedqa", "dev"): DATA_RAW / "pubmedqa" / "pqa_labeled_train.jsonl",
     ("pubmedqa", "artificial"): DATA_RAW / "pubmedqa" / "pqa_artificial_train.jsonl",
     ("medmcqa", "validation"): DATA_RAW / "medmcqa" / "validation.jsonl",
     ("medmcqa", "train"): DATA_RAW / "medmcqa" / "train.jsonl",
     ("medmcqa", "test"): DATA_RAW / "medmcqa" / "test.jsonl",
 }
+
+# docs/03_DATASETS.md: PubMedQA's `pqa_labeled` release (1,000 questions) is
+# cut into a disjoint 500-question "test" (standard) + 500-question "dev"
+# split, not two independent seeded samples of the whole file (which, at the
+# same seed, would draw the IDENTICAL 500 rows for both and violate
+# CLAUDE.md's no-test-contamination principle by making "dev" just a copy of
+# "test"). "test" keeps its original behavior/code path unchanged (a plain
+# seeded sample of the full file, unconditionally) for backward compatibility
+# with existing callers/tests that predate this split. "dev" is defined as
+# the complement of whatever "test" would draw at the SAME seed and the same
+# fixed partition size below, computed independently of whatever --limit is
+# passed to the "dev" call -- so the two splits never overlap regardless of
+# call order or limit.
+_PUBMEDQA_LABELED_PARTITION_SIZE = 500
 
 _MEDMCQA_OPTION_KEYS = ["opa", "opb", "opc", "opd"]
 _MEDMCQA_OPTION_LETTERS = ["A", "B", "C", "D"]
@@ -180,7 +199,13 @@ def load_question_sample(
     """Deterministic fixed-seed sample of up to `limit` questions from
     (dataset, split), in the file's own row order for id assignment (see
     module docstring), then subsampled via `random.Random(seed).sample`.
-    `limit=None` returns every row in the split, in file order."""
+    `limit=None` returns every row in the split, in file order.
+
+    Special case: dataset="pubmedqa", split="dev" does not read a "dev" raw
+    file (none exists) -- see `_load_pubmedqa_dev_sample` and the note above
+    `_PUBMEDQA_LABELED_PARTITION_SIZE`."""
+    if dataset == "pubmedqa" and split == "dev":
+        return _load_pubmedqa_dev_sample(limit, seed)
     rows = _iter_raw_rows(dataset, split)
     n = len(rows)
     if limit is None or limit >= n:
@@ -188,3 +213,23 @@ def load_question_sample(
     else:
         idxs = sorted(random.Random(seed).sample(range(n), limit))
     return [_to_question(dataset, split, idx, rows[idx]) for idx in idxs]
+
+
+def _load_pubmedqa_dev_sample(limit: int | None, seed: int) -> list[Question]:
+    """The 500-question complement of pubmedqa's "test" split (see the note
+    above `_PUBMEDQA_LABELED_PARTITION_SIZE`), both drawn from the same
+    `pqa_labeled_train.jsonl` (1,000 rows). Recomputes exactly what
+    `load_question_sample("pubmedqa", "test", limit=_PUBMEDQA_LABELED_PARTITION_SIZE,
+    seed=seed)` would have drawn, then returns everything else -- so "test"
+    and "dev" are guaranteed disjoint at a given seed without either split
+    needing to know about the other's actual runtime `--limit`."""
+    rows = _iter_raw_rows("pubmedqa", "test")  # pqa_labeled_train.jsonl
+    n = len(rows)
+    test_size = min(_PUBMEDQA_LABELED_PARTITION_SIZE, n)
+    test_idxs = set(random.Random(seed).sample(range(n), test_size))
+    dev_idxs = sorted(set(range(n)) - test_idxs)
+    if limit is not None and limit < len(dev_idxs):
+        idxs = sorted(random.Random(seed).sample(dev_idxs, limit))
+    else:
+        idxs = dev_idxs
+    return [_to_question("pubmedqa", "dev", idx, rows[idx]) for idx in idxs]

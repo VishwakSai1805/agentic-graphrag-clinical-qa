@@ -56,7 +56,8 @@ from src.kg.dataset_questions import (  # noqa: E402
     load_question_sample,
 )
 from src.kg.linker import PrimeKGCrosswalk, link_entities  # noqa: E402
-from src.kg.traversal import KGCacheEntry, traverse_live, write_subgraph_cache  # noqa: E402
+from src.kg.rerank import select_triples_reranked  # noqa: E402
+from src.kg.traversal import KGCacheEntry, Triple, traverse_live, write_subgraph_cache  # noqa: E402
 from src.kg.verbalize import verbalize_triple  # noqa: E402
 
 CONFIG_PATH = REPO_ROOT / "configs" / "base.yaml"
@@ -76,30 +77,58 @@ def build_cache_entry(
     neo4j_user: str,
     neo4j_password: str,
     max_triples: int | None = None,
+    kg_rerank: bool = False,
+    rerank_pool_size: int | None = None,
 ) -> KGCacheEntry:
     """Does the real per-question work: link -> (maybe) traverse_live ->
-    verbalise -> assemble. The only function in this script that a caller
-    outside this module should need (kept separate from `main` so it's
-    independently testable/reusable, e.g. by `scripts/kg_probe.py` for an
-    on-demand cache fill -- see that script's module docstring for why it
-    does NOT do that by default)."""
+    (maybe rerank-select) -> verbalise -> assemble. The only function in this
+    script that a caller outside this module should need (kept separate from
+    `main` so it's independently testable/reusable, e.g. by
+    `scripts/kg_probe.py` for an on-demand cache fill -- see that script's
+    module docstring for why it does NOT do that by default).
+
+    `kg_rerank` (ADR-018 ablation, see `src/kg/rerank.py`): when False
+    (default), behavior is exactly as before this flag existed -- one
+    `traverse_live` call truncates directly to `max_triples` via its own
+    internal deterministic alphabetical sort. When True, `traverse_live` is
+    called with a larger `rerank_pool_size` candidate-pool cap instead (still
+    a bounded traversal, just a wider pool for the reranker to choose from --
+    not a return to unbounded traversal), and
+    `src.kg.rerank.select_triples_reranked` picks the final `max_triples` from
+    within that pool by MedCPT cross-encoder relevance to the question text
+    instead of alphabetical order.
+    """
     link_text = link_text_for_question(question)
     linked = link_entities(link_text, threshold=linker_threshold, crosswalk=crosswalk)
 
     node_ids = sorted({e.kg_node_id for e in linked if e.kg_node_id is not None})
 
-    triples = []
+    triples: list[Triple] = []
     if node_ids:
-        triples = traverse_live(
-            node_ids,
-            max_hops=max_hops,
-            degree_cap=degree_cap,
-            edge_allowlist=edge_allowlist,
-            uri=neo4j_uri,
-            user=neo4j_user,
-            password=neo4j_password,
-            max_triples=max_triples,
-        )
+        if kg_rerank and max_triples is not None:
+            pool_cap = max(max_triples, rerank_pool_size or max_triples)
+            pool = traverse_live(
+                node_ids,
+                max_hops=max_hops,
+                degree_cap=degree_cap,
+                edge_allowlist=edge_allowlist,
+                uri=neo4j_uri,
+                user=neo4j_user,
+                password=neo4j_password,
+                max_triples=pool_cap,
+            )
+            triples = select_triples_reranked(pool, question.question, cap=max_triples)
+        else:
+            triples = traverse_live(
+                node_ids,
+                max_hops=max_hops,
+                degree_cap=degree_cap,
+                edge_allowlist=edge_allowlist,
+                uri=neo4j_uri,
+                user=neo4j_user,
+                password=neo4j_password,
+                max_triples=max_triples,
+            )
 
     evidence = [verbalize_triple(t) for t in triples]
 
@@ -117,10 +146,26 @@ def main() -> None:
     parser.add_argument("--split", required=True, help="e.g. medqa: test|train")
     parser.add_argument("--limit", type=int, default=None, help="cap on number of questions")
     parser.add_argument("--force", action="store_true", help="recompute even if cached")
+    parser.add_argument(
+        "--kg-rerank",
+        action="store_true",
+        help="ablation flag (ADR-018, default off): select the final "
+        "max_triples_per_question via the MedCPT cross-encoder instead of "
+        "naive alphabetical order. Overrides configs/base.yaml: kg.kg_rerank if set. "
+        "Always use --cache-dir with this to avoid writing into the canonical cache.",
+    )
+    parser.add_argument(
+        "--cache-dir",
+        default=None,
+        help="override kg.cache_dir (default: configs/base.yaml's kg.cache_dir). Use a "
+        "separate directory for --kg-rerank runs, e.g. data/processed/kg_cache_kg_rerank, "
+        "so the canonical data/processed/kg_cache/ files are never touched.",
+    )
     args = parser.parse_args()
 
     cfg = load_config(CONFIG_PATH)
     kg_cfg = cfg.kg
+    kg_rerank = args.kg_rerank or kg_cfg.kg_rerank
 
     password = os.environ.get(kg_cfg.neo4j_password_env)
     if not password:
@@ -141,7 +186,11 @@ def main() -> None:
         f"n_questions={len(questions)} seed={cfg.seed}"
     )
 
-    cache_dir = Path(kg_cfg.cache_dir)
+    cache_dir = Path(args.cache_dir) if args.cache_dir else Path(kg_cfg.cache_dir)
+    print(
+        f"[precompute_kg_cache] kg_rerank={kg_rerank} "
+        f"(pool_size={kg_cfg.kg_rerank_pool_size} if kg_rerank else n/a) cache_dir={cache_dir}"
+    )
     n_skipped = 0
     n_computed = 0
     n_zero_entities = 0
@@ -165,6 +214,8 @@ def main() -> None:
             neo4j_user=kg_cfg.neo4j_user,
             neo4j_password=password,
             max_triples=kg_cfg.max_triples_per_question,
+            kg_rerank=kg_rerank,
+            rerank_pool_size=kg_cfg.kg_rerank_pool_size,
         )
         write_subgraph_cache(entry, args.dataset, cache_dir)
         n_computed += 1

@@ -34,8 +34,14 @@ Build a blocklist of test PMIDs and assert it at index-build time.
 
 ## Knowledge graph
 
-- **PrimeKG** — 129k nodes / 4M edges, 10 node types (disease, drug, gene,
-  phenotype, pathway…), harmonised from 20 sources. Loaded into Neo4j 5.
+- **PrimeKG** — 129k nodes / ~4M edges (full graph, all relation types), 10
+  node types (disease, drug, gene, phenotype, pathway…), harmonised from 20
+  sources. Loaded into Neo4j 5. This project only loads a 7-item
+  edge-type-allowlisted subset, not the full ~4M — see ADR-014
+  (`docs/05_DECISIONS.md`) for the real raw `kg.csv` row count (8,100,498
+  directional rows, i.e. ~4.05M edges since PrimeKG stores each undirected
+  fact as two rows) versus the 740,674-row post-allowlist count actually in
+  Neo4j; 740,674 is a deliberate filter result, not an incomplete load.
 - Edge-type allowlist for traversal (start with): `indication`, `contraindication`,
   `off_label_use`, `disease_phenotype_positive`, `disease_protein`,
   `drug_effect`, `disease_disease`.

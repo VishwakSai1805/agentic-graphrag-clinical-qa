@@ -6,6 +6,24 @@ project owner found in the first real run's report -- see
 (Neo4j/PrimeKG load, linker, traversal, cache) is unchanged and was not
 re-run; only this script's measurement/reporting logic changed):**
 
+**Second revision note (2026-09-05 Phase 2 follow-up, ADR-016 addendum):**
+the novelty/relevance scored-triples-per-question subset
+(`NOVELTY_MAX_TRIPLES_SCORED=10`) was previously selected by a deterministic
+**alphabetical sort on (head, relation, tail), then first-10** -- ADR-016
+already flagged that this over-represents alphabetically-early entity names
+(e.g. "Ac-" drug names like Acitretin/Acyclovir/Alfentanil recurring across
+unrelated questions' scored subsets is visible directly in the sample
+subgraphs). This revision replaces that with a **seeded random sample** of up
+to 10 triples per question (`_select_scored_triples`), seeded per-question
+from a hash of `(cfg.seed, question_id)` so a full rerun reproduces the exact
+same scored subset byte-for-byte (not just "seeded once globally", which
+would make the subset order-dependent on how many questions came before it in
+the loop -- see `_select_scored_triples`'s docstring). This changes
+`overall_novel_relation_rate` / `overall_relevant_rate` /
+`overall_novel_and_relevant_rate` from the previous alphabetical-selection
+run in an as-measured direction (see the Phase 2 follow-up report for the
+before/after numbers) -- not tuned to land anywhere in particular.
+
 1. The old headline `aggregate_hit_rate` (~0.96) used a permissive
    "question-level, >=1 mapped entity" hit definition that is close to an
    arithmetic guarantee given ~74 linked entities/question and an 11.2%
@@ -65,6 +83,21 @@ assumption. `--from-cache-only` is accepted for CLI-compatibility with the
 roadmap's phrasing but is always effectively true and changes nothing --
 documented here rather than silently implemented as a dead flag.
 
+**Third revision note (2026-09-06, kg_rerank significance follow-up):** the
+output JSON now always carries a `per_question` field -- one record per
+question (question_id, category, cache_missing, is_hit,
+n_triples_total/scored/novel/relevant/novel_and_relevant, and the three
+per-question rates `novel_relation_rate_for_question` /
+`relevant_rate_for_question` / `novel_and_relevant_rate_for_question`, `None`
+when nothing was scored for that question). This is distinct from
+`sample_subgraphs` (only the first `N_SAMPLE_SUBGRAPHS=10` questions with
+triples, human-readable, includes full triple lists) -- `per_question` covers
+all `n_questions` questions but only the aggregate counts/rates, and exists
+specifically so `scripts/kg_rerank_ablation.py` can pair two variants'
+per-question rates by `question_id` and run `paired_bootstrap_ci`
+(`src/retrieval/metrics.py`) instead of comparing only aggregate means (see
+`docs/05_DECISIONS.md` ADR-012's precedent, and the ADR this revision adds).
+
 Usage:
     uv run python -m scripts.kg_probe --dataset medqa --limit 200
     uv run python -m scripts.kg_probe --dataset medqa --limit 200 --from-cache-only
@@ -73,7 +106,9 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import random
 import statistics
 import sys
 import time
@@ -120,8 +155,10 @@ NOVELTY_MAX_TRIPLES_SCORED = 10  # per-question cap on how many of that question
 # against all top-k dense passages for n=200 is a background-job-scale cost, not
 # tractable in-session. This cap is unchanged by this revision -- only the dense
 # side (novelty_top_k_dense, now sourced from retrieval.top_k_rerank instead of a
-# smaller hardcoded value) was corrected. Triples are selected deterministically
-# (sorted by (head, relation, tail), first N) so the subset is reproducible.
+# smaller hardcoded value) was corrected. Triples are selected via a seeded random
+# sample (see `_select_scored_triples`), not the earlier alphabetical-first-N
+# selection (ADR-016 addendum, 2026-09-05 follow-up) -- reproducible per-question
+# via a seed derived from (cfg.seed, question_id), not a fixed sort order.
 N_SAMPLE_SUBGRAPHS = 10
 MIN_CATEGORY_N_FOR_RATE = 15  # categories with fewer questions than this have their
 # derived RATES (not raw counts) suppressed to null in the output -- a rate on a
@@ -167,6 +204,50 @@ def _rate_or_none(numerator: int, denominator: int, underpowered: bool) -> float
     return numerator / denominator
 
 
+def _question_rate(numerator: int, denominator: int) -> float | None:
+    """Same numerator/denominator rate as `_rate_or_none` but for a SINGLE
+    question's scored-triple counts (no category-level `underpowered`
+    suppression concept applies at n=1 question) -- None (not 0.0) when
+    denominator is 0, i.e. this question had no triples scored for novelty,
+    so the pairing step (`scripts/kg_rerank_ablation.py`) can distinguish
+    "this question contributed zero relevant/novel triples out of some
+    scored" from "this question had nothing scored at all" rather than
+    silently coercing both to 0.0."""
+    if denominator == 0:
+        return None
+    return numerator / denominator
+
+
+def _select_scored_triples(triples: list, question_id: str, global_seed: int, max_n: int) -> list:
+    """Seeded random sample of up to `max_n` of `triples` (ADR-016 addendum,
+    2026-09-05 follow-up) -- replaces the earlier deterministic alphabetical
+    first-N selection, which ADR-016 disclosed as over-representing
+    alphabetically-early entity names (e.g. "Ac-" drugs) across unrelated
+    questions' scored subsets.
+
+    Reproducible byte-for-byte on rerun: each question gets its OWN
+    `random.Random` instance seeded from a hash of `(global_seed,
+    question_id)` -- not one `random.Random(global_seed)` shared/advanced
+    across the whole question loop, which would make a given question's
+    scored subset depend on how many other questions (and how many triples
+    each had) were processed before it in the loop, i.e. order-dependent and
+    not truly per-question-reproducible in isolation. A plain Python `hash()`
+    is not used for the per-question seed because `str` hashing is
+    randomized per-process by default (`PYTHONHASHSEED`) -- `hashlib.sha256`
+    is used instead for a stable, process-independent derived seed.
+
+    If `len(triples) <= max_n`, returns all of them (sorted by
+    (head, relation, tail) for readable/deterministic output -- there is
+    nothing to actually select between)."""
+    if len(triples) <= max_n:
+        return sorted(triples, key=lambda t: (t.head, t.relation, t.tail))
+    digest = hashlib.sha256(f"{global_seed}:{question_id}".encode()).hexdigest()
+    per_question_seed = int(digest[:16], 16)
+    rng = random.Random(per_question_seed)
+    selected = rng.sample(triples, max_n)
+    return sorted(selected, key=lambda t: (t.head, t.relation, t.tail))
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dataset", choices=["medqa"], default="medqa")
@@ -183,6 +264,14 @@ def main() -> None:
         "--out",
         default=None,
         help="output JSON path (default: results/phase2_kg_probe/<dataset>_n<limit>.json)",
+    )
+    parser.add_argument(
+        "--cache-dir",
+        default=None,
+        help="override kg.cache_dir (default: configs/base.yaml's kg.cache_dir). Used e.g. to "
+        "point this script at a separate kg_rerank-ablation cache directory "
+        "(data/processed/kg_cache_kg_rerank/<dataset>/) without touching the canonical "
+        "data/processed/kg_cache/ default.",
     )
     args = parser.parse_args()
 
@@ -216,7 +305,8 @@ def main() -> None:
     dense = DenseIndex.load(DENSE_DIR)
     chunk_to_text = load_chunk_texts(CORPUS_PATH)
 
-    cache_dir = Path(kg_cfg.cache_dir)
+    cache_dir = Path(args.cache_dir) if args.cache_dir else Path(kg_cfg.cache_dir)
+    print(f"[kg_probe] reading KG cache from {cache_dir} ...")
 
     # Per-question bookkeeping.
     n_cache_missing = 0
@@ -242,6 +332,12 @@ def main() -> None:
     n_triples_novel_and_relevant = 0
 
     samples: list[dict] = []
+    per_question: list[dict] = []  # one record per question, ALWAYS populated (not just the
+    # N_SAMPLE_SUBGRAPHS=10 human-readable samples above) -- this is what lets a downstream
+    # script (scripts/kg_rerank_ablation.py) pair per-question rates across two variants by
+    # question_id and run paired_bootstrap_ci, instead of only comparing aggregate means (see
+    # docs/05_DECISIONS.md ADR-012's precedent: never compare two systems by raw mean
+    # inequality alone).
     scorer = None  # lazy: only load the NLI model once we know we have >=1 triple to score
 
     t0 = time.time()
@@ -252,6 +348,22 @@ def main() -> None:
         entry = get_subgraph_cached(args.dataset, q.question_id, cache_dir)
         if entry is None:
             n_cache_missing += 1
+            per_question.append(
+                {
+                    "question_id": q.question_id,
+                    "category": category,
+                    "cache_missing": True,
+                    "is_hit": False,
+                    "n_triples_total": 0,
+                    "n_triples_scored": 0,
+                    "n_novel": 0,
+                    "n_relevant": 0,
+                    "n_novel_and_relevant": 0,
+                    "novel_relation_rate_for_question": None,
+                    "relevant_rate_for_question": None,
+                    "novel_and_relevant_rate_for_question": None,
+                }
+            )
             continue
 
         total_linked_entities += len(entry.linked_entities)
@@ -272,17 +384,22 @@ def main() -> None:
         category_triples_per_q[category].append(len(entry.triples))
 
         # Novelty diagnostic: only meaningful when there are triples to judge.
-        # Deterministic subsample (sorted, then first N) -- see
-        # NOVELTY_MAX_TRIPLES_SCORED's docstring above for why this is capped
-        # and why sorting first keeps it reproducible byte-for-byte. This
-        # bounded subset is a disclosed compute-cost cut, unchanged by this
-        # revision; only novelty_top_k_dense (the dense-passage side) was
-        # corrected to the real retrieval.top_k_rerank value.
-        scored_triples = sorted(
-            entry.triples, key=lambda t: (t.head, t.relation, t.tail)
-        )[:NOVELTY_MAX_TRIPLES_SCORED]
+        # Seeded-random subsample (see `_select_scored_triples` and the
+        # ADR-016 addendum docstring above) -- reproducible per-question via a
+        # seed derived from (cfg.seed, question_id), not the earlier
+        # alphabetical-first-N selection. This bounded subset is a disclosed
+        # compute-cost cut, unchanged in SIZE by this revision; only the
+        # selection method (this revision) and novelty_top_k_dense (the
+        # earlier revision) were corrected.
+        scored_triples = _select_scored_triples(
+            entry.triples, q.question_id, cfg.seed, NOVELTY_MAX_TRIPLES_SCORED
+        )
         novel_flags: list[bool] = []
         relevant_flags: list[bool] = []
+        n_scored_here = 0
+        n_novel_here = 0
+        n_relevant_here = 0
+        n_novel_and_relevant_here = 0
         if scored_triples:
             if scorer is None:
                 print(f"[kg_probe] loading NLI model {NLI_MODEL_NAME} for novelty scoring ...")
@@ -310,6 +427,25 @@ def main() -> None:
             category_novel[category] += n_novel_here
             category_relevant[category] += n_relevant_here
             category_novel_and_relevant[category] += n_novel_and_relevant_here
+
+        per_question.append(
+            {
+                "question_id": q.question_id,
+                "category": category,
+                "cache_missing": False,
+                "is_hit": is_hit,
+                "n_triples_total": len(entry.triples),
+                "n_triples_scored": n_scored_here,
+                "n_novel": n_novel_here,
+                "n_relevant": n_relevant_here,
+                "n_novel_and_relevant": n_novel_and_relevant_here,
+                "novel_relation_rate_for_question": _question_rate(n_novel_here, n_scored_here),
+                "relevant_rate_for_question": _question_rate(n_relevant_here, n_scored_here),
+                "novel_and_relevant_rate_for_question": _question_rate(
+                    n_novel_and_relevant_here, n_scored_here
+                ),
+            }
+        )
 
         if len(samples) < N_SAMPLE_SUBGRAPHS and entry.triples:
             samples.append(
@@ -447,7 +583,9 @@ def main() -> None:
             "distinct_unmapped_cuis": len(distinct_unmapped_cuis),
         },
         "sample_subgraphs": samples,
+        "per_question": per_question,
         "config": {
+            "cache_dir": str(cache_dir),
             "kg_edge_allowlist": kg_cfg.edge_allowlist,
             "kg_max_hops": kg_cfg.max_hops,
             "kg_degree_cap": kg_cfg.degree_cap,
@@ -456,6 +594,11 @@ def main() -> None:
             "novelty_top_k_dense": novelty_top_k_dense,
             "novelty_top_k_dense_source": "retrieval.top_k_rerank",
             "novelty_max_triples_scored_per_question": NOVELTY_MAX_TRIPLES_SCORED,
+            "novelty_triple_selection_method": (
+                "seeded random sample per question (seed derived from sha256(seed:question_id)), "
+                "not the earlier deterministic alphabetical-first-N selection -- see ADR-016 "
+                "addendum, 2026-09-05 follow-up"
+            ),
             "novelty_nli_model": NLI_MODEL_NAME,
             "novelty_entailment_threshold": 0.5,
             "relevance_match_method": (

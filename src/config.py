@@ -150,6 +150,28 @@ class KGConfig(BaseModel):
     # tight squeeze.
     max_triples_per_question: int = 40
     cache_dir: Path = Path("data/processed/kg_cache")
+    # Ablation flag (Phase 2 follow-up, docs/05_DECISIONS.md ADR-018): when
+    # False (default -- MUST stay the default so this doesn't silently change
+    # Phase 3's behavior or invalidate the already-committed canonical
+    # data/processed/kg_cache/ files), triple selection ahead of the
+    # max_triples_per_question cap is the original deterministic
+    # alphabetical-sort-then-truncate behavior baked into
+    # `src.kg.traversal.traverse_live`. When True,
+    # `scripts/precompute_kg_cache.py` instead gathers a larger candidate pool
+    # (`rerank_pool_size`) from the live traversal and uses
+    # `src.kg.rerank.select_triples_reranked` (the project's existing MedCPT
+    # cross-encoder from `src/retrieval/rerank.py`, reused as-is) to pick the
+    # final `max_triples_per_question` triples by relevance to the question
+    # text, instead of alphabetical order. This is a measured on/off
+    # ablation, not a silent default change -- see the ADR for the real
+    # naive-vs-reranked comparison numbers.
+    kg_rerank: bool = False
+    # Candidate pool size handed to the live traversal before kg_rerank's
+    # selection step narrows it down to max_triples_per_question. Only
+    # consulted when kg_rerank=True. Bounded (not unlimited) per CLAUDE.md's
+    # traversal-boundedness rule -- the pool is a wider candidate set for the
+    # reranker to choose from, not a return to unbounded traversal.
+    kg_rerank_pool_size: int = 150
 
 
 class AppConfig(BaseModel):
