@@ -50,6 +50,17 @@ the paper.
   provider SDK directly from feature code.
 - **Determinism first.** `temperature=0` for audit/calibration agents. Only the
   Hypothesis agent may sample, and only with a recorded seed.
+- **Compare systems by significance, not point estimates.** Any claim that
+  system/variant A beats B must be backed by paired-bootstrap significance
+  (10k resamples, see `docs/04_EVALUATION.md` §1 and
+  `src/retrieval/metrics.py: paired_bootstrap_ci`), never by a raw mean
+  inequality alone. A small eval set makes point estimates misleading — see
+  ADR-012, where a real "RRF loses" point estimate turned out to be a
+  statistical tie. A tie is reported as a tie, never as a win.
+- **GPU-dependent scripts print CUDA status unconditionally.** Any script
+  that uses `torch` on a GPU-relevant path must print
+  `torch.cuda.is_available()` (and device name/capability if true) at
+  startup — never let a silent CPU fallback hide and quietly cost hours.
 
 ## 3. Stack (decided — do not re-litigate without an ADR)
 

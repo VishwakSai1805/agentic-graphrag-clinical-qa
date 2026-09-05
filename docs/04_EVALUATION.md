@@ -146,6 +146,26 @@ KG-hit rate, and the failure-mode counters from `docs/01_ARCHITECTURE.md`.
 | V3 +KG | Gemini Flash | MedQA (200) | TBD | TBD |
 | V5 full | Gemini Flash | MedQA (200) | TBD | TBD |
 
+### 5.2 Phase 1 retrieval-infra validation (real numbers, NOT part of the ablation grid)
+
+These are retrieval-quality checks that validate the tri-modal plumbing
+itself (Phase 1 exit test), not QA-accuracy results for any V-variant — they
+don't belong in §5's table schema and have no `run_id` (Phase 6's harness
+doesn't exist yet). Reproduce via `scripts/eval_retrieval.py` and
+`scripts/analysis/nfcorpus_significance.py`. See ADR-012 for full context.
+
+| Benchmark | Metric | dense | bm25 | rrf | Verdict |
+|---|---|---|---|---|---|
+| NFCorpus (BEIR), n=323, gating | nDCG@10 | 0.3362 | 0.2929 | 0.3327 | **PASS** — statistical tie vs. dense (95% CI [-0.0171, +0.0103]); RRF significantly beats bm25 (CI [+0.0242, +0.0564]) |
+| PubMedQA (`pqa_artificial`), n=200, infra floor | Recall@10 / MRR | 0.9950 / 0.9925 | 0.9800 / 0.9501 | 0.9900 / 0.9780 | **PASS** — all ≥ 0.9 floor (saturated by design, see ADR-012; not a fusion comparison) |
+
+**Note recorded per ADR-012, not to be quietly revised later:** dense-only
+retrieval is a real, evidenced competitor at this point — it saturates
+PubMedQA and statistically ties (does not lose to) fused RRF on NFCorpus
+while significantly beating BM25 alone. If V1 (dense-only) matches or beats
+hybrid/agent variants on MedQA downstream accuracy in the §5 grid, report it
+as such.
+
 ## 6. Run discipline
 - `results/<run_id>/config.yaml` — full resolved config incl. model ids + seed
 - `results/<run_id>/predictions.jsonl` — one row per question: options, p vector,

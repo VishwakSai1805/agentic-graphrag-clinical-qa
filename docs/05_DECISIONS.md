@@ -392,3 +392,38 @@ question (not a throwaway script) — any future dispute about this gate's
 verdict should be re-run through it. Phase 7's ablation grid, when it
 reports V1 vs V2/V3 vs V4/V5, inherits the obligation set here: a dense-only
 result that matches or beats hybrid/agent variants is reported as such.
+
+## ADR-013 — Small implementation choices made silently during Phase 1
+Date: 2026-09-05 · Phase: 1 · Status: accepted
+
+Recorded per CLAUDE.md's decision-log discipline — these weren't discussed
+explicitly but are decisions, not accidents.
+
+**Textbook corpus is always standardized to raw per-book text, regardless of
+which source fetched it.** `scripts/fetch_datasets.py`'s two textbook
+sources return different native formats: the `MedRAG/textbooks` HF mirror
+ships pre-chunked snippets (`chunk/<Book>.jsonl`, MedRAG's own chunking
+policy), while the jind11/MedQA Google Drive fallback ships raw full-book
+`.txt` files. Whichever source succeeds, the script reconstructs (or already
+has) one raw `data/raw/textbooks/en/<Book>.txt` file per book — MedRAG's
+chunks are concatenated back into continuous text, ordered by their chunk
+index. Reason: every corpus source must go through the project's *own*
+~256-tok/32-overlap chunker (`src/retrieval/chunking.py`) for a uniform
+chunking policy across pubmed abstracts and textbooks; mixing in MedRAG's
+own chunk boundaries for one source only would confound the corpus with two
+different chunking policies with no way to isolate the effect later.
+Consequence: re-running `fetch_datasets.py` is idempotent against
+`data/raw/textbooks/en/*.txt` specifically (18 files present → skip both
+network paths), not against either upstream format individually.
+
+**`data/MANIFEST.json` is the one file under `data/` that is tracked in
+git.** `.gitignore` originally blanket-ignored `data/` (Phase 0), which
+silently defeated `docs/03_DATASETS.md`'s stated intent ("Record dataset
+revision hashes in `data/MANIFEST.json`") — the file was being written but
+could never actually be committed. Fixed by changing the pattern from
+`data/` to `data/*` with a `!data/MANIFEST.json` negation (a directory-level
+ignore prevents git from ever descending far enough to evaluate a nested
+negation; a wildcard-on-contents ignore does not). Consequence: any future
+addition of another data/ file meant to be tracked (e.g. a splits manifest)
+needs its own negation line, following this same pattern — a plain `data/`
+re-ignore would silently break this again.
