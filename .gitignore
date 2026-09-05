@@ -1,5 +1,8 @@
-# data & artifacts
-data/
+# data & artifacts (data/* not data/, so the MANIFEST.json negation below can
+# actually re-include it -- git won't descend into a fully-ignored directory
+# to evaluate a nested negation)
+data/*
+!data/MANIFEST.json
 indexes/
 .cache/
 logs/

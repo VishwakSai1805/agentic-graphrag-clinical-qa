@@ -1,0 +1,140 @@
+{
+  "datasets": {
+    "medmcqa": {
+      "hf_id": "openlifescienceai/medmcqa",
+      "revision": "91c6572c454088bf71b679ad90aa8dffcd0d5868",
+      "splits": {
+        "test": 6150,
+        "train": 182822,
+        "validation": 4183
+      }
+    },
+    "medqa_textbooks": {
+      "books": [
+        "Anatomy_Gray",
+        "Biochemistry_Lippincott",
+        "Cell_Biology_Alberts",
+        "First_Aid_Step1",
+        "First_Aid_Step2",
+        "Gynecology_Novak",
+        "Histology_Ross",
+        "Immunology_Janeway",
+        "InternalMed_Harrison",
+        "Neurology_Adams",
+        "Obstentrics_Williams",
+        "Pathology_Robbins",
+        "Pathoma_Husain",
+        "Pediatrics_Nelson",
+        "Pharmacology_Katzung",
+        "Physiology_Levy",
+        "Psichiatry_DSM-5",
+        "Surgery_Schwartz"
+      ],
+      "n_books": 18,
+      "source": "cached"
+    },
+    "medqa_usmle": {
+      "hf_id": "GBaker/MedQA-USMLE-4-options",
+      "revision": "0fb93dd23a7339b6dcd27e241cb9b5eca62d4d18",
+      "splits": {
+        "test": 1273,
+        "train": 10178
+      }
+    },
+    "pubmedqa": {
+      "hf_id": "qiaojin/PubMedQA",
+      "revision": "9001f2853fb87cab8d220904e0de81ac6973b318",
+      "splits": {
+        "pqa_artificial_train": 211269,
+        "pqa_labeled_train": 1000
+      }
+    }
+  },
+  "corpus": {
+    "n_chunks_total": 113465,
+    "n_chunks_per_source": {
+      "pubmed_abstract": 32683,
+      "textbook": 80782
+    },
+    "n_pubmed_docs": 20000,
+    "n_textbook_docs": 18,
+    "chunk_tokens": 256,
+    "chunk_overlap": 32,
+    "pubmed_subset_size": 20000,
+    "pubmed_seed": 42,
+    "dense_index": {
+      "model_type": "medcpt",
+      "query_model": "ncbi/MedCPT-Query-Encoder",
+      "article_model": "ncbi/MedCPT-Article-Encoder",
+      "dim": 768,
+      "n_chunks": 113465,
+      "index_type": "IndexIVFFlat",
+      "metric": "inner_product",
+      "nlist": 100,
+      "nprobe": 16,
+      "batch_size": 64,
+      "max_query_length": 64,
+      "max_article_length": 512,
+      "corpus_path": "C:\\Claude\\AI Project\\data\\processed\\corpus.jsonl",
+      "built_at_utc": "2026-09-05T06:54:42.328756+00:00"
+    },
+    "bm25_index": {
+      "k1": 1.5,
+      "b": 0.75,
+      "n_chunks": 113465,
+      "corpus_path": "C:\\Claude\\AI Project\\data\\processed\\corpus.jsonl",
+      "built_at_utc": "2026-09-05T06:58:25.206951+00:00"
+    },
+    "build_wall_clock_s": {
+      "corpus_build_s": 85.04845786094666,
+      "dense_build_s": 1022.1171083450317,
+      "bm25_build_s": 11.460865259170532
+    },
+    "built_at_utc": "2026-09-05T06:58:26.280214+00:00"
+  },
+  "nfcorpus_sanity_benchmark": {
+    "purpose": "fusion sanity-check benchmark, NOT part of the medical retrieval corpus",
+    "source": {
+      "corpus": "BeIR/nfcorpus (config=corpus)",
+      "queries": "BeIR/nfcorpus (config=queries)",
+      "qrels": "BeIR/nfcorpus-qrels (test.tsv)"
+    },
+    "n_corpus_docs": 3633,
+    "n_chunks": 6241,
+    "n_queries_total": 3237,
+    "n_test_queries": 323,
+    "n_test_judgments": 12334,
+    "chunk_tokens": 256,
+    "chunk_overlap": 32,
+    "dense_index": {
+      "model_type": "medcpt",
+      "query_model": "ncbi/MedCPT-Query-Encoder",
+      "article_model": "ncbi/MedCPT-Article-Encoder",
+      "dim": 768,
+      "n_chunks": 6241,
+      "index_type": "IndexIVFFlat",
+      "metric": "inner_product",
+      "nlist": 100,
+      "nprobe": 16,
+      "batch_size": 64,
+      "max_query_length": 64,
+      "max_article_length": 512,
+      "corpus_path": "C:\\Claude\\AI Project\\data\\processed\\nfcorpus_corpus.jsonl",
+      "built_at_utc": "2026-09-05T07:35:13.567295+00:00"
+    },
+    "bm25_index": {
+      "k1": 1.5,
+      "b": 0.75,
+      "n_chunks": 6241,
+      "corpus_path": "C:\\Claude\\AI Project\\data\\processed\\nfcorpus_corpus.jsonl",
+      "built_at_utc": "2026-09-05T07:35:15.800974+00:00"
+    },
+    "build_wall_clock_s": {
+      "fetch_raw_s": 6.262656211853027,
+      "chunk_s": 3.787944793701172,
+      "dense_build_s": 40.50013494491577,
+      "bm25_build_s": 0.37964487075805664
+    },
+    "built_at_utc": "2026-09-05T07:35:15.820456+00:00"
+  }
+}

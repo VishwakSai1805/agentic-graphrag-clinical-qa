@@ -8,6 +8,17 @@ dependencies = [
     "pydantic>=2.7,<3",
     "pyyaml>=6.0",
     "python-dotenv>=1.0",
+    "numpy>=1.26",
+    "datasets>=2.20",
+    "huggingface_hub>=0.24",
+    "faiss-cpu>=1.8",
+    "rank-bm25>=0.2.2",
+    "sentence-transformers>=3.0",
+    # torch pinned to a CUDA 12.8 build: this machine's RTX 5070 Ti is
+    # Blackwell (sm_120), which needs >=2.7 + cu128 wheels — older cu121
+    # builds do not run on it (silent CPU fallback otherwise). See
+    # [tool.uv.sources]/[tool.uv.index] below and ADR in docs/05_DECISIONS.md.
+    "torch>=2.7",
 ]
 
 [dependency-groups]
@@ -16,6 +27,14 @@ dev = [
     "ruff>=0.6",
     "mypy>=1.10",
 ]
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cu128" }]
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
 
 [tool.ruff]
 line-length = 100

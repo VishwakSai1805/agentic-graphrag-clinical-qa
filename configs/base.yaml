@@ -2,6 +2,51 @@ seed: 42
 
 cache_dir: .cache/llm
 
+# Eval-run concurrency/keep-alive. See docs/04_EVALUATION.md §0.4-0.5, ADR-006.
+# concurrency must match OLLAMA_NUM_PARALLEL (.env.example) for the harness's
+# semaphore to actually saturate the server; ollama_keep_alive is informational
+# here — the effective setting is the OLLAMA_KEEP_ALIVE env var on the server.
+eval:
+  concurrency: 4
+  ollama_keep_alive: -1
+
+# Tri-modal retrieval: chunking, dense (MedCPT dual encoder + FAISS), BM25,
+# RRF fusion (k=60 fixed, ADR-002) and MedCPT cross-encoder rerank. Index
+# artifacts live under indexes/ (gitignored, always rebuilt from
+# data/processed/corpus.jsonl by scripts/build_corpus.py) with a manifest
+# recording model/params/counts -- never hand-edited. See ADR-010, ADR-011.
+retrieval:
+  chunk_tokens: 256
+  chunk_overlap: 32
+  tokenizer_model: ncbi/MedCPT-Article-Encoder
+  top_k_dense: 50
+  top_k_bm25: 50
+  top_k_rerank: 12
+  dense:
+    model_type: medcpt   # medcpt (asymmetric dual encoder, ADR-010) | bge (symmetric fallback)
+    query_model: ncbi/MedCPT-Query-Encoder
+    article_model: ncbi/MedCPT-Article-Encoder
+    bge_model: BAAI/bge-large-en-v1.5
+    bge_query_prefix: "Represent this sentence for searching relevant passages: "
+    device: null            # null -> auto (cuda if available, else cpu)
+    batch_size: 64
+    max_query_length: 64
+    max_article_length: 512
+    nlist: 100
+    nprobe: 16
+    checkpoint_every_batches: 25
+  bm25:
+    k1: 1.5
+    b: 0.75
+  fusion:
+    rrf_k: 60              # ADR-002: fixed, do not change without a new ADR
+  rerank:
+    model: ncbi/MedCPT-Cross-Encoder
+    max_length: 512
+  corpus:
+    pubmed_subset_size: 20000   # fixed-seed subset of pqa_artificial (211k rows)
+    pubmed_seed: 42
+
 llm:
   temperature: 0.0
   seed: 42

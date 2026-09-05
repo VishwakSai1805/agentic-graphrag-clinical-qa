@@ -57,7 +57,7 @@ the paper.
 |---|---|---|
 | Language | Python 3.11 | `uv` for env; fall back to venv+pip |
 | Config | Hydra-style YAML in `configs/` | one YAML per experiment variant |
-| Dense retrieval | FAISS (IVF-Flat → HNSW) | embeddings: `ncbi/MedCPT-Article-Encoder`, fallback `BAAI/bge-large-en-v1.5` |
+| Dense retrieval | FAISS (IVF-Flat → HNSW) | embeddings: MedCPT dual encoder — `ncbi/MedCPT-Query-Encoder` (queries) + `ncbi/MedCPT-Article-Encoder` (documents), see ADR-010; fallback `BAAI/bge-large-en-v1.5` (symmetric) |
 | Lexical | `rank_bm25` (dev) → Pyserini (scale) | |
 | KG | Neo4j 5 in Docker, PrimeKG dump | Cypher via `neo4j` driver, all queries in `src/kg/queries.py` |
 | Entity linking | scispaCy `en_core_sci_lg` + UMLS linker | QuickUMLS fallback |

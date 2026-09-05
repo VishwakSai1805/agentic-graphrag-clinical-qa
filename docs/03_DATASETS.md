@@ -6,12 +6,18 @@
 |---|---|---|---|---|
 | PubMedQA | `qiaojin/PubMedQA` (`pqa_labeled`, 1k) | yes/no/maybe over abstract | 500 test (standard), 500 dev | Baseline parity vs. MEGA-RAG-class binary systems |
 | MedQA-USMLE | `GBaker/MedQA-USMLE-4-options` | 4-option MCQ | official test; 500 from train as dev | **Primary novelty benchmark** — multi-option clinical reasoning |
-| MedMCQA | `openlifescienceai/medmcqa` | 4-option MCQ, 21 subjects | official validation (test labels withheld) | Diagnostic breadth across specialties |
+| MedMCQA | `openlifescienceai/medmcqa` | 4-option MCQ, 21 subjects | 500-question fixed seeded subsample of official validation (test labels withheld) | Diagnostic breadth across specialties |
 
 Notes:
 - PubMedQA `pqa_artificial` (211k) may be used **only** to fit calibration
   weights, never for reporting.
 - MedMCQA test labels are not public → report on validation and say so.
+- MedMCQA's full validation split (~4.2k questions) is cut to a 500-question
+  fixed seeded subsample (seed 42) for scale parity with PubMedQA and MedQA
+  under the Phase 7 grid budget — see `docs/04_EVALUATION.md` §0.3 and
+  ADR-005. Report per-subject accuracy *within that subsample*, and note the
+  subsample size explicitly wherever breadth is claimed in the paper — it is
+  not the full validation set.
 - Record per-subject accuracy for MedMCQA (it is the breadth claim).
 
 ## Retrieval corpora
