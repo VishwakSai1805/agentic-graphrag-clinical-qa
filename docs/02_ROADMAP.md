@@ -19,7 +19,7 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done (add run_id/commit)
   rather than a single provider, to satisfy the zero-API-spend constraint.
   Exit test verified live against Ollama alone, no API key present.
 
-## Phase 1 — Corpora & lexical/dense indexes  `[x]` (PENDING_SHA, 2026-09-05)
+## Phase 1 — Corpora & lexical/dense indexes  `[x]` (74457b0, 2026-09-05)
 - `scripts/fetch_datasets.py` — PubMedQA (pqa_labeled/pqa_artificial), MedQA-USMLE 4-opt, MedMCQA via HF
   `datasets`; MedQA textbook corpus (18 USMLE textbooks) via the HF mirror `MedRAG/textbooks` — this is
   the primary content source for USMLE-style questions, not a fast-follow (see ADR-009). If no HF
