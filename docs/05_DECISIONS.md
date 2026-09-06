@@ -897,3 +897,188 @@ identity. If a future session wants a less noisy breakdown, replacing this
 heuristic with hand-labelled categories on a sample (mirroring
 `docs/03_DATASETS.md`'s "tuned on 50 hand-checked items" precedent for the
 UMLS linker threshold) is the natural upgrade path, not implemented here.
+
+## ADR-019 — Phase 2's KG caches were never committed; ADR-018's "already-committed canonical" is corrected of record; a checksum manifest replaces committing the files
+Date: 2026-09-06 · Phase: 3 · Status: accepted (corrects a factual claim in ADR-018)
+
+**Context.** ADR-018 states, twice, that `data/processed/kg_cache/` holds the
+"already-committed canonical" KG cache. This is false. `.gitignore` is
+`data/*` with a single negation `!data/MANIFEST.json` (ADR-013); nothing under
+`data/processed/` has ever been tracked. Phase 3 found the entire Phase 2 KG
+cache (200 MedQA test + 1000 PubMedQA + 500 MedMCQA question files, plus the
+200-file `kg_cache_kg_rerank/` variant) and the PrimeKG raw inputs
+(`nodes.csv`, crosswalk) existing in exactly one place: the untracked
+`.claude/worktrees/phase2-kg-layer/` worktree directory, one `git worktree
+remove` from deletion with no other copy. Phase 7's reproducibility depends on
+these artifacts; "canonical" for a file that is gitignored and un-backed-up is
+not a defensible position.
+
+**Decision.**
+1. Relocate the caches and the required PrimeKG inputs (`nodes.csv` —
+   MD5 `7f9ab4109c54049e819ecd14e15a6038`, matches ADR-014; `crosswalk/`) into
+   the main working tree under `data/processed/` and `data/raw/primekg/`. They
+   stay gitignored — ~1700 small JSON files would churn the repo on every
+   re-precompute and the real provenance is (seed, split, PrimeKG graph),
+   not the bytes.
+2. Add `scripts/kg_cache_manifest.py` and a `kg_cache` block in the tracked
+   `data/MANIFEST.json` recording, per cache tree: `n_files`, an aggregate
+   SHA-256 (SHA-256 over the sorted `<relpath>\t<file-sha256>` lines), and the
+   exact `precompute_kg_cache.py` command that regenerates it. `--check`
+   exits non-zero on drift; `tests/test_kg_cache_manifest.py` covers the
+   digest (stable / content-sensitive / rename-sensitive / order-independent).
+3. `kg.csv` (982 MB) is *not* relocated — it is only needed to load Neo4j and
+   is re-fetchable from Dataverse via `scripts/load_primekg.py` (ADR-014).
+4. `.claude/worktrees/` added to `.gitignore` (a stray `git add .` would
+   otherwise pull a whole nested checkout in). The Phase 2 worktree is kept
+   for now as the only remaining copy of `kg.csv`; `git worktree remove` is a
+   documented housekeeping step once a full re-precompute from the relocated
+   inputs has been verified.
+
+**Alternatives considered:** commit the ~1700 cache files (rejected — repo
+churn, and it does not actually make them more reproducible); commit nothing
+and rely on the ADR-007 exit test (rejected — that verifies reproducibility
+given the graph, but gives no way to detect that an on-disk cache has drifted
+from what a run used); a git-lfs pointer set (rejected — adds an LFS
+dependency for artifacts that are cheap to regenerate).
+
+**Consequences:** `scripts/kg_cache_manifest.py --check` should be run before
+any Phase 7 grid run that consumes the cache, and re-`--write`n whenever a
+split is (re)precomputed. A future reader who sees ADR-018's "already-committed
+canonical" phrasing should read it as "canonical, and now checksum-tracked in
+`data/MANIFEST.json`" — the caches were never in git and are not now.
+
+## ADR-020 — Phase 3 dev slice is MedQA train, not test; baseline set, B3 spec, and small decisions
+Date: 2026-09-06 · Phase: 3 · Status: accepted
+
+**Context.** Phase 3's roadmap exit test says "200-item MedQA **dev** slice".
+`docs/03_DATASETS.md` defines MedQA's dev split as "500 from train", with the
+official test split reserved. Phase 2 only ever precomputed a KG cache for
+MedQA **test** (200 q, seed 42). Running Phase 3's KG-using baselines (B2, B3)
+on a roadmap-faithful dev slice therefore needed a fresh precompute.
+
+**Decision.**
+- **Dev slice = MedQA train split, `load_question_sample("medqa", "train",
+  limit, seed=42)`.** The Phase 3 exit test runs on 20 of these (CLAUDE.md §5
+  "20-question dev slice"); a KG cache for the 20 was precomputed
+  (`--split train --limit 20`, Neo4j already loaded, 88 s). The official test
+  split stays untouched until Phase 7. The alternative (reuse the existing
+  test-slice cache) was rejected by the project owner: the test-set hygiene
+  held since Phase 1 is worth more than the few minutes saved.
+- **Baseline → retrieval mapping.** B0 zero-shot (no retrieval, ungrounded by
+  construction — a documented carve-out from CLAUDE.md's "empty citation set
+  is a bug" rule, since B0 is the ungrounded floor). B1 dense-only
+  (`modalities={"dense"}`). B2 hybrid, no agents (`{"dense","lexical","kg"}`,
+  one generation call). B3 as below. B2 maps to Phase 7's V3 (tri-modal, no
+  agents); there is no separate "dense+bm25 only" Phase 3 baseline — that is
+  V2, produced by the Phase 7 grid, not Phase 3.
+- **B3 = MEGA-RAG-style binary verifier reimplementation.** Tri-modal
+  retrieve (same bundle as B2). For each option, one `temperature=0` call
+  returning `{verdict: SUPPORTED|NOT_SUPPORTED, evidence_id}`. If exactly one
+  option is SUPPORTED → predict it (`verifier_decided=True`). Otherwise (0 or
+  ≥2 SUPPORTED) → fall back to one B2-style generation call
+  (`verifier_decided=False`). B3 gets the identical model, temperature,
+  retrieval budget, evidence block and prompt care as B2 — it is the "binary
+  bottleneck" C2 argues against, reimplemented in good faith, not a strawman.
+  `scripts/run_baselines.py` reports `verifier_decision_rate` (fraction where
+  the verifier decided vs. fell back) and the `n_supported` distribution:
+  a high fallback rate is *direct empirical evidence for the binary
+  bottleneck*, and per the project owner may be the most useful number B3
+  produces.
+- **Small decisions, recorded per CLAUDE.md discipline.** (a) No separate
+  `configs/baseline.yaml` — all four baselines resolve the same
+  `configs/base.yaml`; the only thing that varies (which modalities feed the
+  bundle) is a code-level property of the baseline, not a config knob.
+  `run_id`'s `<variant>` field (`B0`…`B3`) carries the distinction.
+  (b) `Evidence.id` for passages is the corpus `chunk_id` verbatim (already
+  `chunk::<doc_id>#<span>`, e.g. `chunk::textbook::Pathology_Robbins#618`) —
+  no synthesis, uniform with Phase 2's `kg::` ids for citation validation.
+  (c) `contamination_assertion` for MedQA is a recorded no-op: MedQA questions
+  are not generated from indexed corpus docs, so the PubMedQA test-PMID
+  blocklist (`src/eval/contamination.py`) does not apply; MedQA textbooks are
+  in the corpus by design (ADR-009). Logged in every `metrics.json`, not
+  skipped.
+  (d) `src/eval/metrics.py` ships only `accuracy` + `macro_f1` now; Phase 6
+  extends it (P@K, MRR, ECE, RAGAS/NLI). `macro_f1` for 4-option MedQA is
+  labelled a **position-bias detector, not a skill metric** — a model that
+  always answers "A" scores ~0.25 accuracy but macro-F1 collapses; Accuracy
+  is the headline.
+
+**Consequences:** Phase 3's baseline numbers are a plumbing/parity check on
+n=20, never a comparison result — `scripts/run_baselines.py` makes no
+"A beats B" claim and n=20 forbids one (CLAUDE.md significance rule). Phase 7
+re-runs all baselines fresh on the seeded 500-question test slice; the Phase 3
+`results/` dirs are development artifacts, not paper inputs. A dev KG cache
+for the full 500-question MedQA train slice is still outstanding (tracked
+under `data/MANIFEST.json: kg_cache` regen commands and Phase 6's needs).
+
+## ADR-021 — `llm.num_ctx` + a hard context-budget guard: a silent tail-truncation was corrupting the hybrid baselines
+Date: 2026-09-06 · Phase: 3 · Status: accepted
+
+**Context.** The first Phase 3 exit run used Ollama's default context window
+(4096 tokens, confirmed via `/api/ps`). The tri-modal prompt is question +
+options + 12 reranked passages (~256 tok each) + up to 40 verbalised KG
+triples, and `_format_evidence` appends the KG triples **last**. At 4096
+tokens llama.cpp silently truncates the tail — i.e. it drops exactly the KG
+modality that B2/B3 exist to measure, and the JSON-format instruction with it.
+This is not a "context-optimal vs not" tuning question; it is a correctness
+bug of the same class as the Phase 0 cache-hit token double-count: silent, and
+it corrupts numbers rather than crashing. Left unfixed it would propagate
+through Phases 4–7 as "dense+lexical mislabelled as tri-modal".
+
+**Real measured effect** (`scripts/run_baselines.py`, MedQA train dev-20,
+seed 42 — before = num_ctx 4096, after = num_ctx 8192; n=20, no comparison
+claim, plumbing only):
+
+| baseline | acc before | acc after | grounded before | grounded after | parse_error before | parse_error after |
+|---|---|---|---|---|---|---|
+| B0 (no retrieval) | 0.55 | 0.55 | 0.00 (by construction) | 0.00 | 0 | 0 |
+| B1 dense-only     | 0.55 | 0.60 | 0.00 | 0.95 | 2 | 0 |
+| B2 hybrid         | **0.15** | **0.65** | 0.00 | 0.95 | **12** | 0 |
+| B3 binary verifier| **0.15** | **0.65** | 0.00 | 0.95 | **12** | 0 |
+
+The B2/B3 collapse under truncation (0.15) is entirely an artifact: 12/20
+prompts were cut mid-output so the model never emitted a parseable answer.
+The grounded-rate jump (0.00 → 0.95) is a second, independent bug fixed in
+the same round — `_format_evidence` had numbered each item `N. [id] text`, so
+the model cited `"[chunk::…]"` (brackets included) or the bare number `"12"`,
+neither of which matched a bundle id; now items render as `[id] text` and
+`_normalize_cite` strips surrounding brackets/quotes.
+
+**Decision.**
+1. `LLMConfig.num_ctx` (default **8192**) and
+   `LLMConfig.context_completion_reserve` (default 512), surfaced in
+   `configs/base.yaml`. qwen2.5:7b trains at 32k, so 8192 is safe and fits the
+   full bundle with headroom; VRAM cost of the larger KV cache is a few
+   hundred MB on a 12 GB card.
+2. `src/llm/client.py` sends `num_ctx` in the Ollama options **only** on the
+   `provider == "ollama"` path (Groq/Gemini reject unknown params).
+3. `num_ctx` is part of the LLM cache key (`params` dict): a call under a
+   different context window is a genuinely different call and must not replay
+   a smaller-window cache entry. (This is why the re-run actually
+   re-executed rather than serving the truncated responses.)
+4. Hard guard: before any cache read or network call, `chat()` token-counts
+   `system + prompt` (via `litellm.token_counter`, model-real tokenizer where
+   available) and raises `LLMContextBudgetError` if it exceeds
+   `num_ctx - context_completion_reserve`. Per CLAUDE.md's budget-guard rule
+   this is a **recorded hard stop, never a silent truncation**. Feature code
+   that batches calls (`src/eval/baselines.py`) catches it and records the
+   item as `status="context_exceeded"` (new `Prediction.status` member), which
+   `accuracy`/`macro_f1` score as wrong and `run_baselines.py` surfaces in
+   `status_counts`.
+
+**Alternatives considered:** raise `num_ctx` without the guard (rejected —
+the guard is cheap insurance against the same failure re-appearing when the
+Phase 4 agent bundle or a longer question pushes past 8192; a silent failure
+here is exactly what bit us); pre-truncate the bundle to fit (rejected for
+Phase 3 — trimming evidence is the Phase 4 agent layer's job with
+`max_evidence=12`, and doing it implicitly in the gateway would hide the
+same information loss the guard exists to make loud); keep `num_ctx` out of
+the cache key and clear `.cache/llm` on the re-run (rejected — `num_ctx`
+provably changes output, so it belongs in the key).
+
+**Consequences:** the B2/B3 context-truncation escalation is resolved before
+Phase 4, as the project owner required. Phase 4's agent prompts carry an
+`EvidenceBundle` of similar size and now inherit both the raised window and
+the guard. `docs/04_EVALUATION.md` §0.1's per-call prefill budget (~3.7 s at
+958 tok/s for a ~3.5k-token bundle) is unchanged — 8192 is the *ceiling*, not
+the typical prompt size.

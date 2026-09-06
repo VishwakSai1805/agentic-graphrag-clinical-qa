@@ -1,0 +1,38 @@
+{
+  "config_hash": "cf99802ee9a6b414f350ec91ac2b93d3e86a2d6300653bacd054ab5df4f2bd5c",
+  "dataset": "medqa",
+  "git_sha7": "d5e3af5",
+  "limit": 20,
+  "metrics": {
+    "accuracy": 0.15,
+    "contamination_assertion": {
+      "applies": false,
+      "checked": true,
+      "note": "MedQA questions are not generated from indexed corpus docs; the PubMedQA test-PMID blocklist (src/eval/contamination.py) does not apply. MedQA textbooks are in the corpus by design (ADR-009), not a leak."
+    },
+    "grounded_rate": 0.05,
+    "invalid_citation_count": 283,
+    "llm_cache_hits": 19,
+    "llm_calls_total": 99,
+    "macro_f1": 0.125,
+    "macro_f1_note": "position-bias check, NOT a skill metric for 4-option MCQ; Accuracy is the headline",
+    "mean_llm_calls": 4.95,
+    "n_evaluated": 20,
+    "n_supported_distribution": {
+      "0": 7,
+      "1": 1,
+      "3": 2,
+      "4": 10
+    },
+    "status_counts": {
+      "ok": 8,
+      "parse_error": 12
+    },
+    "verifier_decision_rate": 0.05,
+    "verifier_decision_rate_note": "fraction of questions where exactly one option verified SUPPORTED (verifier decided) vs. fell back to B2-style generation. A high fallback rate is direct evidence for the binary bottleneck C2 targets, not a defect of this run."
+  },
+  "run_id": "medqa_B3_d5e3af5_20260906T100551Z",
+  "seed": 42,
+  "split": "train",
+  "variant": "B3"
+}

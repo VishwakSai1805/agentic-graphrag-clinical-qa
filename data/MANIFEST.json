@@ -1,4 +1,46 @@
 {
+  "corpus": {
+    "bm25_index": {
+      "b": 0.75,
+      "built_at_utc": "2026-09-05T06:58:25.206951+00:00",
+      "corpus_path": "C:\\Claude\\AI Project\\data\\processed\\corpus.jsonl",
+      "k1": 1.5,
+      "n_chunks": 113465
+    },
+    "build_wall_clock_s": {
+      "bm25_build_s": 11.460865259170532,
+      "corpus_build_s": 85.04845786094666,
+      "dense_build_s": 1022.1171083450317
+    },
+    "built_at_utc": "2026-09-05T06:58:26.280214+00:00",
+    "chunk_overlap": 32,
+    "chunk_tokens": 256,
+    "dense_index": {
+      "article_model": "ncbi/MedCPT-Article-Encoder",
+      "batch_size": 64,
+      "built_at_utc": "2026-09-05T06:54:42.328756+00:00",
+      "corpus_path": "C:\\Claude\\AI Project\\data\\processed\\corpus.jsonl",
+      "dim": 768,
+      "index_type": "IndexIVFFlat",
+      "max_article_length": 512,
+      "max_query_length": 64,
+      "metric": "inner_product",
+      "model_type": "medcpt",
+      "n_chunks": 113465,
+      "nlist": 100,
+      "nprobe": 16,
+      "query_model": "ncbi/MedCPT-Query-Encoder"
+    },
+    "n_chunks_per_source": {
+      "pubmed_abstract": 32683,
+      "textbook": 80782
+    },
+    "n_chunks_total": 113465,
+    "n_pubmed_docs": 20000,
+    "n_textbook_docs": 18,
+    "pubmed_seed": 42,
+    "pubmed_subset_size": 20000
+  },
   "datasets": {
     "medmcqa": {
       "hf_id": "openlifescienceai/medmcqa",
@@ -50,112 +92,85 @@
       }
     }
   },
-  "corpus": {
-    "n_chunks_total": 113465,
-    "n_chunks_per_source": {
-      "pubmed_abstract": 32683,
-      "textbook": 80782
-    },
-    "n_pubmed_docs": 20000,
-    "n_textbook_docs": 18,
-    "chunk_tokens": 256,
-    "chunk_overlap": 32,
-    "pubmed_subset_size": 20000,
-    "pubmed_seed": 42,
-    "dense_index": {
-      "model_type": "medcpt",
-      "query_model": "ncbi/MedCPT-Query-Encoder",
-      "article_model": "ncbi/MedCPT-Article-Encoder",
-      "dim": 768,
-      "n_chunks": 113465,
-      "index_type": "IndexIVFFlat",
-      "metric": "inner_product",
-      "nlist": 100,
-      "nprobe": 16,
-      "batch_size": 64,
-      "max_query_length": 64,
-      "max_article_length": 512,
-      "corpus_path": "C:\\Claude\\AI Project\\data\\processed\\corpus.jsonl",
-      "built_at_utc": "2026-09-05T06:54:42.328756+00:00"
-    },
-    "bm25_index": {
-      "k1": 1.5,
-      "b": 0.75,
-      "n_chunks": 113465,
-      "corpus_path": "C:\\Claude\\AI Project\\data\\processed\\corpus.jsonl",
-      "built_at_utc": "2026-09-05T06:58:25.206951+00:00"
-    },
-    "build_wall_clock_s": {
-      "corpus_build_s": 85.04845786094666,
-      "dense_build_s": 1022.1171083450317,
-      "bm25_build_s": 11.460865259170532
-    },
-    "built_at_utc": "2026-09-05T06:58:26.280214+00:00"
+  "kg_cache": {
+    "_comment": "Aggregate SHA-256 per precomputed KG cache tree (ADR-007). Trees are gitignored; regenerate with the 'regen' command (needs Neo4j up -- docker/compose.yaml + scripts/load_primekg.py). See ADR correcting ADR-018's 'already-committed canonical' claim.",
+    "trees": {
+      "data/processed/kg_cache/medmcqa": {
+        "aggregate_sha256": "3fb7d9ee7480426573d9bf0678bfb0a42610834df364acba45a31f57645ea833",
+        "n_files": 500,
+        "note": "Phase 2 follow-up: 500-question seeded validation subsample, seed 42 (ADR-005).",
+        "present": true,
+        "regen": "uv run python -m scripts.precompute_kg_cache --dataset medmcqa --split validation --limit 500"
+      },
+      "data/processed/kg_cache/medqa": {
+        "aggregate_sha256": "d2894b352398aeee6d5996dc31dc19af9559ed74e7a9384308521d17fd6c9f67",
+        "n_files": 220,
+        "note": "Phase 2 exit slice (200 MedQA test, seed 42) + Phase 3 dev slice (20 MedQA train, seed 42).",
+        "present": true,
+        "regen": "uv run python -m scripts.precompute_kg_cache --dataset medqa --split test --limit 200  &&  uv run python -m scripts.precompute_kg_cache --dataset medqa --split train --limit 20"
+      },
+      "data/processed/kg_cache/pubmedqa": {
+        "aggregate_sha256": "bd65a4c43799e43053691948b63d82baffd64a4d84b55942307661d97be2539e",
+        "n_files": 1000,
+        "note": "Phase 2 follow-up: 500 test + 500 dev, seed 42 (ADR-005 eval scope).",
+        "present": true,
+        "regen": "uv run python -m scripts.precompute_kg_cache --dataset pubmedqa --split test --limit 500  &&  uv run python -m scripts.precompute_kg_cache --dataset pubmedqa --split dev --limit 500"
+      },
+      "data/processed/kg_cache_kg_rerank/medqa": {
+        "aggregate_sha256": "fddc855a177491dcfb6a2a8e83f734f65653775bc95028f7a5897ce1089bac73",
+        "n_files": 200,
+        "note": "ADR-018 kg_rerank ablation variant, 200 MedQA test, seed 42. Off by default.",
+        "present": true,
+        "regen": "uv run python -m scripts.precompute_kg_cache --dataset medqa --split test --limit 200 --kg-rerank --cache-dir data/processed/kg_cache_kg_rerank"
+      }
+    }
   },
   "nfcorpus_sanity_benchmark": {
+    "bm25_index": {
+      "b": 0.75,
+      "built_at_utc": "2026-09-05T07:35:15.800974+00:00",
+      "corpus_path": "C:\\Claude\\AI Project\\data\\processed\\nfcorpus_corpus.jsonl",
+      "k1": 1.5,
+      "n_chunks": 6241
+    },
+    "build_wall_clock_s": {
+      "bm25_build_s": 0.37964487075805664,
+      "chunk_s": 3.787944793701172,
+      "dense_build_s": 40.50013494491577,
+      "fetch_raw_s": 6.262656211853027
+    },
+    "built_at_utc": "2026-09-05T07:35:15.820456+00:00",
+    "chunk_overlap": 32,
+    "chunk_tokens": 256,
+    "dense_index": {
+      "article_model": "ncbi/MedCPT-Article-Encoder",
+      "batch_size": 64,
+      "built_at_utc": "2026-09-05T07:35:13.567295+00:00",
+      "corpus_path": "C:\\Claude\\AI Project\\data\\processed\\nfcorpus_corpus.jsonl",
+      "dim": 768,
+      "index_type": "IndexIVFFlat",
+      "max_article_length": 512,
+      "max_query_length": 64,
+      "metric": "inner_product",
+      "model_type": "medcpt",
+      "n_chunks": 6241,
+      "nlist": 100,
+      "nprobe": 16,
+      "query_model": "ncbi/MedCPT-Query-Encoder"
+    },
+    "n_chunks": 6241,
+    "n_corpus_docs": 3633,
+    "n_queries_total": 3237,
+    "n_test_judgments": 12334,
+    "n_test_queries": 323,
     "purpose": "fusion sanity-check benchmark, NOT part of the medical retrieval corpus",
     "source": {
       "corpus": "BeIR/nfcorpus (config=corpus)",
-      "queries": "BeIR/nfcorpus (config=queries)",
-      "qrels": "BeIR/nfcorpus-qrels (test.tsv)"
-    },
-    "n_corpus_docs": 3633,
-    "n_chunks": 6241,
-    "n_queries_total": 3237,
-    "n_test_queries": 323,
-    "n_test_judgments": 12334,
-    "chunk_tokens": 256,
-    "chunk_overlap": 32,
-    "dense_index": {
-      "model_type": "medcpt",
-      "query_model": "ncbi/MedCPT-Query-Encoder",
-      "article_model": "ncbi/MedCPT-Article-Encoder",
-      "dim": 768,
-      "n_chunks": 6241,
-      "index_type": "IndexIVFFlat",
-      "metric": "inner_product",
-      "nlist": 100,
-      "nprobe": 16,
-      "batch_size": 64,
-      "max_query_length": 64,
-      "max_article_length": 512,
-      "corpus_path": "C:\\Claude\\AI Project\\data\\processed\\nfcorpus_corpus.jsonl",
-      "built_at_utc": "2026-09-05T07:35:13.567295+00:00"
-    },
-    "bm25_index": {
-      "k1": 1.5,
-      "b": 0.75,
-      "n_chunks": 6241,
-      "corpus_path": "C:\\Claude\\AI Project\\data\\processed\\nfcorpus_corpus.jsonl",
-      "built_at_utc": "2026-09-05T07:35:15.800974+00:00"
-    },
-    "build_wall_clock_s": {
-      "fetch_raw_s": 6.262656211853027,
-      "chunk_s": 3.787944793701172,
-      "dense_build_s": 40.50013494491577,
-      "bm25_build_s": 0.37964487075805664
-    },
-    "built_at_utc": "2026-09-05T07:35:15.820456+00:00"
+      "qrels": "BeIR/nfcorpus-qrels (test.tsv)",
+      "queries": "BeIR/nfcorpus (config=queries)"
+    }
   },
   "primekg": {
-    "source": {
-      "dataverse_doi": "doi:10.7910/DVN/IXA7BM",
-      "dataverse_url": "https://doi.org/10.7910/DVN/IXA7BM",
-      "citation": "Chandak, Payal; Huang, Kexin; Zitnik, Marinka (2022), \"PrimeKG\", Harvard Dataverse, V2, doi:10.7910/DVN/IXA7BM",
-      "license": "CC0 1.0",
-      "files": {
-        "nodes.csv": {
-          "dataverse_file_id": 6180617,
-          "url": "https://dataverse.harvard.edu/api/access/datafile/6180617?format=original",
-          "md5": "7f9ab4109c54049e819ecd14e15a6038"
-        },
-        "kg.csv": {
-          "dataverse_file_id": 6180620,
-          "url": "https://dataverse.harvard.edu/api/access/datafile/6180620",
-          "md5": "aac8191d4fbc5bf09cdf8c3c78b4e75f"
-        }
-      }
-    },
     "edge_allowlist": [
       "indication",
       "contraindication",
@@ -165,41 +180,59 @@
       "drug_effect",
       "disease_disease"
     ],
-    "neo4j_uri": "bolt://localhost:7687",
-    "n_node_rows_seen_in_csv": 129375,
-    "n_edge_rows_seen_in_csv_after_allowlist": 740674,
     "edge_rows_seen_by_relation": {
       "contraindication": 61350,
-      "indication": 18776,
-      "off-label use": 5136,
-      "disease_phenotype_positive": 300634,
-      "disease_protein": 160822,
       "disease_disease": 64388,
-      "drug_effect": 129568
-    },
-    "real_node_count_in_neo4j": 129375,
-    "real_edge_count_in_neo4j": 740674,
-    "real_edges_by_relation_in_neo4j": {
       "disease_phenotype_positive": 300634,
       "disease_protein": 160822,
       "drug_effect": 129568,
-      "disease_disease": 64388,
-      "contraindication": 61350,
       "indication": 18776,
       "off-label use": 5136
     },
-    "real_nodes_by_type_in_neo4j": {
-      "biological_process": 28642,
-      "gene/protein": 27671,
-      "disease": 17080,
-      "effect/phenotype": 15311,
-      "anatomy": 14035,
-      "molecular_function": 11169,
-      "drug": 7957,
-      "cellular_component": 4176,
-      "pathway": 2516,
-      "exposure": 818
+    "loaded_at_utc": "2026-09-05T17:57:27.630064+00:00",
+    "n_edge_rows_seen_in_csv_after_allowlist": 740674,
+    "n_node_rows_seen_in_csv": 129375,
+    "neo4j_uri": "bolt://localhost:7687",
+    "real_edge_count_in_neo4j": 740674,
+    "real_edges_by_relation_in_neo4j": {
+      "contraindication": 61350,
+      "disease_disease": 64388,
+      "disease_phenotype_positive": 300634,
+      "disease_protein": 160822,
+      "drug_effect": 129568,
+      "indication": 18776,
+      "off-label use": 5136
     },
-    "loaded_at_utc": "2026-09-05T17:57:27.630064+00:00"
+    "real_node_count_in_neo4j": 129375,
+    "real_nodes_by_type_in_neo4j": {
+      "anatomy": 14035,
+      "biological_process": 28642,
+      "cellular_component": 4176,
+      "disease": 17080,
+      "drug": 7957,
+      "effect/phenotype": 15311,
+      "exposure": 818,
+      "gene/protein": 27671,
+      "molecular_function": 11169,
+      "pathway": 2516
+    },
+    "source": {
+      "citation": "Chandak, Payal; Huang, Kexin; Zitnik, Marinka (2022), \"PrimeKG\", Harvard Dataverse, V2, doi:10.7910/DVN/IXA7BM",
+      "dataverse_doi": "doi:10.7910/DVN/IXA7BM",
+      "dataverse_url": "https://doi.org/10.7910/DVN/IXA7BM",
+      "files": {
+        "kg.csv": {
+          "dataverse_file_id": 6180620,
+          "md5": "aac8191d4fbc5bf09cdf8c3c78b4e75f",
+          "url": "https://dataverse.harvard.edu/api/access/datafile/6180620"
+        },
+        "nodes.csv": {
+          "dataverse_file_id": 6180617,
+          "md5": "7f9ab4109c54049e819ecd14e15a6038",
+          "url": "https://dataverse.harvard.edu/api/access/datafile/6180617?format=original"
+        }
+      },
+      "license": "CC0 1.0"
+    }
   }
 }

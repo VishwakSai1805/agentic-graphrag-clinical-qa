@@ -234,6 +234,39 @@ real but middling, limited primarily by retrieval precision (hub-node noise,
 ADR-015) and partial entity crosswalk coverage (ADR-014), not by redundancy
 with dense passages. This is not a result to soften before Phase 3.
 
+### 5.4 Phase 3 baseline plumbing check (dev slice, n=20 — NOT a grid result)
+
+Real numbers from `scripts/run_baselines.py --dataset medqa --split train
+--limit 20` (seed 42), stored under `results/medqa_B{0,1,2,3}_<sha>_<ts>/`.
+This is the Phase 3 exit test: it certifies that query → tri-modal
+`EvidenceBundle` → answer → grounded citations runs end-to-end for all four
+baselines. It is **not** a QA-accuracy result — n=20, a dev (train-split)
+slice, single-seed, no significance test, no "A beats B" claim. The §5 grid
+(Phase 7, 500-question seeded test slice) is the reportable table.
+
+| Baseline | Acc | Macro-F1† | grounded_rate | invalid_citation_count | status |
+|---|---|---|---|---|---|
+| B0 zero-shot        | 0.55 | 0.52 | 0.00‡ | 0 | 20 ok |
+| B1 dense-only RAG   | 0.60 | 0.57 | 0.95 | 1 | 20 ok |
+| B2 hybrid (no agents)| 0.65 | 0.61 | 0.95 | 3 | 20 ok |
+| B3 binary verifier  | 0.65 | 0.61 | 0.95 | 3 | 20 ok |
+
+† position-bias check, not a skill metric on 4-option MCQ (ADR-020).
+‡ B0 runs no retrieval — ungrounded by construction, not a failure (ADR-020).
+
+**B3 diagnostic (the useful number):** `verifier_decision_rate = 0.05` — the
+binary verifier returned exactly one SUPPORTED option on only 1/20 questions;
+`n_supported` distribution `{0: 15, 1: 1, 2: 4}`. So B3 fell back to B2-style
+generation 19/20 times, which is why B3 ≡ B2 here. A near-zero verifier
+decision rate is **direct empirical evidence for the binary bottleneck C2
+targets** (a per-option yes/no verifier cannot rank competing options), to be
+re-measured at scale in Phase 7. See ADR-020.
+
+**Recorded per ADR-021:** an earlier run at Ollama's default 4096-token
+context silently truncated the KG-triple block (appended last) and collapsed
+B2/B3 to Acc 0.15 with 12/20 parse errors. The table above is post-fix
+(`llm.num_ctx = 8192` + a hard `LLMContextBudgetError` guard).
+
 ## 6. Run discipline
 - `results/<run_id>/config.yaml` — full resolved config incl. model ids + seed
 - `results/<run_id>/predictions.jsonl` — one row per question: options, p vector,

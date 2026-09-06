@@ -85,9 +85,23 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done (add run_id/commit)
   **Still deferred, stated plainly:** full-scope novelty scoring (all ~38 triples/question × 12 passages, currently a disclosed 10-triple subset); a paraphrase-aware relevance check (currently exact-substring); the CUI→PrimeKG crosswalk still covers drug/gene entities via name-matching only, no licensed UMLS Metathesaurus (ADR-014); `kg_rerank`'s tied primary metric has not been re-tested at larger n.
 
 ## Phase 3 — Tri-modal bundle + baseline RAG  `[ ]`
-- `src/pipeline.py` assembling EvidenceBundle
-- **Baselines**: B0 zero-shot LLM, B1 dense-only RAG, B2 hybrid RAG (no agents), B3 MEGA-RAG-style binary verifier reimplementation
-- **Exit test:** all four baselines score on a 200-item MedQA dev slice, results written to `results/`.
+- `src/pipeline.py` — `EvidenceBundle` (query, options, passages[], triples[],
+  kg_cache_hit) + `TriModalPipeline.build_bundle` (dense/BM25 → RRF k=60 →
+  MedCPT cross-encoder rerank to top-12; KG triples from `get_subgraph_cached`,
+  no live Neo4j — ADR-007). `modalities` arg selects which arms feed the bundle.
+- `src/eval/baselines.py` — B0 zero-shot, B1 dense-only, B2 hybrid (no agents),
+  B3 MEGA-RAG-style binary verifier (per-option SUPPORTED/NOT_SUPPORTED;
+  decides iff exactly one SUPPORTED, else falls back to B2-style generation).
+  Reports `verifier_decision_rate` — see ADR-020.
+- `src/eval/metrics.py` (accuracy, macro_f1 — Phase 6 extends), `src/eval/results.py`
+  (`run_id`, `results/<run_id>/{config.yaml,predictions.jsonl,metrics.json}`).
+- `scripts/run_baselines.py` — exit-test CLI. `scripts/kg_cache_manifest.py` +
+  `data/MANIFEST.json: kg_cache` — checksum-tracks the gitignored KG caches
+  (ADR-019, correcting ADR-018's "already-committed" claim).
+- `llm.num_ctx` (8192) + hard `LLMContextBudgetError` guard in `src/llm/client.py`
+  — a 4096-token window was silently truncating the KG-triple block; ADR-021.
+- Dev slice = MedQA **train** split (seed 42), test stays unseen till Phase 7 (ADR-020).
+- **Exit test:** `python -m scripts.run_baselines --dataset medqa --split train --limit 20 --baselines B0,B1,B2,B3` — all four score end-to-end, one `results/<run_id>/` each. Roadmap wording says "200-item"; run on 20 per CLAUDE.md §5. Real numbers: `docs/04_EVALUATION.md` §5.4 (B0 .55 / B1 .60 / B2 .65 / B3 .65 acc, grounded 0.95; n=20, plumbing check, no comparison claim).
 
 ## Phase 4 — Multi-agent consensus network  `[ ]`
 - `src/agents/graph.py` LangGraph state machine + checkpointer
@@ -113,6 +127,17 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done (add run_id/commit)
   before Phase 7 is scheduled.
 - `scripts/report.py` → markdown + LaTeX tables into `paper/tables/`
 - **Exit test:** one command reproduces a full dataset run from a config and regenerates identical tables; the concurrency benchmark table (1/2/4) is written to `results/` with no `TBD`.
+
+## Pre-Phase-7 fixes — MUST complete before any grid run  `[ ]`
+Two items parked earlier, tracked here so they are not silently dropped. Neither
+affects Phases 3–6; both gate the Phase 7 ablation grid.
+- **BM25 parameter tuning** (`k1`/`b`) — parked in Phase 1; retune on a fixed
+  dev slice, report Recall@10/MRR before/after, record the chosen values in an
+  ADR and `configs/base.yaml`.
+- **`kg_rerank` re-test at n=500** — ADR-018 left `overall_novel_and_relevant_rate`
+  a statistical tie at n=200. Re-run `scripts/kg_rerank_ablation.py` on the
+  500-question MedQA slice and a fresh paired-bootstrap check; decide adopt /
+  keep-off from that verdict, not the point estimate.
 
 ## Phase 7 — Full runs & ablation grid  `[ ]`
 

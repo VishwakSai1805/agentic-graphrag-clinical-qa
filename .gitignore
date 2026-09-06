@@ -26,6 +26,10 @@ venv/
 .env
 *.key
 
+# claude code worktrees (git worktrees created under the repo; never committed --
+# a stray `git add .` would otherwise pull a whole nested checkout in)
+.claude/worktrees/
+
 # os / editors
 .DS_Store
 Thumbs.db

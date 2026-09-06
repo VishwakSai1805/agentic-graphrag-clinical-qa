@@ -1,0 +1,29 @@
+{
+  "config_hash": "1e45edf5ef63ad2af5d90ebc189ee5e5f95b49e0155708d77a44164786b9ea0c",
+  "dataset": "medqa",
+  "git_sha7": "d5e3af5",
+  "limit": 20,
+  "metrics": {
+    "accuracy": 0.65,
+    "contamination_assertion": {
+      "applies": false,
+      "checked": true,
+      "note": "MedQA questions are not generated from indexed corpus docs; the PubMedQA test-PMID blocklist (src/eval/contamination.py) does not apply. MedQA textbooks are in the corpus by design (ADR-009), not a leak."
+    },
+    "grounded_rate": 0.95,
+    "invalid_citation_count": 3,
+    "llm_cache_hits": 0,
+    "llm_calls_total": 20,
+    "macro_f1": 0.6128205128205128,
+    "macro_f1_note": "position-bias check, NOT a skill metric for 4-option MCQ; Accuracy is the headline",
+    "mean_llm_calls": 1.0,
+    "n_evaluated": 20,
+    "status_counts": {
+      "ok": 20
+    }
+  },
+  "run_id": "medqa_B2_d5e3af5_20260906T101648Z",
+  "seed": 42,
+  "split": "train",
+  "variant": "B2"
+}

@@ -25,6 +25,16 @@ class LLMConfig(BaseModel):
     max_tokens: int | None = 512
     max_retries: int = 3
     backoff_base_s: float = 1.0
+    # Ollama context window (llama.cpp `num_ctx`). Sent only on the ollama
+    # provider path (src/llm/client.py). qwen2.5:7b trains at 32k; 8192 fits a
+    # 12-passage + 40-triple tri-modal EvidenceBundle prompt with headroom.
+    # It is part of the LLM cache key -- a different window is a different call.
+    num_ctx: int = 8192
+    # Tokens held back for the completion. A prompt that would leave less than
+    # this raises LLMContextBudgetError -- a recorded hard stop, never a silent
+    # tail truncation (which would drop the KG-triple block). See CLAUDE.md
+    # budget-guard rule.
+    context_completion_reserve: int = 512
 
 
 class EvalConfig(BaseModel):

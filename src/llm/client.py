@@ -44,6 +44,20 @@ class LLMGatewayError(RuntimeError):
     """Raised when every provider in the fallback chain fails."""
 
 
+class LLMContextBudgetError(RuntimeError):
+    """The prompt plus the reserved completion space exceeds the configured
+    context window (`llm.num_ctx - llm.context_completion_reserve`).
+
+    This is a *recorded hard stop*, never a silent truncation (CLAUDE.md
+    budget-guard rule). Silent truncation of an over-long prompt would drop
+    whatever sits at the tail of the prompt -- for the tri-modal pipeline that
+    is the KG-triple block, i.e. exactly the modality the hybrid baselines
+    exist to measure -- and corrupt the numbers instead of failing loudly.
+    Feature code that batches many calls (e.g. src/eval/baselines.py) catches
+    this and records the item as `status="context_exceeded"`.
+    """
+
+
 class Usage(BaseModel):
     prompt_tokens: int
     completion_tokens: int
@@ -105,6 +119,20 @@ def _get_config() -> AppConfig:
     return _config_cache
 
 
+def _count_prompt_tokens(model: str, prompt: str, system: str | None) -> int:
+    """Best-effort token count of the system+user messages. `litellm.token_counter`
+    uses the model's real tokenizer where it can and a tiktoken approximation
+    otherwise -- close enough for a budget guard with a completion reserve."""
+    messages = []
+    if system:
+        messages.append({"role": "system", "content": system})
+    messages.append({"role": "user", "content": prompt})
+    try:
+        return int(litellm.token_counter(model=model, messages=messages))
+    except Exception:  # noqa: BLE001 - never let the guard's own failure block a call
+        return (len(system or "") + len(prompt)) // 4
+
+
 def _cache_key(model: str, prompt: str, system: str | None, params: dict) -> str:
     payload = {"model": model, "system": system, "prompt": prompt, "params": params}
     canonical = json.dumps(payload, sort_keys=True)
@@ -147,6 +175,7 @@ def _call_provider(
     max_tokens: int | None,
     max_retries: int,
     backoff_base_s: float,
+    num_ctx: int | None = None,
 ) -> tuple[str, dict]:
     """Call one provider with retry/backoff. Raises on exhausted retries."""
     messages = []
@@ -162,6 +191,10 @@ def _call_provider(
     }
     if provider.api_base:
         kwargs["api_base"] = provider.api_base
+    # num_ctx is an Ollama-only option (llama.cpp context window). Groq/Gemini
+    # reject unknown params, so only send it on the ollama path.
+    if num_ctx is not None and provider.provider == "ollama":
+        kwargs["num_ctx"] = num_ctx
     if seed is not None:
         kwargs["seed"] = seed
     if max_tokens is not None:
@@ -225,11 +258,30 @@ def chat(
     resolved_max_tokens = max_tokens if max_tokens is not None else llm_cfg.max_tokens
     active_tracker = tracker or default_tracker
 
+    # num_ctx is in `params` (and therefore the cache key) on purpose: changing
+    # the context window changes model output, so a call under a bigger window
+    # is a genuinely different call and must not replay a smaller-window cache
+    # entry.
     params = {
         "temperature": resolved_temperature,
         "seed": resolved_seed,
         "max_tokens": resolved_max_tokens,
+        "num_ctx": llm_cfg.num_ctx,
     }
+
+    # Hard context guard (CLAUDE.md budget-guard rule). Counted against the
+    # first chain entry's tokenizer -- the local Ollama model is the binding
+    # constraint; larger-window cloud fallbacks make this conservative, never
+    # wrong. Raised before any cache read or network call.
+    budget = llm_cfg.num_ctx - llm_cfg.context_completion_reserve
+    ref_model = llm_cfg.fallback_chain[0].model if llm_cfg.fallback_chain else "gpt-3.5-turbo"
+    n_prompt_tokens = _count_prompt_tokens(ref_model, prompt, system)
+    if n_prompt_tokens > budget:
+        raise LLMContextBudgetError(
+            f"prompt is ~{n_prompt_tokens} tokens; context budget is {budget} "
+            f"(num_ctx={llm_cfg.num_ctx} - context_completion_reserve="
+            f"{llm_cfg.context_completion_reserve}). Trim the EvidenceBundle before calling."
+        )
 
     errors: list[str] = []
     for provider in llm_cfg.fallback_chain:
@@ -267,6 +319,7 @@ def chat(
                 resolved_max_tokens,
                 llm_cfg.max_retries,
                 llm_cfg.backoff_base_s,
+                llm_cfg.num_ctx,
             )
         except Exception as exc:  # noqa: BLE001 - deliberately broad, we fall back
             errors.append(f"{provider.provider} ({provider.model}): {exc}")

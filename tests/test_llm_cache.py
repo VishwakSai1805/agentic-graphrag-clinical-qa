@@ -5,10 +5,10 @@ import litellm
 import pytest
 
 from src.config import AppConfig, LLMConfig, ProviderConfig
-from src.llm.client import LLMGatewayError, StatsTracker, chat
+from src.llm.client import LLMContextBudgetError, LLMGatewayError, StatsTracker, chat
 
 
-def make_config(tmp_path, fallback_chain, max_retries=1, backoff_base_s=0.0):
+def make_config(tmp_path, fallback_chain, max_retries=1, backoff_base_s=0.0, **llm_kwargs):
     return AppConfig(
         seed=42,
         cache_dir=tmp_path / "cache",
@@ -19,6 +19,7 @@ def make_config(tmp_path, fallback_chain, max_retries=1, backoff_base_s=0.0):
             max_tokens=64,
             max_retries=max_retries,
             backoff_base_s=backoff_base_s,
+            **llm_kwargs,
         ),
     )
 
@@ -102,6 +103,48 @@ def test_chat_falls_back_after_retries_exhausted(monkeypatch, tmp_path):
     r = chat("ping", config=cfg)
     assert r.model == "ollama/test-model"
     assert call_log.count("flaky/model") == 2  # initial attempt + 1 retry
+
+
+def test_context_budget_guard_raises_before_any_call(monkeypatch, tmp_path):
+    calls = {"n": 0}
+
+    def fake_completion(**kwargs):
+        calls["n"] += 1
+        return fake_response("should not be reached")
+
+    monkeypatch.setattr(litellm, "completion", fake_completion)
+
+    provider = ProviderConfig(provider="ollama", model="ollama/test-model")
+    cfg = make_config(tmp_path, [provider], num_ctx=100, context_completion_reserve=20)
+
+    with pytest.raises(LLMContextBudgetError):
+        chat("word " * 500, config=cfg)  # ~500 tokens > 100 - 20 budget
+    assert calls["n"] == 0  # hard stop before the provider is touched
+
+
+def test_context_budget_guard_allows_prompt_within_budget(monkeypatch, tmp_path):
+    monkeypatch.setattr(litellm, "completion", lambda **kw: fake_response("ok"))
+    provider = ProviderConfig(provider="ollama", model="ollama/test-model")
+    cfg = make_config(tmp_path, [provider], num_ctx=8192, context_completion_reserve=512)
+    r = chat("a short prompt", config=cfg)
+    assert r.text == "ok"
+
+
+def test_num_ctx_is_part_of_cache_key(monkeypatch, tmp_path):
+    calls = {"n": 0}
+
+    def fake_completion(**kwargs):
+        calls["n"] += 1
+        return fake_response(f"call-{calls['n']}")
+
+    monkeypatch.setattr(litellm, "completion", fake_completion)
+    provider = ProviderConfig(provider="ollama", model="ollama/test-model")
+
+    cfg_a = make_config(tmp_path, [provider], num_ctx=4096)
+    cfg_b = make_config(tmp_path, [provider], num_ctx=8192)
+    chat("ping", config=cfg_a)
+    chat("ping", config=cfg_b)  # different num_ctx -> different cache key -> real call
+    assert calls["n"] == 2
 
 
 def test_chat_raises_when_all_providers_fail(monkeypatch, tmp_path):

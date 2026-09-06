@@ -93,6 +93,13 @@ llm:
   max_tokens: 512
   max_retries: 3
   backoff_base_s: 1.0
+  # Ollama context window (tokens). Only sent on the ollama provider path.
+  # 8192 fits the tri-modal EvidenceBundle prompt (12 passages + up to 40 KG
+  # triples); appending KG triples last means a smaller window silently
+  # truncates exactly the modality the hybrid baselines test -- see ADR-021
+  # and src/llm/client.py: LLMContextBudgetError. Part of the LLM cache key.
+  num_ctx: 8192
+  context_completion_reserve: 512
   # Tried in order. Ollama needs no key. Groq/Gemini are skipped
   # automatically if their api_key_env is unset or empty.
   fallback_chain:
