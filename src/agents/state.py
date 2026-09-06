@@ -75,12 +75,17 @@ class SupportCell(BaseModel):
 
 
 class ConflictLogEntry(BaseModel):
-    """One Conflict-agent resolution, for the paper's qualitative analysis."""
+    """One claim-level conflict evaluation (ADR-025), for the paper's
+    qualitative analysis. `spurious` = the LLM judged the two evidence items
+    not to genuinely contradict on the same point (changes nothing).
+    `unresolved` = genuine contradiction that also tied on source precedence.
+    """
 
     option_id: str
+    claim_idx: int = -1
     kept: list[str] = Field(default_factory=list)  # evidence_ids that won on precedence
     dropped: list[str] = Field(default_factory=list)
-    outcome: Literal["resolved_support", "resolved_contradict", "unresolved"]
+    outcome: Literal["resolved_support", "resolved_contradict", "unresolved", "spurious"]
     rationale: str = ""
 
 

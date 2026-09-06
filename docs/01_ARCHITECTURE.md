@@ -54,12 +54,27 @@ replayed from any node.
 - `temperature=0`. Any cell without a valid `evidence_id` is discarded and logged.
 
 ### ConflictResolutionAgent
-- **Fires only when** an option has both SUPPORT and CONTRADICT mass above ε.
-- Precedence: KG triple from curated source > guideline/textbook passage >
-  abstract conclusion > abstract background. Ties → mark `unresolved`, which
-  suppresses that option's logit rather than guessing.
-- **Out:** resolved SupportMatrix + `conflict_log[]` (goes into the paper's
-  qualitative analysis).
+- **Fires per *claim*, not per option** (amended — see ADR-025). A conflict
+  exists when the **same claim** carries both SUPPORT and CONTRADICT cells
+  from **different evidence ids**. An option with claim 1 supported and claim 3
+  contradicted is *partially supported*, not in conflict — that is already
+  captured by `(s⁺, s⁻)` and needs no resolution.
+- **Semantic check first, precedence as tiebreaker second** (amended — ADR-025).
+  On a claim-level conflict the agent (LLM, temperature=0) judges whether the
+  two evidence items *genuinely* contradict on the same clinical point. Only
+  if genuine does source precedence pick the winner; only if precedence also
+  ties is the claim marked `unresolved`. A spurious "conflict" (the two items
+  are about different aspects) is recorded as `spurious` and changes nothing.
+- Precedence (as implemented, ADR-024): KG triple > textbook passage >
+  PubMed abstract. The `abstract conclusion > background` split and "recency"
+  from the original design are unimplementable on this corpus (no section
+  tags, no dates) and are dropped.
+- `unresolved` is a recorded outcome for Phase 5 calibration to act on (it
+  *may* suppress that option's logit). It must **not** be used to suppress a
+  logit on a degenerate rule — the pre-calibration Phase 4 sanity ranking
+  does not penalise it (ADR-025).
+- **Out:** resolved SupportMatrix + `conflict_log[]` (one entry per claim-level
+  conflict evaluated; goes into the paper's qualitative analysis).
 
 ### Budget guards
 `max_rounds=2`, `max_llm_calls_per_question=12`, `max_evidence=12`. Exceeding a

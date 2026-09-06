@@ -1199,3 +1199,62 @@ conflict. Real dev-20: re-retrieval fired on 1/20, `budget_exceeded` on 0/20
 (d) LangGraph checkpointing is `InMemorySaver` + a full per-node JSON trace
 dump per question (`results/<run_id>/traces/`, gitignored); `SqliteSaver` for
 true node-replay-at-scale is deferred to the Phase 6 harness.
+
+## ADR-025 — Conflict is a claim-level property; semantic check first, source precedence as tiebreaker
+Date: 2026-09-06 · Phase: 4 (pre-Phase-5 correction) · Status: accepted · Amends docs/01_ARCHITECTURE.md
+
+**Context.** The Phase 4 exit run showed the Conflict agent firing on 55% of
+questions, resolving 0, all 18 "tied source precedence", the Conflict LLM
+running 0 times, and `rank-1-by-support` at 0.35 vs B2's 0.65 on the same dev
+slice -- the agent layer was *below* its own no-agent baseline. Two spec-level
+bugs, not implementation bugs:
+
+1. **`docs/01` defined conflict at the option level** ("an option has both
+   SUPPORT and CONTRADICT mass above ε"). But an option with claim 1 supported
+   and claim 3 contradicted is *partially supported*, not contradictory -- and
+   that is already fully captured by `(s⁺, s⁻)`. Treating it as a "conflict"
+   invented conflicts everywhere and then, finding no differential precedence,
+   marked options `unresolved` and suppressed their logits.
+2. **Precedence was consulted before the LLM.** The deterministic
+   `min(source_rank)` comparison ran first; on this corpus nearly all evidence
+   is textbook-tier (rank 1), so it tied and returned `unresolved` without the
+   "Conflict Resolution agent" ever executing. The agent had never resolved
+   anything.
+
+**Decision (amends `docs/01`):**
+- **Conflict is claim-level.** It exists for a `(option_id, claim_idx)` iff
+  that claim carries both SUPPORT and CONTRADICT cells *from different evidence
+  ids*. `src/agents/graph.py: _claim_level_conflicts`.
+- **Semantic check first, precedence second.** On a claim-level conflict the
+  Conflict LLM (`conflict.v2` prompt, temperature=0) judges only whether the
+  two evidence items *genuinely contradict on the same clinical point*
+  (`ConflictOut{genuine_contradiction: bool}` -- no `winner` field). Only if
+  genuine does `min(source_rank)` pick the winner in code; only if precedence
+  also ties is the claim `unresolved`. A non-genuine "conflict" is recorded as
+  `spurious` and changes nothing.
+- **`unresolved` no longer suppresses a logit on a weak rule.** The Phase 4
+  pre-calibration `rank-1-by-support` sanity metric scores `s⁺ − s⁻` with no
+  `resolved` penalty. Whether `unresolved` should down-weight an option at all
+  is Phase 5's calibration decision, made against dev ECE, not a Phase 4
+  guess. `OptionSupport.resolved` / `unresolved_reason` are still recorded for
+  Phase 5 to use.
+- `docs/01`'s "abstract conclusion > background" precedence split and "recency"
+  stay dropped (ADR-024): unimplementable on this corpus.
+
+**Real result after the fix** (`results/medqa_V4_<sha>_<ts>`, same MedQA train
+dev-20, seed 42): see `docs/04_EVALUATION.md` §5.5 -- filled from the re-run.
+
+**Alternatives considered:** keep option-level conflict but raise ε (rejected
+-- ε tuning cannot fix a definition that conflates "partially supported" with
+"contradictory"); keep precedence-first but add more tiers (rejected -- the
+tiers don't exist in the data; the LLM judgement is the part that was missing);
+drop the Conflict agent entirely and fold everything into Audit (considered --
+if genuine claim-level contradictions turn out to be rare on this corpus,
+`docs/00` C2 should be reframed around the Audit layer's SUPPORT/CONTRADICT/
+NEUTRAL discrimination rather than the Conflict resolver; the re-run's
+`conflict_fire_rate` is the number that decides this).
+
+**Consequences:** `conflict.v1.md` / the v1 `ConflictOut{winner}` schema are
+retired (v1 file kept for provenance). Any future claim that the Conflict
+agent contributes to accuracy must cite the claim-level `conflict_fire_rate`
+and the resolved/unresolved/spurious split, not an option-level fire rate.

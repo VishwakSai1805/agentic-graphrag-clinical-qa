@@ -1,27 +1,26 @@
-"""Conflict Resolution agent: a source-precedence resolver (ADR-022).
+"""Conflict Resolution agent: claim-level, semantic-check-first (ADR-025).
 
-Pure function over typed state (agents-engineer.md). The winner of a
-support/contradict conflict is computed DETERMINISTICALLY from `source_rank`
-(already stamped on every `SupportCell`; lower rank = higher precedence):
+Pure function over typed state (agents-engineer.md). Conflict fires for a
+single `(option_id, claim_idx)` when that claim has both SUPPORT and CONTRADICT
+cells backed by different evidence ids.
 
-    sup_rank = min(source_rank over the SUPPORT cells)
-    con_rank = min(source_rank over the CONTRADICT cells)
+Two stages, in this order:
 
-The strictly-lower side is the `precedence_winner`; equal ranks are not
-resolvable by source alone -> `unresolved`, and no LLM call is made.
+1. **Semantic judgement (LLM, always, temperature=0).** The model decides only
+   whether the two sides *genuinely* contradict on this exact claim, or merely
+   appear to (different aspects / populations / conditions). It never picks a
+   winner.
+2. **Source precedence (code, mechanical).** If the contradiction is genuine,
+   the side with the lower `min(source_rank)` wins (lower rank = higher
+   precedence). A tie on rank is `unresolved`.
 
-When precedence gives a clear winner the LLM is asked ONE narrow question
-(temperature=0, always): is the contradiction genuine (same clinical point) or
-spurious (different aspects)? It may only return the `precedence_winner` or
-`"UNRESOLVED"` -- never the losing side. If it returns the losing side (or an
-otherwise unusable winner) we fall back to `precedence_winner` and record a note
-on the rationale. `AgentParseError` from `parse_or_repair` is left to propagate.
+`AgentParseError` from `parse_or_repair` is left to propagate.
 """
 
 from __future__ import annotations
 
 from src.agents.schemas import ConflictOut, parse_or_repair
-from src.agents.state import _UNRANKED, ConflictLogEntry, SupportCell
+from src.agents.state import ConflictLogEntry, SupportCell
 from src.config import AgentsConfig
 from src.llm.client import chat
 from src.llm.prompts import load_prompt
@@ -29,10 +28,13 @@ from src.llm.prompts import load_prompt
 # Imported by name so tests can monkeypatch `src.agents.conflict.chat`.
 __all__ = ["run_conflict", "chat"]
 
-_SYSTEM = "You resolve evidence conflicts by source precedence. Respond with STRICT JSON only."
+_SYSTEM = (
+    "You judge whether two pieces of clinical evidence genuinely contradict. "
+    "Respond with STRICT JSON only."
+)
 
-_MAX_RATIONALE_CHARS = 400
-_FALLBACK_NOTE = " (model returned an invalid winner; fell back to source precedence)"
+_SPURIOUS_RATIONALE_CHARS = 380
+_GENUINE_RATIONALE_CHARS = 340
 
 
 def _unique(ids: list[str]) -> list[str]:
@@ -50,21 +52,21 @@ def _side_ids(cells: list[SupportCell]) -> list[str]:
     return _unique([c.evidence_id for c in cells])
 
 
-def _side_block(ids: list[str], cells: list[SupportCell], evidence_by_id: dict) -> str:
-    """Render one side as ``[<id>] (rank <n>) <text>`` lines (deduped by id)."""
-    rank_by_id: dict[str, int] = {}
-    for c in cells:
-        rank_by_id.setdefault(c.evidence_id, c.source_rank)
+def _side_block(cells: list[SupportCell], evidence_by_id: dict) -> str:
+    """Render one side as ``[<id>] (rank <n>) <text>`` lines, deduped by id."""
     lines = []
-    for eid in ids:
+    for eid in _side_ids(cells):
+        rank = next(c.source_rank for c in cells if c.evidence_id == eid)
         ev = evidence_by_id.get(eid)
         text = ev.text if ev is not None else "(evidence text unavailable)"
-        lines.append(f"[{eid}] (rank {rank_by_id.get(eid, _UNRANKED)}) {text}")
+        lines.append(f"[{eid}] (rank {rank}) {text}")
     return "\n".join(lines)
 
 
 def run_conflict(
     option_id: str,
+    claim_idx: int,
+    claim_text: str,
     support_cells: list[SupportCell],
     contradict_cells: list[SupportCell],
     evidence_by_id: dict,
@@ -73,46 +75,16 @@ def run_conflict(
     chat_fn=chat,
     seed: int = 42,
 ) -> tuple[ConflictLogEntry, int]:
-    """Resolve one option's support/contradict conflict by source precedence.
+    """Evaluate one claim-level SUPPORT/CONTRADICT conflict.
 
-    Returns `(entry, n_llm_calls)`. `n_llm_calls` is 0 when the source ranks
-    tie (no call is made), otherwise 1 for the genuineness check plus 0 or 1
-    for a repair attempt.
+    Returns `(entry, n_llm_calls)`. `n_llm_calls` is 1 for the semantic
+    judgement plus 0 or 1 for a repair attempt.
     """
-    sup_ids = _side_ids(support_cells)
-    con_ids = _side_ids(contradict_cells)
-    all_ids = _unique(sup_ids + con_ids)
-
-    sup_rank = min(c.source_rank for c in support_cells)
-    con_rank = min(c.source_rank for c in contradict_cells)
-
-    if sup_rank == con_rank:
-        return (
-            ConflictLogEntry(
-                option_id=option_id,
-                kept=[],
-                dropped=all_ids,
-                outcome="unresolved",
-                rationale=(
-                    f"tied source precedence (rank {sup_rank}); "
-                    "not resolvable by source alone"
-                ),
-            ),
-            0,
-        )
-
-    precedence_winner = "SUPPORT" if sup_rank < con_rank else "CONTRADICT"
-    if precedence_winner == "SUPPORT":
-        winning_ids, losing_ids, win_outcome = sup_ids, con_ids, "resolved_support"
-    else:
-        winning_ids, losing_ids, win_outcome = con_ids, sup_ids, "resolved_contradict"
-
     prompt = load_prompt("conflict", cfg.prompt_versions["conflict"]).format(
         option_id=option_id,
-        precedence=">".join(cfg.source_precedence),
-        support_block=_side_block(sup_ids, support_cells, evidence_by_id),
-        contradict_block=_side_block(con_ids, contradict_cells, evidence_by_id),
-        precedence_winner=precedence_winner,
+        claim_text=claim_text,
+        support_block=_side_block(support_cells, evidence_by_id),
+        contradict_block=_side_block(contradict_cells, evidence_by_id),
     )
 
     resp = chat_fn(prompt, system=_SYSTEM, temperature=0, seed=seed)
@@ -127,31 +99,44 @@ def run_conflict(
     )
     n_llm_calls += n_repair
 
-    rationale = (parsed.rationale or "").strip()[:_MAX_RATIONALE_CHARS]
+    model_rationale = (parsed.rationale or "").strip()
 
-    if parsed.winner == "UNRESOLVED":
+    if not parsed.genuine_contradiction:
         return (
             ConflictLogEntry(
                 option_id=option_id,
+                claim_idx=claim_idx,
                 kept=[],
-                dropped=all_ids,
-                outcome="unresolved",
-                rationale=rationale,
+                dropped=[],
+                outcome="spurious",
+                rationale="spurious: " + model_rationale[:_SPURIOUS_RATIONALE_CHARS],
             ),
             n_llm_calls,
         )
 
-    if parsed.winner != precedence_winner:
-        # The model picked the lower-precedence side (or an otherwise unusable
-        # winner). ADR-022: never let the losing side win -- fall back.
-        rationale = rationale + _FALLBACK_NOTE
+    sup_ids = _side_ids(support_cells)
+    con_ids = _side_ids(contradict_cells)
+    sup_rank = min(c.source_rank for c in support_cells)
+    con_rank = min(c.source_rank for c in contradict_cells)
 
+    if sup_rank < con_rank:
+        outcome, kept, dropped = "resolved_support", sup_ids, con_ids
+    elif con_rank < sup_rank:
+        outcome, kept, dropped = "resolved_contradict", con_ids, sup_ids
+    else:
+        outcome, kept, dropped = "unresolved", [], _unique(sup_ids + con_ids)
+
+    rationale = (
+        model_rationale[:_GENUINE_RATIONALE_CHARS]
+        + f" | precedence {sup_rank} vs {con_rank}"
+    )
     return (
         ConflictLogEntry(
             option_id=option_id,
-            kept=list(winning_ids),
-            dropped=list(losing_ids),
-            outcome=win_outcome,
+            claim_idx=claim_idx,
+            kept=list(kept),
+            dropped=list(dropped),
+            outcome=outcome,
             rationale=rationale,
         ),
         n_llm_calls,

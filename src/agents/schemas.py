@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable
-from typing import Literal, TypeVar
+from typing import TypeVar
 
 from pydantic import BaseModel, ValidationError
 
@@ -48,8 +48,10 @@ class AuditOut(BaseModel):
 
 
 class ConflictOut(BaseModel):
-    winner: Literal["SUPPORT", "CONTRADICT", "UNRESOLVED"]
-    kept_evidence_ids: list[str] = []
+    """v2 (ADR-025): the Conflict LLM only judges genuine-vs-spurious. Source
+    precedence picks the winner mechanically, afterwards, in code."""
+
+    genuine_contradiction: bool
     rationale: str = ""
 
 

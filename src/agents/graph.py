@@ -221,18 +221,39 @@ def _node_retrieve(state: ConsensusState, cfg: AppConfig, retrieve_fn: RetrieveF
     }
 
 
+def _claim_level_conflicts(state: ConsensusState, eps: int) -> list[tuple[str, int]]:
+    """(option_id, claim_idx) pairs where that claim has >= eps SUPPORT cells
+    AND >= eps CONTRADICT cells, from *different* evidence ids (ADR-025)."""
+    out: list[tuple[str, int]] = []
+    claims_by_option = {oc.option_id: oc.claims for oc in state.claims}
+    for oid in sorted(state.options):
+        for cidx in range(len(claims_by_option.get(oid, []))):
+            sup = [
+                c for c in state.cells
+                if c.option_id == oid and c.claim_idx == cidx and c.label == "SUPPORT"
+            ]
+            con = [
+                c for c in state.cells
+                if c.option_id == oid and c.claim_idx == cidx and c.label == "CONTRADICT"
+            ]
+            if len(sup) < eps or len(con) < eps:
+                continue
+            if {c.evidence_id for c in sup} == {c.evidence_id for c in con}:
+                continue  # same evidence id both ways -- not a real conflict
+            out.append((oid, cidx))
+    return out
+
+
 def _node_conflict(state: ConsensusState, cfg: AppConfig, chat_fn) -> dict:
     eps = cfg.agents.epsilon
     evidence_by_id = {e.id: e for e in state.evidence}
+    claims_by_option = {oc.option_id: oc.claims for oc in state.claims}
     conflict_log = list(state.conflict_log)
-    fire_count = state.conflict_fire_count
+    fire_count = state.conflict_fire_count  # claim-level conflicts the LLM evaluated
     calls = state.llm_calls
     option_support = {os.option_id: os for os in state.option_support}
 
-    for oid in sorted(state.options):
-        os = option_support.get(oid)
-        if os is None or os.s_pos < eps or os.s_neg < eps:
-            continue
+    for oid, cidx in _claim_level_conflicts(state, eps):
         if calls_would_exceed(calls, 1, cfg.agents):
             return {
                 "status": "budget_exceeded",
@@ -240,13 +261,23 @@ def _node_conflict(state: ConsensusState, cfg: AppConfig, chat_fn) -> dict:
                 "conflict_fire_count": fire_count,
                 "llm_calls": calls,
                 "option_support": list(option_support.values()),
-                "notes": [*state.notes, f"budget: conflict at {oid}"],
+                "notes": [*state.notes, f"budget: conflict at {oid} claim {cidx}"],
             }
-        sup = [c for c in state.cells if c.option_id == oid and c.label == "SUPPORT"]
-        con = [c for c in state.cells if c.option_id == oid and c.label == "CONTRADICT"]
+        sup = [
+            c for c in state.cells
+            if c.option_id == oid and c.claim_idx == cidx and c.label == "SUPPORT"
+        ]
+        con = [
+            c for c in state.cells
+            if c.option_id == oid and c.claim_idx == cidx and c.label == "CONTRADICT"
+        ]
+        claim_text = claims_by_option.get(oid, ["?"])[cidx] if cidx < len(
+            claims_by_option.get(oid, [])
+        ) else "?"
         try:
             entry, n = run_conflict(
-                oid, sup, con, evidence_by_id, cfg=cfg.agents, chat_fn=chat_fn, seed=cfg.seed
+                oid, cidx, claim_text, sup, con, evidence_by_id,
+                cfg=cfg.agents, chat_fn=chat_fn, seed=cfg.seed,
             )
         except AgentParseError as exc:
             return {
@@ -255,14 +286,19 @@ def _node_conflict(state: ConsensusState, cfg: AppConfig, chat_fn) -> dict:
                 "conflict_fire_count": fire_count,
                 "llm_calls": calls + 2,
                 "option_support": list(option_support.values()),
-                "notes": [*state.notes, f"conflict parse fail {oid}: {exc}"],
+                "notes": [*state.notes, f"conflict parse fail {oid}/{cidx}: {exc}"],
             }
         fire_count += 1
         calls += n
         conflict_log.append(entry)
+        # Only a genuine-and-precedence-tied conflict marks the option unresolved.
+        # `spurious` and `resolved_*` leave `resolved=True` -- see ADR-025 and
+        # the note that unresolved must not suppress a logit on a weak rule.
         if entry.outcome == "unresolved":
-            os.resolved = False
-            os.unresolved_reason = "unresolved_conflict"
+            os = option_support.get(oid)
+            if os is not None:
+                os.resolved = False
+                os.unresolved_reason = f"unresolved_conflict:claim{cidx}"
 
     unresolved = any(not os.resolved for os in option_support.values())
     return {
@@ -271,7 +307,7 @@ def _node_conflict(state: ConsensusState, cfg: AppConfig, chat_fn) -> dict:
         "llm_calls": calls,
         "option_support": list(option_support.values()),
         "status": "unresolved_conflict" if unresolved else "ok",
-        "notes": [*state.notes, f"conflict fired on {fire_count} option(s)"],
+        "notes": [*state.notes, f"claim-level conflicts evaluated: {fire_count}"],
     }
 
 

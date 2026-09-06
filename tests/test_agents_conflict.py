@@ -1,6 +1,8 @@
-"""Conflict agent (source-precedence resolver, ADR-022) -- LLM mocked."""
+"""Conflict agent -- claim-level, semantic-check-first (ADR-025). LLM mocked."""
 
 from __future__ import annotations
+
+import json
 
 import pytest
 
@@ -17,7 +19,7 @@ class FakeResp:
 
 
 class FakeChat:
-    """Returns queued responses in order; records every call."""
+    """Returns queued responses in order; records every call's kwargs."""
 
     def __init__(self, *responses: str) -> None:
         self._responses = list(responses)
@@ -34,7 +36,7 @@ def _cfg() -> AgentsConfig:
     return AgentsConfig()
 
 
-def _cell(evidence_id: str, label: str, rank: int, *, option_id="A", claim_idx=0) -> SupportCell:
+def _cell(evidence_id: str, label: str, rank: int, *, option_id="A", claim_idx=2) -> SupportCell:
     return SupportCell(
         option_id=option_id,
         claim_idx=claim_idx,
@@ -54,145 +56,144 @@ CHUNK_ID = "chunk::doc1#0-9"
 EBI = {KG_ID: _ev(KG_ID, "kg triple text"), CHUNK_ID: _ev(CHUNK_ID, "abstract text")}
 
 
-def _ok(winner: str, kept=None, rationale="genuine conflict") -> str:
-    kept = kept if kept is not None else []
-    import json
-
-    return json.dumps({"winner": winner, "kept_evidence_ids": kept, "rationale": rationale})
+def _resp(genuine: bool, rationale: str = "same clinical point") -> str:
+    return json.dumps({"genuine_contradiction": genuine, "rationale": rationale})
 
 
-def test_support_wins_on_rank_model_confirms():
+def test_genuine_support_wins_on_rank():
     sup = [_cell(KG_ID, "SUPPORT", 0)]
     con = [_cell(CHUNK_ID, "CONTRADICT", 1)]
-    fake = FakeChat(_ok("SUPPORT", [KG_ID]))
-    entry, n = run_conflict("A", sup, con, EBI, cfg=_cfg(), chat_fn=fake)
+    fake = FakeChat(_resp(True))
+    entry, n = run_conflict("A", 2, "claim text", sup, con, EBI, cfg=_cfg(), chat_fn=fake)
 
     assert n == 1
     assert entry.option_id == "A"
+    assert entry.claim_idx == 2
     assert entry.outcome == "resolved_support"
     assert entry.kept == [KG_ID]
     assert entry.dropped == [CHUNK_ID]
-    assert entry.rationale == "genuine conflict"
+    assert entry.rationale.startswith("same clinical point")
+    assert entry.rationale.endswith("precedence 0 vs 1")
 
 
-def test_model_returns_unresolved():
-    sup = [_cell(KG_ID, "SUPPORT", 0)]
-    con = [_cell(CHUNK_ID, "CONTRADICT", 1)]
-    fake = FakeChat(_ok("UNRESOLVED", rationale="different aspects"))
-    entry, n = run_conflict("A", sup, con, EBI, cfg=_cfg(), chat_fn=fake)
-
-    assert n == 1
-    assert entry.outcome == "unresolved"
-    assert entry.kept == []
-    assert set(entry.dropped) == {KG_ID, CHUNK_ID}
-    assert entry.rationale == "different aspects"
-
-
-def test_model_returns_losing_side_falls_back():
-    sup = [_cell(KG_ID, "SUPPORT", 0)]
-    con = [_cell(CHUNK_ID, "CONTRADICT", 1)]
-    fake = FakeChat(_ok("CONTRADICT", [CHUNK_ID], rationale="model disagrees"))
-    entry, n = run_conflict("A", sup, con, EBI, cfg=_cfg(), chat_fn=fake)
-
-    assert n == 1
-    assert entry.outcome == "resolved_support"
-    assert entry.kept == [KG_ID]
-    assert entry.dropped == [CHUNK_ID]
-    assert entry.rationale.startswith("model disagrees")
-    assert "fell back to source precedence" in entry.rationale
-
-
-def test_tied_ranks_skip_llm():
-    sup = [_cell(KG_ID, "SUPPORT", 1)]
-    con = [_cell(CHUNK_ID, "CONTRADICT", 1)]
-    fake = FakeChat()  # nothing queued -- must not be called
-    entry, n = run_conflict("A", sup, con, EBI, cfg=_cfg(), chat_fn=fake)
-
-    assert n == 0
-    assert fake.calls == []
-    assert entry.outcome == "unresolved"
-    assert entry.kept == []
-    assert set(entry.dropped) == {KG_ID, CHUNK_ID}
-    assert "tied source precedence" in entry.rationale
-
-
-def test_contradict_wins_on_rank():
-    sup = [_cell(CHUNK_ID, "SUPPORT", 2)]
+def test_genuine_contradict_wins_on_rank():
+    sup = [_cell(CHUNK_ID, "SUPPORT", 1)]
     con = [_cell(KG_ID, "CONTRADICT", 0)]
-    fake = FakeChat(_ok("CONTRADICT", [KG_ID]))
-    entry, n = run_conflict("A", sup, con, EBI, cfg=_cfg(), chat_fn=fake)
+    fake = FakeChat(_resp(True))
+    entry, n = run_conflict("B", 0, "claim", sup, con, EBI, cfg=_cfg(), chat_fn=fake)
 
     assert n == 1
     assert entry.outcome == "resolved_contradict"
     assert entry.kept == [KG_ID]
     assert entry.dropped == [CHUNK_ID]
+    assert entry.rationale.endswith("precedence 1 vs 0")
+
+
+def test_genuine_tied_ranks_unresolved():
+    sup = [_cell(KG_ID, "SUPPORT", 1)]
+    con = [_cell(CHUNK_ID, "CONTRADICT", 1)]
+    fake = FakeChat(_resp(True))
+    entry, n = run_conflict("A", 3, "claim", sup, con, EBI, cfg=_cfg(), chat_fn=fake)
+
+    assert n == 1
+    assert entry.outcome == "unresolved"
+    assert entry.kept == []
+    assert entry.dropped == [KG_ID, CHUNK_ID]
+    assert entry.rationale.endswith("precedence 1 vs 1")
+
+
+def test_spurious():
+    sup = [_cell(KG_ID, "SUPPORT", 0)]
+    con = [_cell(CHUNK_ID, "CONTRADICT", 1)]
+    fake = FakeChat(_resp(False, "different populations"))
+    entry, n = run_conflict("A", 2, "claim", sup, con, EBI, cfg=_cfg(), chat_fn=fake)
+
+    assert n == 1
+    assert entry.outcome == "spurious"
+    assert entry.kept == []
+    assert entry.dropped == []
+    assert entry.rationale == "spurious: different populations"
+    assert entry.claim_idx == 2
 
 
 def test_malformed_json_then_repair():
     sup = [_cell(KG_ID, "SUPPORT", 0)]
     con = [_cell(CHUNK_ID, "CONTRADICT", 1)]
-    fake = FakeChat("not json at all", _ok("SUPPORT", [KG_ID], rationale="fixed"))
-    entry, n = run_conflict("A", sup, con, EBI, cfg=_cfg(), chat_fn=fake)
+    fake = FakeChat("not json at all", _resp(True, "fixed"))
+    entry, n = run_conflict("A", 1, "claim", sup, con, EBI, cfg=_cfg(), chat_fn=fake)
 
     assert n == 2
     assert entry.outcome == "resolved_support"
-    assert entry.rationale == "fixed"
+    assert entry.rationale.startswith("fixed")
 
 
-def test_parse_error_propagates():
+def test_repair_also_fails_raises():
     sup = [_cell(KG_ID, "SUPPORT", 0)]
     con = [_cell(CHUNK_ID, "CONTRADICT", 1)]
     fake = FakeChat("garbage", "still garbage")
     with pytest.raises(AgentParseError):
-        run_conflict("A", sup, con, EBI, cfg=_cfg(), chat_fn=fake)
+        run_conflict("A", 1, "claim", sup, con, EBI, cfg=_cfg(), chat_fn=fake)
 
 
-def test_rationale_truncated_to_400():
-    sup = [_cell(KG_ID, "SUPPORT", 0)]
-    con = [_cell(CHUNK_ID, "CONTRADICT", 1)]
-    long = "x" * 900
-    fake = FakeChat(_ok("SUPPORT", [KG_ID], rationale=long))
-    entry, _ = run_conflict("A", sup, con, EBI, cfg=_cfg(), chat_fn=fake)
-
-    assert entry.rationale == "x" * 400
-
-
-def test_rationale_truncated_then_note_appended_on_fallback():
-    sup = [_cell(KG_ID, "SUPPORT", 0)]
-    con = [_cell(CHUNK_ID, "CONTRADICT", 1)]
-    long = "y" * 900
-    fake = FakeChat(_ok("CONTRADICT", [CHUNK_ID], rationale=long))
-    entry, _ = run_conflict("A", sup, con, EBI, cfg=_cfg(), chat_fn=fake)
-
-    assert entry.rationale.startswith("y" * 400)
-    assert entry.rationale.endswith("fell back to source precedence)")
-
-
-def test_evidence_ids_deduped_across_cells():
+def test_blocks_render_and_dedupe():
     sup = [
-        _cell(KG_ID, "SUPPORT", 0, claim_idx=0),
-        _cell(KG_ID, "SUPPORT", 0, claim_idx=1),
+        _cell(KG_ID, "SUPPORT", 0, claim_idx=2),
+        _cell(KG_ID, "SUPPORT", 0, claim_idx=2),  # same evidence id -> one line
     ]
     con = [_cell(CHUNK_ID, "CONTRADICT", 1)]
-    fake = FakeChat(_ok("SUPPORT", [KG_ID]))
-    entry, _ = run_conflict("A", sup, con, EBI, cfg=_cfg(), chat_fn=fake)
+    fake = FakeChat(_resp(True))
+    run_conflict("A", 2, "claim", sup, con, EBI, cfg=_cfg(), chat_fn=fake)
+
+    prompt = fake.calls[0]["prompt"]
+    assert prompt.count(f"[{KG_ID}] (rank 0) kg triple text") == 1
+    assert f"[{CHUNK_ID}] (rank 1) abstract text" in prompt
+
+
+def test_blocks_dedupe_reflected_in_kept():
+    sup = [
+        _cell(KG_ID, "SUPPORT", 0, claim_idx=2),
+        _cell(KG_ID, "SUPPORT", 0, claim_idx=2),
+    ]
+    con = [_cell(CHUNK_ID, "CONTRADICT", 1)]
+    fake = FakeChat(_resp(True))
+    entry, _ = run_conflict("A", 2, "claim", sup, con, EBI, cfg=_cfg(), chat_fn=fake)
 
     assert entry.kept == [KG_ID]
     assert entry.dropped == [CHUNK_ID]
 
 
-def test_prompt_is_temperature_zero_and_carries_blocks():
+def test_spurious_rationale_truncation():
     sup = [_cell(KG_ID, "SUPPORT", 0)]
     con = [_cell(CHUNK_ID, "CONTRADICT", 1)]
-    fake = FakeChat(_ok("SUPPORT", [KG_ID]))
-    run_conflict("A", sup, con, EBI, cfg=_cfg(), chat_fn=fake)
+    fake = FakeChat(_resp(False, "z" * 900))
+    entry, _ = run_conflict("A", 2, "claim", sup, con, EBI, cfg=_cfg(), chat_fn=fake)
+
+    assert entry.rationale == "spurious: " + "z" * 380
+
+
+def test_genuine_rationale_truncation():
+    sup = [_cell(KG_ID, "SUPPORT", 0)]
+    con = [_cell(CHUNK_ID, "CONTRADICT", 1)]
+    fake = FakeChat(_resp(True, "w" * 900))
+    entry, _ = run_conflict("A", 2, "claim", sup, con, EBI, cfg=_cfg(), chat_fn=fake)
+
+    assert entry.rationale == "w" * 340 + " | precedence 0 vs 1"
+
+
+def test_prompt_carries_claim_and_call_kwargs():
+    sup = [_cell(KG_ID, "SUPPORT", 0)]
+    con = [_cell(CHUNK_ID, "CONTRADICT", 1)]
+    fake = FakeChat(_resp(True))
+    run_conflict(
+        "A", 2, "diabetes worsens outcome", sup, con, EBI, cfg=_cfg(), chat_fn=fake, seed=7
+    )
 
     call = fake.calls[0]
     assert call["temperature"] == 0
+    assert call["seed"] == 7
     assert call["system"] == (
-        "You resolve evidence conflicts by source precedence. Respond with STRICT JSON only."
+        "You judge whether two pieces of clinical evidence genuinely contradict. "
+        "Respond with STRICT JSON only."
     )
-    assert KG_ID in call["prompt"]
-    assert CHUNK_ID in call["prompt"]
-    assert "kg>textbook>pubmed_abstract" in call["prompt"]
-    assert "kg triple text" in call["prompt"]
+    assert "diabetes worsens outcome" in call["prompt"]
+    assert KG_ID in call["prompt"] and CHUNK_ID in call["prompt"]

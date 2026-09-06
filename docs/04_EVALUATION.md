@@ -277,36 +277,51 @@ B2/B3 to Acc 0.15 with 12/20 parse errors. The table above is post-fix
 ### 5.5 Phase 4 multi-agent consensus plumbing check (dev slice, n=20 — NOT a grid result)
 
 `python -m src.pipeline --config configs/agents.yaml --limit 20` (MedQA train
-dev-20, seed 42), `results/medqa_V4_<sha>_20260906T112332Z/`. This is the
-Phase 4 exit test: it certifies that query → tri-modal bundle → modality-
-reserved 12-item evidence set → Hypothesis→Audit→Conflict → `SupportMatrix`
-with only real citations runs end-to-end. **Not** a QA-accuracy result.
+dev-20, seed 42), `results/medqa_V4_1388904_20260906T115020Z/`. Certifies that
+query → tri-modal bundle → modality-reserved 12-item evidence set →
+Hypothesis→Audit→Conflict → `SupportMatrix` with only real citations runs
+end-to-end. **Not** a QA-accuracy result. Numbers below are post the ADR-025
+claim-level conflict fix.
 
 | Invariant / counter | Value |
 |---|---|
-| SupportMatrices emitted | 20/20 (+ per-node traces) |
+| SupportMatrices emitted | 20/20 (+ per-node traces), 20 distinct |
 | surviving cells citing a non-bundle id | **0** (exit-test invariant) |
 | RAW model citation hallucination (dropped at audit) | 6 cells = 5.3% of produced cells |
-| status | `ok` 8 · `unresolved_conflict` 11 · `insufficient_evidence` 1 |
+| status | `ok` 19 · `insufficient_evidence` 1 |
 | `budget_exceeded` rate | 0.00 |
-| mean LLM calls / question | 5.8 (cap 12) |
-| mean rounds | 1.05 (re-retrieval fired on 1/20) |
-| bundle mix | KG slot filled 17/20 · all-passage 3/20 (zero/low-triple Qs) |
+| mean LLM calls / question | 5.8 (cap 12) · mean rounds 1.05 |
+| bundle mix | KG slot filled 17/20 · all-passage 3/20 |
+| audit cells | 108 (78 SUPPORT, 30 CONTRADICT); 61/80 options get a signal |
 
-**Conflict-agent finding (elevated per the B3 lesson, ADR-020/ADR-024):**
-`conflict_fire_rate = 0.55` (11/20 questions), but **resolved 0 / unresolved
-18** — every option-level conflict tied on source precedence (rank 1 =
-textbook on both sides) and the **Conflict LLM ran 0 times**. Nearly all
-audited evidence is textbook-tier, so the 3-tier `kg > textbook >
-pubmed_abstract` precedence has no differential to act on. C2's "explicitly
-resolves contradictions" currently rests on a component that fires but
-resolves nothing on this corpus. Candidate fixes (a real evidence-tier
-signal, or a source-tier-independent semantic resolver) are Phase 7+ work;
-this is recorded, not softened.
+**Finding 1 — the Conflict agent never fires under a correct definition.**
+With conflict redefined as claim-level (ADR-025: same `claim_idx`, SUPPORT and
+CONTRADICT from different evidence ids), `conflict_fire_rate = 0.00` on the
+dev-20 — **not one claim** had genuinely opposing evidence. The 11
+`unresolved_conflict` statuses in the pre-fix run were entirely artifacts of
+the wrong option-level definition (which counted "claim 1 supported, claim 3
+contradicted" as a conflict). **Genuine evidence contradictions are rare on
+this corpus**, so C2's contribution must be reframed around what the **Audit**
+layer does (SUPPORT/CONTRADICT/NEUTRAL discrimination against retrieved
+evidence) rather than around conflict *resolution*. This is the honest
+position Phase 5 inherits.
 
-The `rank-1-by-support` accuracy printed by the run (0.35) is a crude
-`s_pos − s_neg` sanity signal, **not** the calibrated ranking — Phase 5
-produces the real one.
+**Finding 2 — the KG modality is nearly invisible to the agents.** Of 108
+audit cells, **1 cites a KG triple**; 107 cite passages. Even with the KG slot
+filled on 17/20 questions, the Audit agent audits claims against passage text
+and effectively ignores the verbalised triples. Read with ADR-016
+(`novel_and_relevant_rate ≈ 0.41` in retrieval) this puts the KG modality's
+actual contribution to the agent pipeline close to nil on this slice — a
+Phase 7 `evidence_split` / KG-verbalisation question, recorded not softened.
+
+**Finding 3 — the uncalibrated agent signal is below B2.** `rank-1-by-support`
+(crude `s⁺ − s⁻` argmax, no calibration, `resolved` not penalised per ADR-025)
+= **0.35**, vs B2's 0.65 (§5.4) on the same slice. The gold option carries the
+(tied-)max `s⁺` on only 10/20 questions, and the Audit agent is SUPPORT-heavy
+(78 vs 30). Turning this raw count vector into a calibrated logit that beats
+B2 is precisely Phase 5's job (fit α,β,γ,δ,T on dev); a raw argmax
+underperforming a direct LLM answer is expected, but the gap is the number
+Phase 5 has to close and Phase 6 has to measure at scale.
 
 ## 6. Run discipline
 - `results/<run_id>/config.yaml` — full resolved config incl. model ids + seed

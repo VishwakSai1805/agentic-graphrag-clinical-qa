@@ -194,9 +194,10 @@ class AgentsConfig(BaseModel):
     """
 
     enabled: bool = False
-    # Conflict fires for an option only when it has >= epsilon SUPPORT cells
-    # AND >= epsilon CONTRADICT cells (mass = integer cell count for Phase 4;
-    # a fractional mass over the calibrated (s+,s-,s0) tuple is Phase 5's job).
+    # Conflict is CLAIM-level (ADR-025): it fires for a (option, claim_idx)
+    # when that claim has >= epsilon SUPPORT cells AND >= epsilon CONTRADICT
+    # cells, from different evidence ids. (Mass = integer cell count for
+    # Phase 4; a fractional mass over the calibrated tuple is Phase 5's job.)
     epsilon: int = 1
     max_rounds: int = 2
     max_llm_calls_per_question: int = 12
@@ -222,7 +223,7 @@ class AgentsConfig(BaseModel):
     prompt_versions: dict[str, str] = {
         "hypothesis": "v1",
         "audit": "v1",
-        "conflict": "v1",
+        "conflict": "v2",  # v2: claim-level, semantic-check-first (ADR-025)
     }
 
 

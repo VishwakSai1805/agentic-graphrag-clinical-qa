@@ -23,10 +23,10 @@ class ScriptedChat:
     (claim_idx, evidence_id, label). `conflict_winner` is the verdict string."""
 
     def __init__(
-        self, *, audit_cells_for=None, conflict_winner="SUPPORT", n_claims=2, bad_json_for=None
+        self, *, audit_cells_for=None, conflict_genuine=True, n_claims=2, bad_json_for=None
     ):
         self.audit_cells_for = audit_cells_for or {}
-        self.conflict_winner = conflict_winner
+        self.conflict_genuine = conflict_genuine
         self.n_claims = n_claims
         self.bad_json_for = bad_json_for or set()
         self.calls = []
@@ -50,8 +50,9 @@ class ScriptedChat:
                 for ci, eid, lab in cells
             ]}))
         if "Conflict Resolution" in prompt:
-            return FakeResp(json.dumps({"winner": self.conflict_winner,
-                                        "kept_evidence_ids": [], "rationale": "r"}))
+            return FakeResp(json.dumps(
+                {"genuine_contradiction": self.conflict_genuine, "rationale": "r"}
+            ))
         raise AssertionError(f"unexpected prompt:\n{prompt[:200]}")
 
 
@@ -134,27 +135,43 @@ def test_all_neutral_is_insufficient_evidence():
     assert matrix.cells == []
 
 
-def test_conflict_unresolved_sets_status():
-    cells_a = [(0, "kg::h0|r|t0", "SUPPORT"), (1, "chunk::D0#0", "CONTRADICT")]
-    chat = ScriptedChat(
-        audit_cells_for={"A": cells_a, "B": []},
-        conflict_winner="UNRESOLVED",
-    )
+def test_claim_level_conflict_needs_same_claim():
+    # SUPPORT on claim 0, CONTRADICT on claim 1 -> NOT a conflict (ADR-025):
+    # partially supported, no Conflict LLM call.
+    cells_a = [(0, "chunk::D0#0", "SUPPORT"), (1, "chunk::D1#0", "CONTRADICT")]
+    chat = ScriptedChat(audit_cells_for={"A": cells_a, "B": []})
+    matrix, _ = _run(chat)
+    assert matrix.conflict_fire_count == 0
+    assert matrix.status == "ok"
+
+
+def test_conflict_unresolved_when_genuine_and_precedence_tied():
+    # same claim, both sides textbook-tier (rank 1) -> tied -> unresolved
+    cells_a = [(0, "chunk::D0#0", "SUPPORT"), (0, "chunk::D1#0", "CONTRADICT")]
+    chat = ScriptedChat(audit_cells_for={"A": cells_a, "B": []}, conflict_genuine=True)
     matrix, _ = _run(chat)
     assert matrix.conflict_fire_count == 1
     assert matrix.status == "unresolved_conflict"
-    assert any(e.outcome == "unresolved" for e in matrix.conflict_log)
+    assert any(e.outcome == "unresolved" and e.claim_idx == 0 for e in matrix.conflict_log)
 
 
-def test_conflict_resolved_is_ok():
-    cells_a = [(0, "kg::h0|r|t0", "SUPPORT"), (1, "chunk::D0#0", "CONTRADICT")]
-    chat = ScriptedChat(
-        audit_cells_for={"A": cells_a, "B": []},
-        conflict_winner="SUPPORT",
-    )
+def test_conflict_resolved_by_precedence_is_ok():
+    # same claim, SUPPORT from kg (rank 0) beats CONTRADICT from textbook (rank 1)
+    cells_a = [(0, "kg::h0|r|t0", "SUPPORT"), (0, "chunk::D0#0", "CONTRADICT")]
+    chat = ScriptedChat(audit_cells_for={"A": cells_a, "B": []}, conflict_genuine=True)
     matrix, _ = _run(chat)
     assert matrix.conflict_fire_count == 1
     assert matrix.status == "ok"
+    assert any(e.outcome == "resolved_support" for e in matrix.conflict_log)
+
+
+def test_conflict_spurious_leaves_option_resolved():
+    cells_a = [(0, "chunk::D0#0", "SUPPORT"), (0, "chunk::D1#0", "CONTRADICT")]
+    chat = ScriptedChat(audit_cells_for={"A": cells_a, "B": []}, conflict_genuine=False)
+    matrix, _ = _run(chat)
+    assert matrix.conflict_fire_count == 1
+    assert matrix.status == "ok"
+    assert all(e.outcome == "spurious" for e in matrix.conflict_log)
 
 
 def test_budget_trip_on_low_call_ceiling():

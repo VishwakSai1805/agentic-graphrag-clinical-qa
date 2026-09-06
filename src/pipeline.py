@@ -331,15 +331,16 @@ def _aggregate_agent_metrics(matrices: list[dict]) -> dict:
     )
     mix_all_passage = sum(1 for m in matrices if m["mix"] and m["mix"]["n_triples"] == 0)
     kg_slot_filled = sum(1 for m in matrices if m["mix"] and m["mix"]["kg_slot_filled"])
+    # ADR-025: conflict is claim-level. fire_count = claim-level conflicts the
+    # Conflict LLM evaluated (== conflict LLM calls, since it always calls once
+    # + any repair). Outcomes: genuine+resolved / genuine+tied(unresolved) /
+    # spurious(LLM said not a real contradiction).
     conflict_fired = sum(m["conflict_fire_count"] for m in matrices)
     conflict_questions = sum(1 for m in matrices if m["conflict_fire_count"] > 0)
-    resolved = sum(
-        1
-        for m in matrices
-        for e in m["conflict_log"]
-        if e["outcome"] in ("resolved_support", "resolved_contradict")
-    )
-    unresolved = sum(1 for m in matrices for e in m["conflict_log"] if e["outcome"] == "unresolved")
+    outcomes = [e["outcome"] for m in matrices for e in m["conflict_log"]]
+    resolved = sum(1 for o in outcomes if o in ("resolved_support", "resolved_contradict"))
+    unresolved = sum(1 for o in outcomes if o == "unresolved")
+    spurious = sum(1 for o in outcomes if o == "spurious")
     return {
         "n_evaluated": n,
         "status_counts": dict(status),
@@ -355,9 +356,11 @@ def _aggregate_agent_metrics(matrices: list[dict]) -> dict:
         "questions_with_kg_slot_filled": kg_slot_filled,
         "kg_hit_rate": sum(1 for m in matrices if m["kg_hit"]) / n if n else 0.0,
         "conflict_fire_rate": conflict_questions / n if n else 0.0,
-        "conflict_fire_count_total": conflict_fired,
+        "claim_level_conflicts_evaluated": conflict_fired,
+        "conflict_llm_calls": conflict_fired,
         "conflict_resolved": resolved,
         "conflict_unresolved": unresolved,
+        "conflict_spurious": spurious,
         "budget_exceeded_rate": status.get("budget_exceeded", 0) / n if n else 0.0,
         "mean_llm_calls": sum(m["llm_calls"] for m in matrices) / n if n else 0.0,
         "mean_rounds": sum(m["rounds"] for m in matrices) / n if n else 0.0,
@@ -367,7 +370,10 @@ def _aggregate_agent_metrics(matrices: list[dict]) -> dict:
 
 def _rank1_accuracy(matrices: list[dict]) -> float | None:
     """Cheap sanity signal only -- NOT the calibrated ranking (Phase 5). Picks
-    the option with the highest (s_pos - s_neg); None if no gold labels."""
+    the option with the highest (s_pos - s_neg). `resolved=False` does NOT
+    penalise the option here (ADR-025: unresolved must not suppress a logit on
+    a weak rule; whether it should suppress at all is Phase 5's call).
+    None if no gold labels."""
     scored = 0
     correct = 0
     for m in matrices:
@@ -377,7 +383,7 @@ def _rank1_accuracy(matrices: list[dict]) -> float | None:
         best = None
         best_score = None
         for os in m["option_support"]:
-            sc = os["s_pos"] - os["s_neg"] - (0 if os["resolved"] else 5)
+            sc = os["s_pos"] - os["s_neg"]
             if best_score is None or sc > best_score:
                 best_score, best = sc, os["option_id"]
         if best == m["gold_option"]:
@@ -399,8 +405,10 @@ def _print_agent_summary(metrics: dict, run_dir: Path) -> None:
         f"({metrics['raw_invalid_citation_rate_per_cell']:.1%} of produced cells) -- diagnostic"
     )
     print(
-        f"  conflict_fire_rate: {metrics['conflict_fire_rate']:.2f} "
-        f"(resolved {metrics['conflict_resolved']} / unresolved {metrics['conflict_unresolved']})"
+        f"  conflict (claim-level): fire_rate {metrics['conflict_fire_rate']:.2f}, "
+        f"{metrics['claim_level_conflicts_evaluated']} evaluated by the Conflict LLM "
+        f"-> resolved {metrics['conflict_resolved']} / unresolved {metrics['conflict_unresolved']} "
+        f"/ spurious {metrics['conflict_spurious']}"
     )
     print(
         f"  budget_exceeded_rate: {metrics['budget_exceeded_rate']:.2f} | "

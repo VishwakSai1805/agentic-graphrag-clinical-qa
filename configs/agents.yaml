@@ -22,4 +22,4 @@ agents:
   prompt_versions:
     hypothesis: v1
     audit: v1
-    conflict: v1
+    conflict: v2        # claim-level, semantic-check-first (ADR-025)
