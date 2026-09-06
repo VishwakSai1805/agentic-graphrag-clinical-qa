@@ -1,0 +1,39 @@
+{
+  "config_hash": "f5aad6a5f5cd0d152a7b6d8eb0653881fd34a60b694df73557a28b70cffa3c22",
+  "dataset": "medqa",
+  "git_sha7": "b1e355e",
+  "limit": 20,
+  "metrics": {
+    "accuracy_rank1_by_support": 0.35,
+    "budget_exceeded_rate": 0.0,
+    "completion_tokens_total": 0,
+    "conflict_fire_count_total": 18,
+    "conflict_fire_rate": 0.55,
+    "conflict_resolved": 0,
+    "conflict_unresolved": 18,
+    "every_surviving_cell_has_valid_id": true,
+    "kg_hit_rate": 0.85,
+    "llm_cache_hits": 115,
+    "llm_calls_total": 115,
+    "mean_cells_per_question": 5.4,
+    "mean_llm_calls": 5.75,
+    "mean_rounds": 1.05,
+    "n_evaluated": 20,
+    "prompt_tokens_total": 0,
+    "questions_with_all_passage_bundle": 3,
+    "questions_with_kg_slot_filled": 17,
+    "raw_invalid_citation_count": 6,
+    "raw_invalid_citation_rate_per_cell": 0.05263157894736842,
+    "status_counts": {
+      "insufficient_evidence": 1,
+      "ok": 8,
+      "unresolved_conflict": 11
+    },
+    "surviving_invalid_citation_count": 0,
+    "total_cells": 108
+  },
+  "run_id": "medqa_V4_b1e355e_20260906T112332Z",
+  "seed": 42,
+  "split": "train",
+  "variant": "V4"
+}

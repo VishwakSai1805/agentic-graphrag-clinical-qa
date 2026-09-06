@@ -1,0 +1,25 @@
+# Phase 4 variant: tri-modal retrieval + the multi-agent consensus network
+# (Hypothesis -> Audit -> Conflict). Inherits everything from base.yaml via
+# `_extends` (src/config.py: load_config deep-merges this over the parent) --
+# only the agents block differs. The fully resolved config is written to
+# results/<run_id>/config.yaml, so this indirection never hides provenance.
+#
+# Maps to Phase 7's V4 (agents, no calibration). V5 adds the calibration
+# block in Phase 5.
+_extends: base.yaml
+
+agents:
+  enabled: true
+  epsilon: 1
+  max_rounds: 2
+  max_llm_calls_per_question: 12
+  max_evidence: 12
+  evidence_split: [8, 4]        # [passages, triples]; KG count is a floor (ADR-023)
+  kg_slot_rerank: true
+  hypothesis_sample: false      # deterministic by default (ADR-001 replayability)
+  hypothesis_temperature: 0.0
+  source_precedence: [kg, textbook, pubmed_abstract]
+  prompt_versions:
+    hypothesis: v1
+    audit: v1
+    conflict: v1

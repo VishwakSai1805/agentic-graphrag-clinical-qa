@@ -184,18 +184,102 @@ class KGConfig(BaseModel):
     kg_rerank_pool_size: int = 150
 
 
+class AgentsConfig(BaseModel):
+    """Phase 4 multi-agent consensus network. See docs/01_ARCHITECTURE.md
+    "Agent contracts" / "Budget guards" and ADR-022/023 (docs/05_DECISIONS.md).
+
+    `enabled=False` in base.yaml -- only configs/agents.yaml (and Phase 7's
+    V4/V5 variants) turn the network on. All eval-time code that runs agents
+    reads these knobs; nothing here opens a network connection.
+    """
+
+    enabled: bool = False
+    # Conflict fires for an option only when it has >= epsilon SUPPORT cells
+    # AND >= epsilon CONTRADICT cells (mass = integer cell count for Phase 4;
+    # a fractional mass over the calibrated (s+,s-,s0) tuple is Phase 5's job).
+    epsilon: int = 1
+    max_rounds: int = 2
+    max_llm_calls_per_question: int = 12
+    max_evidence: int = 12
+    # [n_passages, n_triples] reserved slots. The KG count is a FLOOR, not a
+    # fixed ratio: unfilled KG slots backfill with passages so the bundle
+    # always reaches max_evidence when that much evidence exists (ADR-023).
+    # Ablatable in Phase 7; the realised split is stored per question.
+    evidence_split: list[int] = [8, 4]
+    # Rank the KG slot with the MedCPT cross-encoder (reuse of the ADR-018
+    # mechanism at agent-selection granularity -- its own value is a Phase 7
+    # evidence_split ablation question, not inherited from ADR-018's n=200 tie).
+    kg_slot_rerank: bool = True
+    # Hypothesis agent: deterministic by default (ADR-001 wants replayability;
+    # claim decomposition of given MCQ options gains little from diversity).
+    # Sampling is an ablation flag, not the default.
+    hypothesis_sample: bool = False
+    hypothesis_temperature: float = 0.0
+    # 3-tier source precedence for the Conflict agent (ADR-022): the
+    # conclusion/background split and "recency" from docs/01 are unimplementable
+    # on this corpus (no section tags, no dates) and are dropped, recorded.
+    source_precedence: list[str] = ["kg", "textbook", "pubmed_abstract"]
+    prompt_versions: dict[str, str] = {
+        "hypothesis": "v1",
+        "audit": "v1",
+        "conflict": "v1",
+    }
+
+
 class AppConfig(BaseModel):
     seed: int = 42
     llm: LLMConfig
     eval: EvalConfig = EvalConfig()
     retrieval: RetrievalConfig = RetrievalConfig()
     kg: KGConfig = KGConfig()
+    agents: AgentsConfig = AgentsConfig()
     cache_dir: Path = Path(".cache/llm")
 
 
+def _deep_merge(base: dict, override: dict) -> dict:
+    """Recursively merge `override` into a copy of `base`. Dicts merge key-wise;
+    every other type (including lists) is replaced wholesale by `override`."""
+    out = dict(base)
+    for key, val in override.items():
+        if isinstance(val, dict) and isinstance(out.get(key), dict):
+            out[key] = _deep_merge(out[key], val)
+        else:
+            out[key] = val
+    return out
+
+
 def load_config(path: str | Path) -> AppConfig:
-    raw = yaml.safe_load(Path(path).read_text())
+    """Load a YAML config into an `AppConfig`.
+
+    A config may carry a top-level `_extends: <path>` (relative to its own
+    directory, or absolute) to inherit from another YAML -- the parent is
+    loaded, then this file is deep-merged over it (dicts key-wise, lists
+    replaced). One level of `_extends` chaining is supported recursively.
+    The fully resolved config is what `results/<run_id>/config.yaml` records,
+    so provenance never depends on the extends indirection.
+    """
+    path = Path(path)
+    raw = yaml.safe_load(path.read_text()) or {}
+    parent_ref = raw.pop("_extends", None)
+    if parent_ref is not None:
+        parent_path = Path(parent_ref)
+        if not parent_path.is_absolute():
+            parent_path = (path.parent / parent_path).resolve()
+        parent_raw = _resolve_raw(parent_path)
+        raw = _deep_merge(parent_raw, raw)
     return AppConfig.model_validate(raw)
+
+
+def _resolve_raw(path: Path) -> dict:
+    """Return a config file's raw dict with any `_extends` chain already merged in."""
+    raw = yaml.safe_load(path.read_text()) or {}
+    parent_ref = raw.pop("_extends", None)
+    if parent_ref is None:
+        return raw
+    parent_path = Path(parent_ref)
+    if not parent_path.is_absolute():
+        parent_path = (path.parent / parent_path).resolve()
+    return _deep_merge(_resolve_raw(parent_path), raw)
 
 
 def config_hash(cfg: AppConfig) -> str:

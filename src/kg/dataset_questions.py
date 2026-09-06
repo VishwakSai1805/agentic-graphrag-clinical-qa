@@ -193,6 +193,24 @@ def link_text_for_question(q: Question) -> str:
     return q.question
 
 
+def gold_letter(q: Question) -> str | None:
+    """The gold option letter. medmcqa's `Question.answer` is already a letter;
+    medqa's is the option *text*, matched back to its letter (asserting exactly
+    one match). pubmedqa has no letter (yes/no/maybe) -> None."""
+    if q.answer is None:
+        return None
+    if q.dataset == "medmcqa":
+        return q.answer if q.options and q.answer in q.options else None
+    if q.dataset == "medqa" and q.options:
+        hits = [k for k, v in q.options.items() if v.strip() == q.answer.strip()]
+        if len(hits) != 1:
+            raise ValueError(
+                f"{q.question_id}: gold text matched {len(hits)} options (expected 1)"
+            )
+        return hits[0]
+    return None
+
+
 def load_question_sample(
     dataset: str, split: str, limit: int | None, seed: int = 42
 ) -> list[Question]:
