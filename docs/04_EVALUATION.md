@@ -90,6 +90,13 @@ the local-hardware throughput assumptions above (it's API-latency- and
 free-tier-rate-limit-bound instead — treat as a background job, not a timed
 benchmark). See ADR-008.
 
+**Also record for B3 in this check (added post-Phase-3):** `verifier_decision_rate`
+and the `n_supported` distribution, not just accuracy. Phase 3's near-zero
+verifier decision rate (§5.4) is evidence for C2's binary bottleneck only if
+it is not merely an artifact of the 7B model's SUPPORTED-threshold calibration
+— a stronger model must be checked. Tracked under the roadmap's pre-Phase-7
+fixes.
+
 ## 1. Correctness
 - **Accuracy** — exact option match (rank-1 prediction).
 - **Macro-F1** — over option positions / classes; the reported headline for

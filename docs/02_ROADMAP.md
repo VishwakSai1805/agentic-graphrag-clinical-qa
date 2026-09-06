@@ -108,6 +108,19 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done (add run_id/commit)
 - `hypothesis.py`, `audit.py`, `conflict.py` with strict JSON schemas (pydantic) and repair-on-parse-failure
 - Budget guards + failure-mode instrumentation from `docs/01_ARCHITECTURE.md`
 - `tests/` with a mocked LLM covering: valid path, malformed JSON, invalid citation, conflict, budget trip
+- **`max_evidence=12` bundle trim — modality-reserved, never a single cross-modal
+  ranking (design constraint set before Phase 4, same silent-elimination risk
+  class as the Phase 3 truncation bug, ADR-021).** The pipeline emits 12
+  passages + up to 40 KG triples; MedCPT's cross-encoder is a query–*article*
+  model, so a short verbalised triple systematically scores below a full
+  passage — a single top-12 cross-modal cut would eliminate the KG modality
+  entirely and make the agent layer "tri-modal in name, dense-only in fact".
+  Instead: rank *within* each modality and reserve slots via a config value
+  `agents.evidence_split` (start 8 passages + 4 triples). Rank the KG slot with
+  the ADR-018 `kg_rerank` cross-encoder (the comparison it was actually built
+  for). Log the realised modality mix per question so an all-passage bundle is
+  visible immediately. `evidence_split` is ablatable — the right ratio is a
+  Phase 7 empirical question, not a baked-in guess.
 - **Exit test:** `python -m src.pipeline --config configs/agents.yaml --limit 20` produces SupportMatrices with zero invalid citations on the dev slice.
 
 ## Phase 5 — Evidential calibration & ranking  `[ ]`
@@ -138,6 +151,14 @@ affects Phases 3–6; both gate the Phase 7 ablation grid.
   a statistical tie at n=200. Re-run `scripts/kg_rerank_ablation.py` on the
   500-question MedQA slice and a fresh paired-bootstrap check; decide adopt /
   keep-off from that verdict, not the point estimate.
+- **B3 verifier-collapse robustness check** — Phase 3's `verifier_decision_rate
+  = 0.05` (`n_supported = 0` on 15/20) is evidence for C2's binary bottleneck,
+  but could instead be a 7B model with a mis-calibrated SUPPORTED threshold.
+  The Phase 6 Gemini Flash sensitivity check (§0.6, ADR-008) must record
+  `verifier_decision_rate` + the `n_supported` distribution for B3 alongside
+  accuracy. If a stronger model still collapses to near-zero decisions the
+  argument is robust; if it does not, that must be known before the claim is
+  in the paper.
 
 ## Phase 7 — Full runs & ablation grid  `[ ]`
 
