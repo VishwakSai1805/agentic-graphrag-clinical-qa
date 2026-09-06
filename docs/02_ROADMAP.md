@@ -103,7 +103,7 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done (add run_id/commit)
 - Dev slice = MedQA **train** split (seed 42), test stays unseen till Phase 7 (ADR-020).
 - **Exit test:** `python -m scripts.run_baselines --dataset medqa --split train --limit 20 --baselines B0,B1,B2,B3` — all four score end-to-end, one `results/<run_id>/` each. Roadmap wording says "200-item"; run on 20 per CLAUDE.md §5. Real numbers: `docs/04_EVALUATION.md` §5.4 (B0 .55 / B1 .60 / B2 .65 / B3 .65 acc, grounded 0.95; n=20, plumbing check, no comparison claim).
 
-## Phase 4 — Multi-agent consensus network  `[x]` (e75de9c + ADR-025 fix, 2026-09-06)
+## Phase 4 — Multi-agent consensus network  `[x]` (e75de9c, ADR-025 fix 30700f9, 2026-09-06)
 - `src/agents/graph.py` LangGraph state machine + checkpointer
 - `hypothesis.py`, `audit.py`, `conflict.py` with strict JSON schemas (pydantic) and repair-on-parse-failure
 - Budget guards + failure-mode instrumentation from `docs/01_ARCHITECTURE.md`
