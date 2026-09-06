@@ -1082,3 +1082,120 @@ Phase 4, as the project owner required. Phase 4's agent prompts carry an
 the guard. `docs/04_EVALUATION.md` §0.1's per-call prefill budget (~3.7 s at
 958 tok/s for a ~3.5k-token bundle) is unchanged — 8192 is the *ceiling*, not
 the typical prompt size.
+
+## ADR-022 — Config inheritance via `_extends:`; deep-merge, resolved config recorded
+Date: 2026-09-06 · Phase: 4 · Status: accepted
+
+**Context.** `load_config` was a flat `yaml.safe_load` -> `model_validate`.
+Phase 4 needs `configs/agents.yaml` (agents on); Phase 5 needs a calibration
+variant; Phase 7 needs 8 variant configs. Full copies of `base.yaml` per
+variant drift silently -- a retrieval knob changes in base, seven copies keep
+the stale value, and a V4/V5 grid run then uses stale retrieval config with
+nothing flagging it.
+
+**Decision.** A config file may carry a top-level `_extends: <path>` (relative
+to its own dir, or absolute). `load_config` loads the parent, then deep-merges
+the child over it: dicts merge key-wise, every other type (lists included) is
+replaced wholesale. `_extends` chains recursively. `configs/agents.yaml` is now
+~15 lines (just the `agents:` block + `_extends: base.yaml`). The fully
+resolved config is still what `results/<run_id>/config.yaml` records and what
+`config_hash` hashes, so run provenance never depends on the indirection.
+
+**Alternatives:** full-copy variant files + a test asserting shared keys match
+base (rejected -- the test is a patch over a design smell, and a forgotten
+test lets drift through); a real templating layer like Hydra (rejected --
+heavyweight for a handful of 15-line overlays).
+
+**Consequences:** Phase 5 and Phase 7 variant configs all use `_extends:
+base.yaml` (or `_extends: agents.yaml` for V5). List fields are replace-only,
+so overriding one element of `llm.fallback_chain` means restating the whole
+list -- documented in `load_config`'s docstring.
+
+## ADR-023 — Agent evidence bundle: modality-reserved slots with passage backfill; MixReport is a stored variable
+Date: 2026-09-06 · Phase: 4 · Status: accepted (implements the design constraint recorded in docs/02_ROADMAP.md Phase 4)
+
+**Context.** `docs/01_ARCHITECTURE.md` caps the agent bundle at
+`max_evidence=12`. The Phase 3 pipeline emits 12 passages + up to 40 KG
+triples. A single top-12 cross-modal ranking would eliminate KG almost
+entirely: MedCPT's cross-encoder is a query-*article* model, so a short
+verbalised triple systematically scores below a full passage -- the agent
+layer would be "tri-modal in name, dense-only in fact", the same silent-
+elimination class as the Phase 3 context-truncation bug (ADR-021).
+
+**Decision.** `src/agents/evidence_select.py`: rank *within* each modality and
+reserve slots via `agents.evidence_split = [n_passages, n_triples]` (default
+`[8, 4]`). The KG count is a **floor, not a fixed ratio** -- unfilled KG slots
+backfill with passages so the bundle reaches `max_evidence` whenever that much
+evidence exists (a zero-triple question must not hand the agents 8 items when
+B2 got 12; that confound is worse than the ratio wobble). Rank the KG slot
+with the MedCPT cross-encoder (`agents.kg_slot_rerank=True`; reuse of ADR-018's
+mechanism at agent-selection granularity -- its value here is a Phase 7
+ablation question, not inherited from ADR-018's n=200 tie). The realised split
+is returned in `MixReport` (requested split, n_passages, n_triples,
+kg_available, `kg_slot_filled`, `backfilled_passages`) and stored on every
+`SupportMatrix` -- a per-question **analysis variable**, so Phase 7 can report
+the `evidence_split` ablation both overall and conditioned on
+`kg_slot_filled`, not just as a log line.
+
+**Real Phase-4 dev-20 result:** kg-slot filled on 17/20 questions, all-passage
+bundle on 3/20 (the zero/low-triple questions). `evidence_split` ablation
+deferred to Phase 7.
+
+**Alternatives:** strict 8/4 with a <12 bundle when KG underfills (rejected --
+starves the agent variants vs B2 for a reason unrelated to agent quality);
+dynamic per-question split by a learned gate (rejected -- adds a confound to
+the ablation, ADR-002's spirit).
+
+## ADR-024 — Phase 4 agent graph: deterministic Hypothesis, source-precedence-only Conflict, and the conflict-resolver-never-resolves finding
+Date: 2026-09-06 · Phase: 4 · Status: accepted
+
+**1. Hypothesis is deterministic by default.** `docs/01`/ADR-001 allow the
+Hypothesis agent to sample. It decomposes *given* MCQ options into claims --
+diversity buys little there, and determinism buys the node-level replayability
+ADR-001 explicitly wanted. `agents.hypothesis_sample=False`,
+`hypothesis_temperature=0.0` by default; sampling is an ablation flag. This
+removes the "cache-cleared rerun produces different matrices" risk entirely.
+
+**2. The Conflict agent is a source-precedence resolver, NOT a semantic one.**
+`docs/01` specifies "source precedence & recency" with a 4-tier order
+(KG-curated > guideline/textbook > abstract conclusion > abstract background).
+On this corpus that is unimplementable: PubMed chunks carry no
+conclusion/background section tags and no publication dates (verified against
+`data/processed/corpus.jsonl`). So the implemented resolver is 3-tier --
+`kg > textbook > pubmed_abstract` from `Evidence.source_meta` -- and "recency"
+is dropped. The winner is computed **deterministically** from `source_rank`
+(lower rank wins; tied rank -> unresolved, no LLM call); the LLM is invoked
+only when precedence gives a clear winner, and only to judge whether the
+contradiction is genuine (same clinical point) or spurious -- it may confirm
+the precedence winner or downgrade to UNRESOLVED, never flip to the losing
+side.
+
+**3. The finding, elevated per the B3 lesson (ADR-020 / docs/04 §5.4).**
+On the Phase 4 MedQA train dev-20 (seed 42):
+`conflict_fire_rate = 0.55` (11/20 questions had an option with both SUPPORT
+and CONTRADICT cells), but **resolved 0 / unresolved 18** -- every one of the
+18 option-level conflicts came back "tied source precedence (rank 1)", and the
+**Conflict LLM ran zero times**. Mechanism: nearly all audited evidence is
+textbook-tier passages (rank 1); KG triples (rank 0) rarely land on both sides
+of a single option's conflict. So the source-precedence resolver has no
+differential precedence to act on, and the deterministic fallback always ties.
+**C2's "explicitly resolves contradictions" currently rests on a component
+that fires but resolves nothing on this corpus.** This is recorded, not
+softened. Candidate fixes for Phase 7+: a real evidence-tier signal (PrimeKG
+edge curation tier; textbook vs guideline vs review distinction; abstract
+section classifier), or a semantic conflict-resolution step that does not
+depend on source tiers at all. Not attempted in Phase 4.
+
+**4. Small decisions.** (a) `status="agent_error"` added for a schema
+validation failure surviving one repair -- a recorded hard stop distinct from
+`budget_exceeded`. (b) Call granularity (the architecture doesn't specify it):
+Hypothesis 1 batched call, Audit 1 call/option, Conflict ≤1 call/conflicted
+option. Round-1 worst case 1+4+4 = 9 ≤ 12. (c) Round-2 re-retrieval was
+initially gated on `n_options + conflict_ceiling` free calls, which made it
+unreachable with 4 options at the 12-call budget -- fixed to gate on the
+re-audit cost only (`n_options`), since a no-signal round rarely leads to
+conflict. Real dev-20: re-retrieval fired on 1/20, `budget_exceeded` on 0/20
+(well under the 20% "raise the cap" threshold from the Phase 4 approval).
+(d) LangGraph checkpointing is `InMemorySaver` + a full per-node JSON trace
+dump per question (`results/<run_id>/traces/`, gitignored); `SqliteSaver` for
+true node-replay-at-scale is deferred to the Phase 6 harness.

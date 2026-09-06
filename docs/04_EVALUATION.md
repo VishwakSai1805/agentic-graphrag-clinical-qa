@@ -274,6 +274,40 @@ context silently truncated the KG-triple block (appended last) and collapsed
 B2/B3 to Acc 0.15 with 12/20 parse errors. The table above is post-fix
 (`llm.num_ctx = 8192` + a hard `LLMContextBudgetError` guard).
 
+### 5.5 Phase 4 multi-agent consensus plumbing check (dev slice, n=20 — NOT a grid result)
+
+`python -m src.pipeline --config configs/agents.yaml --limit 20` (MedQA train
+dev-20, seed 42), `results/medqa_V4_<sha>_20260906T112332Z/`. This is the
+Phase 4 exit test: it certifies that query → tri-modal bundle → modality-
+reserved 12-item evidence set → Hypothesis→Audit→Conflict → `SupportMatrix`
+with only real citations runs end-to-end. **Not** a QA-accuracy result.
+
+| Invariant / counter | Value |
+|---|---|
+| SupportMatrices emitted | 20/20 (+ per-node traces) |
+| surviving cells citing a non-bundle id | **0** (exit-test invariant) |
+| RAW model citation hallucination (dropped at audit) | 6 cells = 5.3% of produced cells |
+| status | `ok` 8 · `unresolved_conflict` 11 · `insufficient_evidence` 1 |
+| `budget_exceeded` rate | 0.00 |
+| mean LLM calls / question | 5.8 (cap 12) |
+| mean rounds | 1.05 (re-retrieval fired on 1/20) |
+| bundle mix | KG slot filled 17/20 · all-passage 3/20 (zero/low-triple Qs) |
+
+**Conflict-agent finding (elevated per the B3 lesson, ADR-020/ADR-024):**
+`conflict_fire_rate = 0.55` (11/20 questions), but **resolved 0 / unresolved
+18** — every option-level conflict tied on source precedence (rank 1 =
+textbook on both sides) and the **Conflict LLM ran 0 times**. Nearly all
+audited evidence is textbook-tier, so the 3-tier `kg > textbook >
+pubmed_abstract` precedence has no differential to act on. C2's "explicitly
+resolves contradictions" currently rests on a component that fires but
+resolves nothing on this corpus. Candidate fixes (a real evidence-tier
+signal, or a source-tier-independent semantic resolver) are Phase 7+ work;
+this is recorded, not softened.
+
+The `rank-1-by-support` accuracy printed by the run (0.35) is a crude
+`s_pos − s_neg` sanity signal, **not** the calibrated ranking — Phase 5
+produces the real one.
+
 ## 6. Run discipline
 - `results/<run_id>/config.yaml` — full resolved config incl. model ids + seed
 - `results/<run_id>/predictions.jsonl` — one row per question: options, p vector,

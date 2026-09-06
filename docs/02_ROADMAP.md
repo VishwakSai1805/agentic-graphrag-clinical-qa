@@ -103,7 +103,7 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done (add run_id/commit)
 - Dev slice = MedQA **train** split (seed 42), test stays unseen till Phase 7 (ADR-020).
 - **Exit test:** `python -m scripts.run_baselines --dataset medqa --split train --limit 20 --baselines B0,B1,B2,B3` — all four score end-to-end, one `results/<run_id>/` each. Roadmap wording says "200-item"; run on 20 per CLAUDE.md §5. Real numbers: `docs/04_EVALUATION.md` §5.4 (B0 .55 / B1 .60 / B2 .65 / B3 .65 acc, grounded 0.95; n=20, plumbing check, no comparison claim).
 
-## Phase 4 — Multi-agent consensus network  `[ ]`
+## Phase 4 — Multi-agent consensus network  `[x]` (e75de9c, 2026-09-06)
 - `src/agents/graph.py` LangGraph state machine + checkpointer
 - `hypothesis.py`, `audit.py`, `conflict.py` with strict JSON schemas (pydantic) and repair-on-parse-failure
 - Budget guards + failure-mode instrumentation from `docs/01_ARCHITECTURE.md`
@@ -122,6 +122,17 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done (add run_id/commit)
   visible immediately. `evidence_split` is ablatable — the right ratio is a
   Phase 7 empirical question, not a baked-in guess.
 - **Exit test:** `python -m src.pipeline --config configs/agents.yaml --limit 20` produces SupportMatrices with zero invalid citations on the dev slice.
+  **Result: PASSED** (`results/medqa_V4_e75de9c_20260906T112332Z/`, MedQA train dev-20,
+  seed 42). 20 SupportMatrices + traces; 0 surviving cells cite a non-bundle id
+  (`every_surviving_cell_has_valid_id=True`); RAW model citation hallucination 6
+  cells (5.3%, filtered at audit). status {ok 8, unresolved_conflict 11,
+  insufficient_evidence 1}; `budget_exceeded` 0/20; mean 5.8 calls/Q, 1.05 rounds.
+  Ran on 20 per CLAUDE.md §5, not the literal "dev slice" 200. Real numbers +
+  the conflict-resolver-never-resolves finding: `docs/04_EVALUATION.md` §5.5,
+  ADR-024. Deviations: `_extends:` config merge (ADR-022); 3-tier source
+  precedence, recency dropped, Hypothesis deterministic by default (ADR-024);
+  `configs/agents.yaml` end-to-end CLI lives in `src/pipeline.py: main()`
+  (CLAUDE.md §4). ADR-022, ADR-023, ADR-024.
 
 ## Phase 5 — Evidential calibration & ranking  `[ ]`
 - `src/calibration/scoring.py` (logit assembly), `softmax_rank.py` (temperature scaling, ECE), `citations.py`
