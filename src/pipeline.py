@@ -177,11 +177,19 @@ class TriModalPipeline:
         return self.reranker.rerank(query, candidates, rcfg.top_k_rerank)
 
     def _triples(
-        self, dataset: str, question_id: str, modalities: frozenset[str]
+        self,
+        dataset: str,
+        question_id: str,
+        modalities: frozenset[str],
+        query: str | None = None,
     ) -> tuple[list[Evidence], bool]:
         if "kg" not in modalities:
             return [], False
-        entry = get_subgraph_cached(dataset, question_id, self.kg_cache_dir)
+        # `query` -> expected_stem: AUDIT §6.5, catch a cache mis-associated
+        # with the wrong question by a dataset re-fetch that reordered rows.
+        entry = get_subgraph_cached(
+            dataset, question_id, self.kg_cache_dir, expected_stem=query
+        )
         if entry is None:
             logger.info("KG cache miss: %s/%s under %s", dataset, question_id, self.kg_cache_dir)
             return [], False
@@ -200,7 +208,7 @@ class TriModalPipeline:
     ) -> EvidenceBundle:
         modalities = frozenset(modalities)
         passages = self._passages(query, modalities)
-        triples, kg_hit = self._triples(dataset, question_id, modalities)
+        triples, kg_hit = self._triples(dataset, question_id, modalities, query=query)
         return EvidenceBundle(
             query=query,
             options=options,

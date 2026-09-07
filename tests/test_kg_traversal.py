@@ -72,6 +72,36 @@ def test_write_then_get_subgraph_cached_roundtrip(tmp_path):
     assert loaded == entry
 
 
+def test_get_subgraph_cached_stem_match_passes(tmp_path):
+    entry = make_entry().model_copy(update={"question_stem": "What treats an MI?"})
+    write_subgraph_cache(entry, "medqa", tmp_path)
+    loaded = get_subgraph_cached(
+        "medqa", "q1", tmp_path, expected_stem="What  treats an MI?\n"  # whitespace-tolerant
+    )
+    assert loaded == entry
+
+
+def test_get_subgraph_cached_stem_mismatch_raises(tmp_path):
+    from src.kg.traversal import KGCacheStemMismatch
+
+    entry = make_entry(question_id="test_00042").model_copy(
+        update={"question_stem": "What treats an MI?"}
+    )
+    write_subgraph_cache(entry, "medqa", tmp_path)
+    with pytest.raises(KGCacheStemMismatch, match="row order changed"):
+        get_subgraph_cached(
+            "medqa", "test_00042", tmp_path, expected_stem="A totally different question"
+        )
+
+
+def test_get_subgraph_cached_empty_stem_skips_the_check(tmp_path):
+    # a file predating the question_stem field -> read without the assertion
+    entry = make_entry()  # question_stem defaults to ""
+    write_subgraph_cache(entry, "medqa", tmp_path)
+    loaded = get_subgraph_cached("medqa", "q1", tmp_path, expected_stem="anything at all")
+    assert loaded == entry
+
+
 def test_write_subgraph_cache_is_byte_for_byte_reproducible(tmp_path):
     entry = make_entry()
     p1 = write_subgraph_cache(entry, "medqa", tmp_path / "run1")

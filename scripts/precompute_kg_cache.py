@@ -135,6 +135,7 @@ def build_cache_entry(
 
     return KGCacheEntry(
         question_id=question.question_id,
+        question_stem=question.question,  # AUDIT §6.5: bind the cache to the question text
         linked_entities=linked,
         triples=triples,
         evidence=evidence,

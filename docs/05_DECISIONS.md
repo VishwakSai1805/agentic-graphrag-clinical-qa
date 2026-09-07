@@ -2168,3 +2168,64 @@ phrasings triple the decision rate.
 check* item closed with this outcome). This weakens a talking point, not the
 project: C2's real evidence is the audit layer's graded output and the Phase 7
 leave-one-agent-out cells, and those are unaffected.
+
+## ADR-034 — KG cache is bound to the question text, not just its positional id (AUDIT §6.5); the caches carry no current drift
+Date: 2026-09-08 · Phase: 6 (pre-Phase-7) · Status: accepted
+
+**Context.** `src/kg/dataset_questions.py` derives `question_id =
+f"{split}_{idx:05d}"` — a positional index into the raw HF dataset file — and
+the KG cache (`data/processed/kg_cache/<dataset>/<question_id>.json`) is keyed
+on it. `data/MANIFEST.json` hashes the raw dataset file *contents*, not the
+id↔question binding. So any re-fetch that reordered rows (a new HF revision, a
+different download path) would silently re-associate every cached subgraph with
+the wrong question, and nothing would catch it. AUDIT 2026-09-06 §6.5, MAJOR.
+
+**Fix.**
+1. `KGCacheEntry` gains `question_stem: str = ""` (`src/kg/traversal.py`).
+   `scripts/precompute_kg_cache.py` writes `question_stem=question.question`
+   into every new entry.
+2. `get_subgraph_cached(dataset, question_id, cache_dir, *, expected_stem=None)`
+   — when `expected_stem` is given and the file carries a non-empty
+   `question_stem`, a whitespace/case-insensitive mismatch raises
+   `KGCacheStemMismatch` naming the drift and the `--force` re-precompute
+   command. A file with an empty stem (predates the field) is read without the
+   check — graceful degradation, not a hard failure.
+3. `TriModalPipeline.build_bundle` threads the query text through
+   `_triples(query=...)` → `get_subgraph_cached(expected_stem=query)`, so every
+   eval-time KG read (Phase 3+) is now checked.
+
+**Backfill** (`scripts/kg_cache_backfill_stems.py`, CPU-only, no Neo4j).
+Walks all four cache trees; for each file, looks up the question now at that
+`question_id` in the current fetch and — **only if an integrity check passes** —
+writes the stem in. Integrity check: ≥ 50% of the file's distinct linked-entity
+surface strings (captured from the *original* question at build time) must
+appear verbatim in the current question's link-text (stem + options, the exact
+text `precompute_kg_cache` linked against). A file that fails is left untouched
+and reported — that failure *is* the §6.5 condition.
+
+**Result: 3633 / 3633 files backfilled, 0 integrity failures.** The current KG
+caches carry **no drift** — every cached subgraph is bound to the question it
+was built for. The fix is protective for Phase 7 (and for any future re-fetch),
+not a repair of existing damage.
+
+**Manifest.** `data/MANIFEST.json`'s `kg_cache` block was **already stale**
+before this change — it recorded `medqa: 220 files` while disk held 1123 (the
+Phase 3–5 dev-20 / calibration-120 / Phase 7 test-and-train-500 slices were
+added without a manifest refresh), and `kg_cache_kg_rerank/medqa: 200` vs 1010
+on disk (the ADR-027 train-500 kg_rerank re-test). `kg_cache_manifest --write`
+now records the real counts and fresh checksums, and `--check` passes. The
+`note`/`regen` fields are updated to acknowledge the growth, but the **exact
+per-phase precompute provenance of the post-Phase-2 additions is not fully
+reconstructed here** — that needs whoever ran those precomputes to confirm the
+split/limit/seed, ideally with Neo4j up for a content re-verification. Flagged
+as an open item; it does not block Phase 7 (the checksums are consistent and
+the stem-binding check now guards correctness).
+
+**Consequences.** New: `scripts/kg_cache_backfill_stems.py`,
+`src.kg.traversal.KGCacheStemMismatch` / `_norm_stem` / `KGCacheEntry.
+question_stem`. Edited: `src/pipeline.py` (`_triples` signature — `query`
+kwarg), `scripts/precompute_kg_cache.py`, `scripts/kg_cache_manifest.py`
+(notes + counts), `data/MANIFEST.json`, `tests/test_kg_traversal.py` (3 new
+tests). The committed `medqa_V5_aa73199-dirty_20260907T170604Z` run is
+unaffected — the KG subgraph content is byte-identical, only the `question_stem`
+field was added to the cache files.

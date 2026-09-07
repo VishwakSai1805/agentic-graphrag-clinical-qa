@@ -81,11 +81,29 @@ def _canonicalize(
     return head_id, head_name, tail_id, tail_name
 
 
+class KGCacheStemMismatch(Exception):
+    """Raised when a cache file's stored question stem does not match the
+    question now sitting at that `question_id` (AUDIT 2026-09-06 §6.5)."""
+
+
+def _norm_stem(text: str) -> str:
+    """Whitespace- and case-insensitive normalisation for stem comparison."""
+    return " ".join((text or "").split()).strip().lower()
+
+
 class KGCacheEntry(BaseModel):
     question_id: str
     linked_entities: list[LinkedEntity]
     triples: list[Triple]
     evidence: list[Evidence]
+    # AUDIT 2026-09-06 §6.5: `question_id` is a positional index into a raw HF
+    # file (`f"{split}_{idx:05d}"`), and the KG cache is keyed on it. A re-fetch
+    # that reorders rows silently re-associates every cached subgraph with the
+    # wrong question. Storing the stem here and asserting it on read
+    # (`get_subgraph_cached(expected_stem=...)`) makes that detectable. "" on
+    # a file that predates this field -> the check is skipped for that file
+    # (a warning, not a hard failure) until it is re-precomputed or backfilled.
+    question_stem: str = ""
 
 
 def traverse_live(
@@ -210,7 +228,13 @@ def _cache_path(dataset: str, question_id: str, cache_dir: Path) -> Path:
     return Path(cache_dir) / dataset / f"{question_id}.json"
 
 
-def get_subgraph_cached(dataset: str, question_id: str, cache_dir: Path) -> KGCacheEntry | None:
+def get_subgraph_cached(
+    dataset: str,
+    question_id: str,
+    cache_dir: Path,
+    *,
+    expected_stem: str | None = None,
+) -> KGCacheEntry | None:
     """Cache-only read path (ADR-007): reads
     `<cache_dir>/<dataset>/<question_id>.json` and returns a `KGCacheEntry`,
     or None if no cache entry exists for this question yet (a cache miss --
@@ -222,12 +246,32 @@ def get_subgraph_cached(dataset: str, question_id: str, cache_dir: Path) -> KGCa
     Neo4j can be stopped entirely once the cache exists. This is the function
     all eval-time (Phase 3+) code must call; do not call `traverse_live` from
     eval code.
+
+    `expected_stem` (AUDIT 2026-09-06 §6.5): the text of the question that
+    *should* be at `question_id`. When given and the cache file carries a
+    non-empty `question_stem`, a mismatch raises `KGCacheStemMismatch` -- the
+    raw dataset file was re-fetched in a different row order and every cached
+    subgraph is now bound to the wrong question. A file with an empty
+    `question_stem` (predates the field) is read without the check.
     """
     path = _cache_path(dataset, question_id, cache_dir)
     if not path.exists():
         return None
     raw = json.loads(path.read_text(encoding="utf-8"))
-    return KGCacheEntry.model_validate(raw)
+    entry = KGCacheEntry.model_validate(raw)
+    if expected_stem is not None and entry.question_stem:
+        if _norm_stem(entry.question_stem) != _norm_stem(expected_stem):
+            raise KGCacheStemMismatch(
+                f"{path}: cached question_stem does not match the question now at "
+                f"{dataset}/{question_id}. The raw dataset file's row order changed "
+                f"since the KG cache was built, so every cached subgraph is "
+                f"mis-associated (AUDIT §6.5). Re-run "
+                f"`scripts.precompute_kg_cache --dataset {dataset} --split "
+                f"{question_id.rsplit('_', 1)[0]} --force`.\n"
+                f"  cached: {entry.question_stem[:120]!r}\n"
+                f"  now   : {expected_stem[:120]!r}"
+            )
+    return entry
 
 
 def write_subgraph_cache(entry: KGCacheEntry, dataset: str, cache_dir: Path) -> Path:

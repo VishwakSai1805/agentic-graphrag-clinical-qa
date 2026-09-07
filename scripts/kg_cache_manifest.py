@@ -35,24 +35,32 @@ MANIFEST_PATH = REPO_ROOT / "data" / "MANIFEST.json"
 _PC = "uv run python -m scripts.precompute_kg_cache"
 CACHE_TREES: dict[str, dict[str, str]] = {
     "data/processed/kg_cache/medqa": {
-        "regen": f"{_PC} --dataset medqa --split test --limit 200  "
-        f"&&  {_PC} --dataset medqa --split train --limit 20",
-        "note": "Phase 2 exit slice (200 MedQA test, seed 42) + Phase 3 dev slice "
-        "(20 MedQA train, seed 42).",
+        "regen": f"{_PC} --dataset medqa --split test --limit 500  "
+        f"&&  {_PC} --dataset medqa --split train --limit 500",
+        "note": "MedQA test + train slices, seed 42. Grew past the Phase 2 exit "
+        "slice (200 test) as Phase 3-5 added the dev-20, the Phase 5 calibration "
+        "train-120, and the Phase 7 test/train-500. All files carry `question_stem` "
+        "(AUDIT §6.5, backfilled 2026-09-08). The exact per-phase precompute "
+        "provenance is being reconciled (ADR-034).",
     },
     "data/processed/kg_cache/pubmedqa": {
         "regen": f"{_PC} --dataset pubmedqa --split test --limit 500  "
         f"&&  {_PC} --dataset pubmedqa --split dev --limit 500",
-        "note": "Phase 2 follow-up: 500 test + 500 dev, seed 42 (ADR-005 eval scope).",
+        "note": "Phase 2 follow-up: 500 test + 500 dev, seed 42 (ADR-005 eval scope). "
+        "`question_stem` backfilled 2026-09-08 (AUDIT §6.5).",
     },
     "data/processed/kg_cache/medmcqa": {
         "regen": f"{_PC} --dataset medmcqa --split validation --limit 500",
-        "note": "Phase 2 follow-up: 500-question seeded validation subsample, seed 42 (ADR-005).",
+        "note": "Phase 2 follow-up: 500-question seeded validation subsample, seed 42 "
+        "(ADR-005). `question_stem` backfilled 2026-09-08 (AUDIT §6.5).",
     },
     "data/processed/kg_cache_kg_rerank/medqa": {
-        "regen": f"{_PC} --dataset medqa --split test --limit 200 --kg-rerank "
-        "--cache-dir data/processed/kg_cache_kg_rerank",
-        "note": "ADR-018 kg_rerank ablation variant, 200 MedQA test, seed 42. Off by default.",
+        "regen": f"{_PC} --dataset medqa --split test --limit 500 --kg-rerank "
+        "--cache-dir data/processed/kg_cache_kg_rerank  &&  {_PC} --dataset medqa "
+        "--split train --limit 500 --kg-rerank --cache-dir data/processed/kg_cache_kg_rerank",
+        "note": "kg_rerank ablation variant (ADR-018/027), MedQA test + the ADR-027 "
+        "train-500 re-test, seed 42. Off by default. `question_stem` backfilled "
+        "2026-09-08 (AUDIT §6.5); per-phase provenance being reconciled (ADR-034).",
     },
 }
 

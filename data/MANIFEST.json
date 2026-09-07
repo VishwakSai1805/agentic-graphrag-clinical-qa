@@ -96,32 +96,32 @@
     "_comment": "Aggregate SHA-256 per precomputed KG cache tree (ADR-007). Trees are gitignored; regenerate with the 'regen' command (needs Neo4j up -- docker/compose.yaml + scripts/load_primekg.py). See ADR correcting ADR-018's 'already-committed canonical' claim.",
     "trees": {
       "data/processed/kg_cache/medmcqa": {
-        "aggregate_sha256": "3fb7d9ee7480426573d9bf0678bfb0a42610834df364acba45a31f57645ea833",
+        "aggregate_sha256": "4fab2e4f855fdd61c40f1e939a4ccea7c231c6a875ae6a19033a29cabceb5d24",
         "n_files": 500,
-        "note": "Phase 2 follow-up: 500-question seeded validation subsample, seed 42 (ADR-005).",
+        "note": "Phase 2 follow-up: 500-question seeded validation subsample, seed 42 (ADR-005). `question_stem` backfilled 2026-09-08 (AUDIT \u00a76.5).",
         "present": true,
         "regen": "uv run python -m scripts.precompute_kg_cache --dataset medmcqa --split validation --limit 500"
       },
       "data/processed/kg_cache/medqa": {
-        "aggregate_sha256": "d2894b352398aeee6d5996dc31dc19af9559ed74e7a9384308521d17fd6c9f67",
-        "n_files": 220,
-        "note": "Phase 2 exit slice (200 MedQA test, seed 42) + Phase 3 dev slice (20 MedQA train, seed 42).",
+        "aggregate_sha256": "11e3e1ed412ecd1e7920929e72b0452b211411b2a56f3c756a5c04a847f24d7e",
+        "n_files": 1123,
+        "note": "MedQA test + train slices, seed 42. Grew past the Phase 2 exit slice (200 test) as Phase 3-5 added the dev-20, the Phase 5 calibration train-120, and the Phase 7 test/train-500. All files carry `question_stem` (AUDIT \u00a76.5, backfilled 2026-09-08). The exact per-phase precompute provenance is being reconciled (ADR-034).",
         "present": true,
-        "regen": "uv run python -m scripts.precompute_kg_cache --dataset medqa --split test --limit 200  &&  uv run python -m scripts.precompute_kg_cache --dataset medqa --split train --limit 20"
+        "regen": "uv run python -m scripts.precompute_kg_cache --dataset medqa --split test --limit 500  &&  uv run python -m scripts.precompute_kg_cache --dataset medqa --split train --limit 500"
       },
       "data/processed/kg_cache/pubmedqa": {
-        "aggregate_sha256": "bd65a4c43799e43053691948b63d82baffd64a4d84b55942307661d97be2539e",
+        "aggregate_sha256": "5712f5b1dccf6f81a3065aacb1187f63792a0ecf494b7c03bd248065a69c0e77",
         "n_files": 1000,
-        "note": "Phase 2 follow-up: 500 test + 500 dev, seed 42 (ADR-005 eval scope).",
+        "note": "Phase 2 follow-up: 500 test + 500 dev, seed 42 (ADR-005 eval scope). `question_stem` backfilled 2026-09-08 (AUDIT \u00a76.5).",
         "present": true,
         "regen": "uv run python -m scripts.precompute_kg_cache --dataset pubmedqa --split test --limit 500  &&  uv run python -m scripts.precompute_kg_cache --dataset pubmedqa --split dev --limit 500"
       },
       "data/processed/kg_cache_kg_rerank/medqa": {
-        "aggregate_sha256": "fddc855a177491dcfb6a2a8e83f734f65653775bc95028f7a5897ce1089bac73",
-        "n_files": 200,
-        "note": "ADR-018 kg_rerank ablation variant, 200 MedQA test, seed 42. Off by default.",
+        "aggregate_sha256": "bf452d2c28f79793e501f3d5dff9891f9f6e187d85f17baed13a307e9b6a05cc",
+        "n_files": 1010,
+        "note": "kg_rerank ablation variant (ADR-018/027), MedQA test + the ADR-027 train-500 re-test, seed 42. Off by default. `question_stem` backfilled 2026-09-08 (AUDIT \u00a76.5); per-phase provenance being reconciled (ADR-034).",
         "present": true,
-        "regen": "uv run python -m scripts.precompute_kg_cache --dataset medqa --split test --limit 200 --kg-rerank --cache-dir data/processed/kg_cache_kg_rerank"
+        "regen": "uv run python -m scripts.precompute_kg_cache --dataset medqa --split test --limit 500 --kg-rerank --cache-dir data/processed/kg_cache_kg_rerank  &&  {_PC} --dataset medqa --split train --limit 500 --kg-rerank --cache-dir data/processed/kg_cache_kg_rerank"
       }
     }
   },

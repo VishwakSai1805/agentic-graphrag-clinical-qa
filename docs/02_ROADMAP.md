@@ -300,18 +300,28 @@ deferred to this batch and **must be closed before the grid runs**:
   every other comparison exploratory, and specify Holm correction for the
   exploratory family.** Pre-registration after seeing grid numbers is worthless,
   so this one is ordered first in this batch.
-- **All AUDIT MINORs** (§1.10–1.14, §2.7–2.9, §3.5, §3.6, §4.4–4.6, §6.8–6.10).
-  Mostly one-line doc/number corrections — quote 5.75 not 5.8; the
-  `-ling-wanli` NLI model id in CLAUDE.md §3; `off-label use` in
+- **AUDIT MINORs, code half — DONE 2026-09-08:**
+  - ~~**§6.8**~~ (`paired_bootstrap_ci` no p-value + upper index off by one).
+    p-value was already added (`paired_bootstrap_p`, ADR-027 batch). The index
+    is now symmetric (`hi_idx = n_resamples - 1 - lo_idx`) in both
+    `src.retrieval.metrics.paired_bootstrap_ci` and
+    `src.eval.metrics.paired_bootstrap_ece_diff` — shift ≤ 1 sample in
+    n_resamples, flips no verdict (26141cd).
+  - ~~**§6.5**~~ (KG cache keyed on a positional id) — **ADR-034.**
+    `KGCacheEntry.question_stem` + `get_subgraph_cached(expected_stem=)`
+    assertion, threaded through `TriModalPipeline`. Backfill of all 3633
+    existing cache files with an integrity check against the linked entities:
+    **0 failures — no drift currently exists**; the check is protective for
+    Phase 7. `data/MANIFEST.json` kg_cache block refreshed (it was already
+    stale: recorded 220 medqa files vs 1123 on disk).
+  - ~~**§6.10**~~ (`src/eval/harness.py` referenced but absent) — the harness
+    exists as of Phase 6 (ADR-029).
+- **AUDIT MINORs, docs half** (§1.10–1.14, §2.7–2.9, §3.5, §3.6, §4.4–4.6,
+  §6.9): still a one-pass docs sweep — quote 5.75 not 5.8; the `-ling-wanli`
+  NLI id in CLAUDE.md §3 (already correct there); `off-label use` in
   `docs/03_DATASETS.md`; ADR-018's status line; per-variant `configs/B*.yaml`;
   `models_used` in the call-stats; the B3 "19/20 identical to B2 by
-  construction" annotation; `src/eval/harness.py` marked not-yet-implemented.
-  Two are not cosmetic and should be done with the code, not the docs pass:
-  **§6.8** (`paired_bootstrap_ci` returns no p-value while §1 mandates them,
-  and its upper percentile index is off by one — this affects every CI the
-  project has reported) and **§6.5** (the KG cache is keyed on a positional
-  index into a raw HF file, so any re-fetch that reorders rows silently
-  re-associates every cached subgraph with the wrong question).
+  construction" annotation.
 
 Also still open from the audit and **not** in the 2026-09-07 work order —
 flagged here so they are not lost: §2.2 (ADR-024 is `Status: accepted` while
