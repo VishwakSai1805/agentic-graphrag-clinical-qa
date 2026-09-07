@@ -2,8 +2,8 @@
 
 **Done:** Phases 0–5, all committed to `master`. Phase 3 `b10c385`/`d445423`,
 Phase 4 `e75de9c`/`6f9690e`/`1388904`, ADR-025 conflict fix `30700f9`/`ccba531`,
-2026-09-07 audit remediation `a714fe0`, **Phase 5 evidential calibration —
-this commit.** 389 tests pass, ruff clean.
+2026-09-07 audit remediation `a714fe0`, Phase 5 evidential calibration
+`a0060cf`. 389 tests pass, ruff clean.
 
 ---
 
