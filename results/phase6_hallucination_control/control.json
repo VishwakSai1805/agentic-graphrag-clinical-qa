@@ -1,0 +1,1266 @@
+{
+  "b2_equal_budget": {
+    "hallucination_rate_all_support_cells": 0.7413793103448276,
+    "hallucination_rate_predicted_option": 0.7413793103448276,
+    "n_claims_all_support_cells": 58,
+    "n_claims_predicted_option": 58,
+    "n_uncited_all_support_cells": 0,
+    "n_uncited_predicted_option": 0,
+    "n_ungrounded_all_support_cells": 43,
+    "n_ungrounded_predicted_option": 43,
+    "nli_model": "MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli",
+    "per_claim": [
+      {
+        "cited": true,
+        "claim": "The evidence indicates that the patient has a defect in the activation-induced cytidine deaminase (AID) protein, which is involved in Ig class switching and affinity maturation.",
+        "entailed": false,
+        "max_entail_score": 0.3310546875,
+        "option_id": "D",
+        "predicted_option": true,
+        "question_id": "train_00409"
+      },
+      {
+        "cited": true,
+        "claim": "This protein is crucial for the activation of B cells by T cells, and its deficiency leads to low levels of IgG, IgM, and IgA, as well as decreased plasma cells.",
+        "entailed": true,
+        "max_entail_score": 0.544921875,
+        "option_id": "D",
+        "predicted_option": true,
+        "question_id": "train_00409"
+      },
+      {
+        "cited": true,
+        "claim": "This aligns with the patient's history of recurrent infections and the described defect in the activation of B cells, which is a key function of T cells involving protein phosphorylation.",
+        "entailed": false,
+        "max_entail_score": 0.38037109375,
+        "option_id": "D",
+        "predicted_option": true,
+        "question_id": "train_00409"
+      },
+      {
+        "cited": true,
+        "claim": "Therefore, the protein most likely defective in this patient is involved in protein phosphorylation, which is a key process in T cell activation and B cell function.",
+        "entailed": false,
+        "max_entail_score": 0.38623046875,
+        "option_id": "D",
+        "predicted_option": true,
+        "question_id": "train_00409"
+      },
+      {
+        "cited": true,
+        "claim": "The patient's symptoms, including coarse facial features, stiff joint movements, clouded corneas, and developmental delays, are consistent with I-cell disease (inclusion cell disease), which is characterized by a defect in N-acetylglucosaminyl-1-phosphotransferase, leading to failure of the Golgi to phosphorylate mannose residues on glycoproteins.",
+        "entailed": true,
+        "max_entail_score": 0.57958984375,
+        "option_id": "B",
+        "predicted_option": true,
+        "question_id": "train_00434"
+      },
+      {
+        "cited": true,
+        "claim": "This results in the proteins being secreted extracellularly rather than delivered to lysosomes, causing the described symptoms.",
+        "entailed": true,
+        "max_entail_score": 0.794921875,
+        "option_id": "B",
+        "predicted_option": true,
+        "question_id": "train_00434"
+      },
+      {
+        "cited": true,
+        "claim": "The evidence from the textbooks supports this diagnosis.",
+        "entailed": false,
+        "max_entail_score": 0.421630859375,
+        "option_id": "B",
+        "predicted_option": true,
+        "question_id": "train_00434"
+      },
+      {
+        "cited": true,
+        "claim": "The patient's symptoms, including fever, malaise, headache, and myalgias, are consistent with an influenza-like illness.",
+        "entailed": true,
+        "max_entail_score": 0.65966796875,
+        "option_id": "B",
+        "predicted_option": true,
+        "question_id": "train_00488"
+      },
+      {
+        "cited": true,
+        "claim": "The evidence provided describes the clinical presentation of influenza, which can be treated with neuraminidase inhibitors, such as oseltamivir, which have a mechanism of action that inhibits the influenza virus's ability to release itself from infected cells, thereby reducing viral spread.",
+        "entailed": true,
+        "max_entail_score": 0.71923828125,
+        "option_id": "B",
+        "predicted_option": true,
+        "question_id": "train_00488"
+      },
+      {
+        "cited": true,
+        "claim": "The patient's symptoms, including shortness of breath at rest, new cardiac murmur, and T wave inversion in leads II, III, and aVF, are consistent with postmyocardial infarction syndrome.",
+        "entailed": false,
+        "max_entail_score": 0.392822265625,
+        "option_id": "B",
+        "predicted_option": true,
+        "question_id": "train_00520"
+      },
+      {
+        "cited": true,
+        "claim": "The ECG findings and the presence of a new systolic murmur are key indicators of this condition, which can occur in the days to weeks following an acute myocardial infarction.",
+        "entailed": false,
+        "max_entail_score": 0.4267578125,
+        "option_id": "B",
+        "predicted_option": true,
+        "question_id": "train_00520"
+      },
+      {
+        "cited": true,
+        "claim": "The other options are less likely given the timeline and clinical presentation.",
+        "entailed": false,
+        "max_entail_score": 0.390625,
+        "option_id": "B",
+        "predicted_option": true,
+        "question_id": "train_00520"
+      },
+      {
+        "cited": true,
+        "claim": "The patient's symptoms, including fever, nonproductive cough, fatigue, myalgia, and difficulty breathing, along with the presence of a diastolic blowing murmur, are consistent with infective endocarditis.",
+        "entailed": false,
+        "max_entail_score": 0.452392578125,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_01424"
+      },
+      {
+        "cited": true,
+        "claim": "The photograph of the patient's right index finger, while not provided, may show petechiae, which is a common finding in infective endocarditis.",
+        "entailed": false,
+        "max_entail_score": 0.438720703125,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_01424"
+      },
+      {
+        "cited": true,
+        "claim": "The most likely causal organism for infective endocarditis in a patient with a prosthetic aortic valve is Streptococcus gallolyticus, as evidenced by the clinical presentation and the patient's history.",
+        "entailed": false,
+        "max_entail_score": 0.421875,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_01424"
+      },
+      {
+        "cited": true,
+        "claim": "The evidence states that appetite is influenced by various signals integrated by the hypothalamus, including neuropeptide Y.",
+        "entailed": true,
+        "max_entail_score": 0.990234375,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_01535"
+      },
+      {
+        "cited": true,
+        "claim": "A decrease in neuropeptide Y is likely to mediate the patient's decreased appetite.",
+        "entailed": false,
+        "max_entail_score": 0.0023555755615234375,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_01535"
+      },
+      {
+        "cited": true,
+        "claim": "Therefore, the correct answer is A.",
+        "entailed": false,
+        "max_entail_score": 0.0010175704956054688,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_01535"
+      },
+      {
+        "cited": true,
+        "claim": "Decreased hypothalamic neuropeptide Y.",
+        "entailed": false,
+        "max_entail_score": 0.0027618408203125,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_01535"
+      },
+      {
+        "cited": true,
+        "claim": "Functional Residual Capacity (FRC) is the volume of air remaining in the lungs after a normal exhalation.",
+        "entailed": true,
+        "max_entail_score": 0.9638671875,
+        "option_id": "B",
+        "predicted_option": true,
+        "question_id": "train_01679"
+      },
+      {
+        "cited": true,
+        "claim": "It is calculated as the sum of the Residual Volume (RV) and the Inspiratory Reserve Volume (IRV).",
+        "entailed": false,
+        "max_entail_score": 0.0153961181640625,
+        "option_id": "B",
+        "predicted_option": true,
+        "question_id": "train_01679"
+      },
+      {
+        "cited": true,
+        "claim": "Given RV = 1700 mL and IRV = 3000 mL, FRC = RV + IRV = 1700 mL + 3000 mL = 4700 mL.",
+        "entailed": false,
+        "max_entail_score": 0.16064453125,
+        "option_id": "B",
+        "predicted_option": true,
+        "question_id": "train_01679"
+      },
+      {
+        "cited": true,
+        "claim": "However, since the closest option provided is 3500 mL, it is the best fit among the given choices.",
+        "entailed": false,
+        "max_entail_score": 0.005046844482421875,
+        "option_id": "B",
+        "predicted_option": true,
+        "question_id": "train_01679"
+      },
+      {
+        "cited": true,
+        "claim": "The patient's symptoms, including hemolysis, hemoglobinuria, and a peripheral blood smear showing Heinz bodies, are consistent with G6PD deficiency.",
+        "entailed": true,
+        "max_entail_score": 0.9921875,
+        "option_id": "D",
+        "predicted_option": true,
+        "question_id": "train_01824"
+      },
+      {
+        "cited": true,
+        "claim": "Heinz bodies are intracellular inclusions seen in G6PD deficiency, which can lead to hemolysis due to oxidative stress.",
+        "entailed": true,
+        "max_entail_score": 0.7080078125,
+        "option_id": "D",
+        "predicted_option": true,
+        "question_id": "train_01824"
+      },
+      {
+        "cited": true,
+        "claim": "This condition is an X-linked disorder, and the patient's symptoms are consistent with a missense mutation causing a change in the G6PD enzyme, leading to hemolysis.",
+        "entailed": false,
+        "max_entail_score": 0.305419921875,
+        "option_id": "D",
+        "predicted_option": true,
+        "question_id": "train_01824"
+      },
+      {
+        "cited": true,
+        "claim": "The patient's HBV DNA is positive, indicating ongoing viral replication, but HBsAg, HBeAg, and HBsAb are all negative.",
+        "entailed": false,
+        "max_entail_score": 0.0218048095703125,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_02286"
+      },
+      {
+        "cited": true,
+        "claim": "This profile is characteristic of the window period, where the patient is in the early stages of an acute infection but has not yet developed protective antibodies.",
+        "entailed": false,
+        "max_entail_score": 0.0406494140625,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_02286"
+      },
+      {
+        "cited": true,
+        "claim": "The patient's symptoms, including recurrent bacterial infections, undetectable serum levels of all immunoglobulin isotypes, and reduced levels of B cells, are consistent with Bruton agammaglobulinemia.",
+        "entailed": false,
+        "max_entail_score": 0.385986328125,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_03582"
+      },
+      {
+        "cited": true,
+        "claim": "The evidence from the textbook sources and knowledge graph supports this diagnosis, as Bruton agammaglobulinemia is characterized by a profound defect in B cell development, leading to a lack of immunoglobulin production and recurrent infections, which aligns with the patient's history.",
+        "entailed": false,
+        "max_entail_score": 0.401611328125,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_03582"
+      },
+      {
+        "cited": true,
+        "claim": "The patient's symptoms, including bullae, red, papular lesions, and swollen tender axillary lymph nodes, are consistent with a diagnosis of blister beetle infestation, as described in the evidence.",
+        "entailed": false,
+        "max_entail_score": 0.3623046875,
+        "option_id": "C",
+        "predicted_option": true,
+        "question_id": "train_03657"
+      },
+      {
+        "cited": true,
+        "claim": "Doxycycline is the first-line treatment for such cases.",
+        "entailed": false,
+        "max_entail_score": 0.322265625,
+        "option_id": "C",
+        "predicted_option": true,
+        "question_id": "train_03657"
+      },
+      {
+        "cited": true,
+        "claim": "The necrosis in the brain is described as being located just below the medial temporal lobes.",
+        "entailed": false,
+        "max_entail_score": 0.22509765625,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_03811"
+      },
+      {
+        "cited": true,
+        "claim": "The evidence from the textbook 'InternalMed_Harrison' and 'Neurology_Adams' suggests that the hippocampus, which is a part of the medial temporal lobe, is a common site for hypertensive hemorrhage and can lead to symptoms such as slurred speech and loss of consciousness.",
+        "entailed": false,
+        "max_entail_score": 0.0986328125,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_03811"
+      },
+      {
+        "cited": true,
+        "claim": "The caudate nucleus, cortex or cerebral hemisphere, and substantia nigra are less likely given the specific location mentioned.",
+        "entailed": false,
+        "max_entail_score": 0.364990234375,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_03811"
+      },
+      {
+        "cited": true,
+        "claim": "The lesion is most likely derived from melanocytes, which originate from the neural crest and migrate to the skin.",
+        "entailed": true,
+        "max_entail_score": 0.931640625,
+        "option_id": "D",
+        "predicted_option": true,
+        "question_id": "train_04012"
+      },
+      {
+        "cited": true,
+        "claim": "This is evidenced by the descriptions of melanoma and dysplastic nevi in the provided chunks, which detail the embryological origin of melanocytes.",
+        "entailed": false,
+        "max_entail_score": 0.0303497314453125,
+        "option_id": "D",
+        "predicted_option": true,
+        "question_id": "train_04012"
+      },
+      {
+        "cited": true,
+        "claim": "Option D, basal cell carcinoma, is derived from basal cells in the epidermis, not melanocytes, making it the incorrect choice among the options provided.",
+        "entailed": false,
+        "max_entail_score": 0.005687713623046875,
+        "option_id": "D",
+        "predicted_option": true,
+        "question_id": "train_04012"
+      },
+      {
+        "cited": true,
+        "claim": "Decreased AFP, increased HCG, and decreased unconjugated estriol are the markers that would raise concern for Down's syndrome.",
+        "entailed": false,
+        "max_entail_score": 0.414794921875,
+        "option_id": "B",
+        "predicted_option": true,
+        "question_id": "train_04506"
+      },
+      {
+        "cited": true,
+        "claim": "This pattern is consistent with the findings in the first-trimester combined screening test, where higher HCG and lower pAPP-A levels are associated with increased risk of Down's syndrome.",
+        "entailed": true,
+        "max_entail_score": 0.6025390625,
+        "option_id": "B",
+        "predicted_option": true,
+        "question_id": "train_04506"
+      },
+      {
+        "cited": true,
+        "claim": "The evidence from Obstetrics: Williams supports this pattern as a positive screening result for Down's syndrome.",
+        "entailed": false,
+        "max_entail_score": 0.37451171875,
+        "option_id": "B",
+        "predicted_option": true,
+        "question_id": "train_04506"
+      },
+      {
+        "cited": true,
+        "claim": "Furosemide, a loop diuretic, is commonly used in the management of congestive heart failure and can lead to increased serum potassium levels due to its diuretic effect.",
+        "entailed": false,
+        "max_entail_score": 0.1429443359375,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_06912"
+      },
+      {
+        "cited": true,
+        "claim": "The patient's history of congestive heart failure and the new-onset cough, along with the increased serum potassium, suggest that Furosemide is the most likely responsible medication.",
+        "entailed": false,
+        "max_entail_score": 0.045654296875,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_06912"
+      },
+      {
+        "cited": true,
+        "claim": "Amiodarone, while it can cause cough, is contraindicated in potassium deficiency disease, which does not fit the patient's profile.",
+        "entailed": false,
+        "max_entail_score": 0.07000732421875,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_06912"
+      },
+      {
+        "cited": true,
+        "claim": "Digoxin and Lisinopril are less likely to cause the specific combination of symptoms and laboratory findings presented.",
+        "entailed": false,
+        "max_entail_score": 0.0204925537109375,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_06912"
+      },
+      {
+        "cited": true,
+        "claim": "The patient presents with symptoms consistent with acute pyelonephritis, including fever, flank pain, costovertebral angle tenderness, and signs of a urinary tract infection (UTI) on urinalysis.",
+        "entailed": true,
+        "max_entail_score": 0.69677734375,
+        "option_id": "C",
+        "predicted_option": true,
+        "question_id": "train_08279"
+      },
+      {
+        "cited": true,
+        "claim": "Given the severity of her symptoms and the risk of urosepsis, inpatient treatment with intravenous antibiotics is warranted.",
+        "entailed": false,
+        "max_entail_score": 0.364501953125,
+        "option_id": "C",
+        "predicted_option": true,
+        "question_id": "train_08279"
+      },
+      {
+        "cited": true,
+        "claim": "Ampicillin and gentamicin are commonly used for such infections.",
+        "entailed": false,
+        "max_entail_score": 0.388671875,
+        "option_id": "C",
+        "predicted_option": true,
+        "question_id": "train_08279"
+      },
+      {
+        "cited": true,
+        "claim": "While ceftriaxone is also effective, the combination of ampicillin and gentamicin is a well-established regimen for severe UTIs and pyelonephritis, especially in pregnancy, as seen in the references provided.",
+        "entailed": false,
+        "max_entail_score": 0.384765625,
+        "option_id": "C",
+        "predicted_option": true,
+        "question_id": "train_08279"
+      },
+      {
+        "cited": true,
+        "claim": "Given the patient's symptoms of fever, focal tenderness, leukocytosis, and elevated CRP, the most likely diagnosis is a bacterial infection.",
+        "entailed": false,
+        "max_entail_score": 0.3203125,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_08935"
+      },
+      {
+        "cited": true,
+        "claim": "Ceftriaxone is a broad-spectrum antibiotic effective against many common bacterial pathogens, making it the best initial treatment option.",
+        "entailed": false,
+        "max_entail_score": 0.322021484375,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_08935"
+      },
+      {
+        "cited": true,
+        "claim": "The other options are either not specific enough (Ibuprofen and warm compresses) or too broad (piperacillin-tazobactam and vancomycin) given the current information.",
+        "entailed": false,
+        "max_entail_score": 0.374755859375,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_08935"
+      },
+      {
+        "cited": true,
+        "claim": "The evidence from chunk::textbook::InternalMed_Harrison#2482 and chunk::textbook::InternalMed_Harrison#2480 indicates that immunofluorescence studies in bullous pemphigoid (BP) show linear deposits of C3 in the epidermal basement membrane.",
+        "entailed": true,
+        "max_entail_score": 0.86328125,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_09195"
+      },
+      {
+        "cited": true,
+        "claim": "This is a hallmark of BP and differentiates it from other subepidermal bullous diseases.",
+        "entailed": true,
+        "max_entail_score": 0.87255859375,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_09195"
+      },
+      {
+        "cited": true,
+        "claim": "The pruritic blister formation described in the patient matches the clinical presentation of BP, further supporting this diagnosis.",
+        "entailed": true,
+        "max_entail_score": 0.79443359375,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_09195"
+      },
+      {
+        "cited": true,
+        "claim": "To calculate the confidence interval for the mean height of the male students in the undergraduate class, the researcher needs the mean height of all the male students in the class, as the sample mean alone is not sufficient for this calculation.",
+        "entailed": false,
+        "max_entail_score": 0.004619598388671875,
+        "option_id": "C",
+        "predicted_option": true,
+        "question_id": "train_09674"
+      },
+      {
+        "cited": true,
+        "claim": "Pioglitazone is a thiazolidinedione, and the evidence provided indicates that chlorothiazide, atovaquone, and amprenavir are contraindicated in conditions related to hyperglycemia or type 2 diabetes mellitus.",
+        "entailed": false,
+        "max_entail_score": 0.0010576248168945312,
+        "option_id": "D",
+        "predicted_option": true,
+        "question_id": "train_09863"
+      },
+      {
+        "cited": true,
+        "claim": "While there is no direct statement about pioglitazone, its classification as a thiazolidinedione suggests similar contraindications, making option D the most appropriate choice based on the provided evidence.",
+        "entailed": false,
+        "max_entail_score": 0.0030956268310546875,
+        "option_id": "D",
+        "predicted_option": true,
+        "question_id": "train_09863"
+      }
+    ],
+    "primary": "hallucination_rate_predicted_option",
+    "threshold": 0.5
+  },
+  "b2_run": "medqa_B2eq_79ee599-dirty_20260907T210514Z",
+  "claim_splitter": "src.eval.nli.split_claims (regex, decimals+abbrev-guarded)",
+  "n_questions": 20,
+  "reading": "METRIC-STRICTNESS: B2 is comparably high \u2014 the 0.5 NLI threshold marks most clinical rationale claims ungrounded regardless of pipeline. State as a caveat.",
+  "scorer": "MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli",
+  "seed": 42,
+  "split": "train",
+  "threshold": 0.5,
+  "v5_from_metrics_json": {
+    "hallucination_rate_all_support_cells": 0.717948717948718,
+    "hallucination_rate_predicted_option": 0.6818181818181818,
+    "n_claims_all_support_cells": 78,
+    "n_claims_predicted_option": 22,
+    "n_uncited_all_support_cells": 0,
+    "n_uncited_predicted_option": 0,
+    "n_ungrounded_all_support_cells": 56,
+    "n_ungrounded_predicted_option": 15,
+    "nli_model": "MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli",
+    "per_claim": [
+      {
+        "cited": true,
+        "claim": "Protein phosphorylation is involved in the activation of CD40L, which is crucial for immune cell signaling and function.",
+        "entailed": false,
+        "max_entail_score": 0.042816162109375,
+        "option_id": "D",
+        "predicted_option": true,
+        "question_id": "train_00409"
+      },
+      {
+        "cited": true,
+        "claim": "Adrenoleukodystrophy is an inherited lysosomal storage disorder caused by a defect in N-acetylglucosaminyl-1-phosphotransferase, which is an X-linked disorder.",
+        "entailed": false,
+        "max_entail_score": 0.36474609375,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_00434"
+      },
+      {
+        "cited": true,
+        "claim": "i-cell disease is a rare lysosomal storage disease in which the phosphotransferase is deficient, causing the proteins to be secreted, rather than being targeted to lysosomes.",
+        "entailed": true,
+        "max_entail_score": 0.5185546875,
+        "option_id": "B",
+        "predicted_option": false,
+        "question_id": "train_00434"
+      },
+      {
+        "cited": true,
+        "claim": "i-cell disease is characterized by coarse (dysmorphic) facial features, skeletal abnormalities, and severe psychomotor impairment.",
+        "entailed": true,
+        "max_entail_score": 0.63134765625,
+        "option_id": "B",
+        "predicted_option": false,
+        "question_id": "train_00434"
+      },
+      {
+        "cited": true,
+        "claim": "Evidence describes Diamond-Blackfan anemia as an anemia of bone marrow failure due to a defect in the Golgi to phosphorylate mannose residues on glycoproteins.",
+        "entailed": false,
+        "max_entail_score": 0.495849609375,
+        "option_id": "C",
+        "predicted_option": false,
+        "question_id": "train_00434"
+      },
+      {
+        "cited": true,
+        "claim": "The evidence discusses the deficiency in the phosphotransferase needed for synthesis of glycoproteins, which is related to Tay-Sachs disease.",
+        "entailed": false,
+        "max_entail_score": 0.400390625,
+        "option_id": "D",
+        "predicted_option": false,
+        "question_id": "train_00434"
+      },
+      {
+        "cited": true,
+        "claim": "The evidence mentions clouded corneas and psychomotor impairment, which are symptoms of Tay-Sachs disease.",
+        "entailed": false,
+        "max_entail_score": 0.264892578125,
+        "option_id": "D",
+        "predicted_option": false,
+        "question_id": "train_00434"
+      },
+      {
+        "cited": true,
+        "claim": "The patient is experiencing flu symptoms, which are consistent with the claim that the drug inhibits viral neuraminidase.",
+        "entailed": false,
+        "max_entail_score": 0.424072265625,
+        "option_id": "B",
+        "predicted_option": true,
+        "question_id": "train_00488"
+      },
+      {
+        "cited": true,
+        "claim": "The evidence describes the range of symptoms including fever and cough, which can be prevented by inhibiting viral neuraminidase.",
+        "entailed": false,
+        "max_entail_score": 0.0004096031188964844,
+        "option_id": "B",
+        "predicted_option": true,
+        "question_id": "train_00488"
+      },
+      {
+        "cited": true,
+        "claim": "A transient midsystolic or late systolic apical systolic murmur due to dysfunction of the mitral valve apparatus may be present.",
+        "entailed": true,
+        "max_entail_score": 0.6787109375,
+        "option_id": "A",
+        "predicted_option": false,
+        "question_id": "train_00520"
+      },
+      {
+        "cited": true,
+        "claim": "other physical signs of ventricular dysfunction include fourth and third heart sounds, decreased intensity of the first heart sound, and paradoxical splitting of the second heart sound ( chap. 267 ). a transient midsystolic or late systolic apical systolic murmur due to dysfunction of the mitral valve apparatus may be present.",
+        "entailed": false,
+        "max_entail_score": 0.475341796875,
+        "option_id": "A",
+        "predicted_option": false,
+        "question_id": "train_00520"
+      },
+      {
+        "cited": true,
+        "claim": "Postmyocardial infarction syndrome includes symptoms like shortness of breath, which is observed in the patient.",
+        "entailed": false,
+        "max_entail_score": 0.3974609375,
+        "option_id": "B",
+        "predicted_option": false,
+        "question_id": "train_00520"
+      },
+      {
+        "cited": true,
+        "claim": "A transient midsystolic or late systolic apical systolic murmur due to dysfunction of the mitral valve apparatus may be present.",
+        "entailed": true,
+        "max_entail_score": 0.6787109375,
+        "option_id": "C",
+        "predicted_option": true,
+        "question_id": "train_00520"
+      },
+      {
+        "cited": true,
+        "claim": "A transient midsystolic or late systolic apical systolic murmur due to dysfunction of the mitral valve apparatus may be present.",
+        "entailed": true,
+        "max_entail_score": 0.6787109375,
+        "option_id": "D",
+        "predicted_option": false,
+        "question_id": "train_00520"
+      },
+      {
+        "cited": true,
+        "claim": "A patient with suspected infective endocarditis, for example, may have a murmur in the setting of fever, chills, anorexia, fatigue, dyspnea, splenomegaly, petechiae, and positive blood cultures.",
+        "entailed": false,
+        "max_entail_score": 0.48095703125,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_01424"
+      },
+      {
+        "cited": true,
+        "claim": "A patient with suspected infective endocarditis, for example, may have a murmur in the setting of fever, chills, anorexia, fatigue, dyspnea, splenomegaly, petechiae, and positive blood cultures.",
+        "entailed": false,
+        "max_entail_score": 0.48095703125,
+        "option_id": "B",
+        "predicted_option": false,
+        "question_id": "train_01424"
+      },
+      {
+        "cited": true,
+        "claim": "a new systolic murmur in a patient with a marked fall in blood pressure after a recent mi suggests myocardial rupture.",
+        "entailed": false,
+        "max_entail_score": 0.4990234375,
+        "option_id": "B",
+        "predicted_option": false,
+        "question_id": "train_01424"
+      },
+      {
+        "cited": true,
+        "claim": "A patient with suspected infective endocarditis, for example, may have a murmur in the setting of fever, chills, anorexia, fatigue, dyspnea, splenomegaly, petechiae, and positive blood cultures.",
+        "entailed": false,
+        "max_entail_score": 0.48095703125,
+        "option_id": "C",
+        "predicted_option": false,
+        "question_id": "train_01424"
+      },
+      {
+        "cited": true,
+        "claim": "The evidence suggests that neuropeptide Y is a hypothalamic peptide that influences appetite, and obesity is correlated with increased risk of death and weight reduction is difficult to achieve.",
+        "entailed": true,
+        "max_entail_score": 0.9951171875,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_01535"
+      },
+      {
+        "cited": true,
+        "claim": "Appetite is influenced by circulating hormones such as cholecystokinin, which suggests that potentiation of cholecystokinin can increase satiety.",
+        "entailed": false,
+        "max_entail_score": 0.0178985595703125,
+        "option_id": "B",
+        "predicted_option": false,
+        "question_id": "train_01535"
+      },
+      {
+        "cited": true,
+        "claim": "Cholecystokinin levels are associated with reduced food intake, supporting the claim.",
+        "entailed": false,
+        "max_entail_score": 0.00119781494140625,
+        "option_id": "B",
+        "predicted_option": false,
+        "question_id": "train_01535"
+      },
+      {
+        "cited": true,
+        "claim": "Fatty acid oxidation produces less CO2 and is calorically denser than carbohydrate metabolism, suggesting a link to energy expenditure.",
+        "entailed": true,
+        "max_entail_score": 0.99169921875,
+        "option_id": "C",
+        "predicted_option": false,
+        "question_id": "train_01535"
+      },
+      {
+        "cited": true,
+        "claim": "The evidence mentions appetite regulation by hypothalamic peptides, which could include proopiomelanocortin neurons.",
+        "entailed": false,
+        "max_entail_score": 0.1912841796875,
+        "option_id": "D",
+        "predicted_option": false,
+        "question_id": "train_01535"
+      },
+      {
+        "cited": true,
+        "claim": "Functional residual capacity (FRC) is the sum of residual volume and the volume of the conducting airways, which is a part of the expiratory reserve volume.",
+        "entailed": false,
+        "max_entail_score": 0.1939697265625,
+        "option_id": "B",
+        "predicted_option": false,
+        "question_id": "train_01679"
+      },
+      {
+        "cited": true,
+        "claim": "Functional residual capacity (FRC) is the sum of inspiratory reserve volume (IRV) and residual volume (RV), which aligns with the claim.",
+        "entailed": false,
+        "max_entail_score": 0.04083251953125,
+        "option_id": "C",
+        "predicted_option": false,
+        "question_id": "train_01679"
+      },
+      {
+        "cited": true,
+        "claim": "Functional residual capacity (FRC) is defined as the volume of air remaining in the lungs after a normal exhalation, which is the sum of the expiratory reserve volume and residual volume.",
+        "entailed": false,
+        "max_entail_score": 0.0062255859375,
+        "option_id": "D",
+        "predicted_option": true,
+        "question_id": "train_01679"
+      },
+      {
+        "cited": true,
+        "claim": "Residual volume (RV) is the air remaining in the lungs after a complete exhalation.",
+        "entailed": false,
+        "max_entail_score": 0.0119171142578125,
+        "option_id": "D",
+        "predicted_option": true,
+        "question_id": "train_01679"
+      },
+      {
+        "cited": true,
+        "claim": "A frameshift mutation can lead to a truncated protein, which is consistent with the evidence provided.",
+        "entailed": false,
+        "max_entail_score": 0.04461669921875,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_01824"
+      },
+      {
+        "cited": true,
+        "claim": "Truncated proteins often result in functional loss, as seen in the patient with G6PD deficiency.",
+        "entailed": true,
+        "max_entail_score": 0.9482421875,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_01824"
+      },
+      {
+        "cited": true,
+        "claim": "Missense mutation changes the amino acid sequence, which can affect protein function.",
+        "entailed": true,
+        "max_entail_score": 0.521484375,
+        "option_id": "D",
+        "predicted_option": false,
+        "question_id": "train_01824"
+      },
+      {
+        "cited": true,
+        "claim": "Changed amino acid affects protein function, as seen in the case of G6PD deficiency.",
+        "entailed": true,
+        "max_entail_score": 0.8837890625,
+        "option_id": "D",
+        "predicted_option": false,
+        "question_id": "train_01824"
+      },
+      {
+        "cited": true,
+        "claim": "HBcAb is higher in chronic liver disease, suggesting past exposure to hepatitis B virus.",
+        "entailed": false,
+        "max_entail_score": 0.05499267578125,
+        "option_id": "A",
+        "predicted_option": false,
+        "question_id": "train_02286"
+      },
+      {
+        "cited": true,
+        "claim": "The evidence suggests that HBcAb is highest in immunosuppressed patients and lower in patients with chronic liver disease, indicating past exposure to hepatitis B virus.",
+        "entailed": true,
+        "max_entail_score": 0.88818359375,
+        "option_id": "B",
+        "predicted_option": false,
+        "question_id": "train_02286"
+      },
+      {
+        "cited": true,
+        "claim": "The evidence states that HBsAg is negative in the absence of current active infection.",
+        "entailed": true,
+        "max_entail_score": 0.81298828125,
+        "option_id": "B",
+        "predicted_option": false,
+        "question_id": "train_02286"
+      },
+      {
+        "cited": true,
+        "claim": "HBsAb is negative indicating no immunity from vaccine.",
+        "entailed": false,
+        "max_entail_score": 0.005977630615234375,
+        "option_id": "C",
+        "predicted_option": true,
+        "question_id": "train_02286"
+      },
+      {
+        "cited": true,
+        "claim": "The evidence states that agammaglobulinemia is characterized by a profound defect in B cell development and an absence of germinal centers and plasma cells, leading to undetectable serum levels of all immunoglobulin isotypes.",
+        "entailed": false,
+        "max_entail_score": 0.36279296875,
+        "option_id": "A",
+        "predicted_option": false,
+        "question_id": "train_03582"
+      },
+      {
+        "cited": true,
+        "claim": "The evidence describes a profound reduction in B cell numbers and an absence of germinal centers and plasma cells, which aligns with undetectable serum levels of all immunoglobulin isotypes.",
+        "entailed": false,
+        "max_entail_score": 0.3515625,
+        "option_id": "B",
+        "predicted_option": false,
+        "question_id": "train_03582"
+      },
+      {
+        "cited": true,
+        "claim": "The evidence states that the disease is characterized by a profound reduction in the number of B cells in the blood and secondary lymphoid organs.",
+        "entailed": true,
+        "max_entail_score": 0.6923828125,
+        "option_id": "B",
+        "predicted_option": false,
+        "question_id": "train_03582"
+      },
+      {
+        "cited": true,
+        "claim": "The evidence mentions recurrent bacterial infections as a characteristic feature of Bruton\u2019s agammaglobulinemia, which is a form of B cell deficiency.",
+        "entailed": false,
+        "max_entail_score": 0.4111328125,
+        "option_id": "C",
+        "predicted_option": true,
+        "question_id": "train_03582"
+      },
+      {
+        "cited": true,
+        "claim": "The evidence does not mention potassium iodide solution, implying it is not a first-line treatment for hand eczema.",
+        "entailed": false,
+        "max_entail_score": 0.387451171875,
+        "option_id": "A",
+        "predicted_option": false,
+        "question_id": "train_03657"
+      },
+      {
+        "cited": true,
+        "claim": "Lesions with a generalized arrangement are common and suggest a systemic etiology, which supports the use of azithromycin for bacterial skin infections.",
+        "entailed": false,
+        "max_entail_score": 0.40380859375,
+        "option_id": "B",
+        "predicted_option": false,
+        "question_id": "train_03657"
+      },
+      {
+        "cited": true,
+        "claim": "Doxycycline is used for treating rickettsial infections, which are mentioned in the evidence.",
+        "entailed": false,
+        "max_entail_score": 0.328125,
+        "option_id": "C",
+        "predicted_option": true,
+        "question_id": "train_03657"
+      },
+      {
+        "cited": true,
+        "claim": "The evidence discusses various infections, including those caused by Bartonella henselae.",
+        "entailed": false,
+        "max_entail_score": 0.427978515625,
+        "option_id": "C",
+        "predicted_option": true,
+        "question_id": "train_03657"
+      },
+      {
+        "cited": true,
+        "claim": "Lesions with a generalized arrangement are common and suggest a systemic etiology, which supports the use of itraconazole for systemic fungal infections.",
+        "entailed": false,
+        "max_entail_score": 0.413818359375,
+        "option_id": "D",
+        "predicted_option": false,
+        "question_id": "train_03657"
+      },
+      {
+        "cited": true,
+        "claim": "Lesions with a generalized arrangement are common and suggest a systemic etiology, which supports the claim that itraconazole is not first-line for bacterial infections.",
+        "entailed": false,
+        "max_entail_score": 0.41943359375,
+        "option_id": "D",
+        "predicted_option": false,
+        "question_id": "train_03657"
+      },
+      {
+        "cited": true,
+        "claim": "Melanocytes, which give rise to C cells of the thyroid, originate from the neural crest.",
+        "entailed": false,
+        "max_entail_score": 0.0036106109619140625,
+        "option_id": "B",
+        "predicted_option": false,
+        "question_id": "train_04012"
+      },
+      {
+        "cited": true,
+        "claim": "C cells of the thyroid arise from neural crest cells.",
+        "entailed": false,
+        "max_entail_score": 0.010772705078125,
+        "option_id": "B",
+        "predicted_option": false,
+        "question_id": "train_04012"
+      },
+      {
+        "cited": true,
+        "claim": "Neural crest cells give rise to parathyroid cells and C cells of the thyroid.",
+        "entailed": false,
+        "max_entail_score": 0.062347412109375,
+        "option_id": "B",
+        "predicted_option": false,
+        "question_id": "train_04012"
+      },
+      {
+        "cited": true,
+        "claim": "Melanocytes, which originate from the neural crest, migrate to the skin and can give rise to melanoma, a form of basal cell carcinoma.",
+        "entailed": false,
+        "max_entail_score": 0.30322265625,
+        "option_id": "D",
+        "predicted_option": false,
+        "question_id": "train_04012"
+      },
+      {
+        "cited": true,
+        "claim": "Neural crest cells give rise to melanocytes, which are involved in the development of basal cell carcinoma.",
+        "entailed": false,
+        "max_entail_score": 0.0079498291015625,
+        "option_id": "D",
+        "predicted_option": false,
+        "question_id": "train_04012"
+      },
+      {
+        "cited": true,
+        "claim": "Neural crest cells give rise to melanocytes, which are involved in the development of basal cell carcinoma.",
+        "entailed": false,
+        "max_entail_score": 0.0079498291015625,
+        "option_id": "D",
+        "predicted_option": false,
+        "question_id": "train_04012"
+      },
+      {
+        "cited": true,
+        "claim": "Cell-free DNA screening detects 90% with Turner syndrome and 93% with sex chromosome aneuploidies other than 45,X, which includes Down syndrome.",
+        "entailed": true,
+        "max_entail_score": 0.5517578125,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_04506"
+      },
+      {
+        "cited": true,
+        "claim": "With a positive screening result, a diagnostic test is recommended if the patient wants to know whether the fetus is affected.",
+        "entailed": true,
+        "max_entail_score": 0.99072265625,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_04506"
+      },
+      {
+        "cited": true,
+        "claim": "The evidence states that in cases of fetal Down syndrome, the first-trimester serum free 3-hCG level is higher and the unconjugated estriol level is lower.",
+        "entailed": false,
+        "max_entail_score": 0.3818359375,
+        "option_id": "B",
+        "predicted_option": false,
+        "question_id": "train_04506"
+      },
+      {
+        "cited": true,
+        "claim": "In cases of fetal Down syndrome, the first-trimester serum free 3-hCG level is higher.",
+        "entailed": true,
+        "max_entail_score": 0.57666015625,
+        "option_id": "C",
+        "predicted_option": false,
+        "question_id": "train_04506"
+      },
+      {
+        "cited": true,
+        "claim": "In cases of fetal Down syndrome, the first-trimester serum free 3-hCG level is higher and the PAPP-A level is lower, which is contrary to the claim of decreased AFP and decreased HCG.",
+        "entailed": false,
+        "max_entail_score": 0.415771484375,
+        "option_id": "D",
+        "predicted_option": false,
+        "question_id": "train_04506"
+      },
+      {
+        "cited": true,
+        "claim": "Pyelonephritis is unilateral and right-sided in more than half of cases, and it is bilateral in a fourth. Fever and shaking chills usually develop rather abruptly, and patients have aching pain in one or both lumbar regions.",
+        "entailed": false,
+        "max_entail_score": 0.454833984375,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_08279"
+      },
+      {
+        "cited": true,
+        "claim": "acute pyelonephritis neutrophils infiltrate renal interstitium a. affects cortex with relative sparing of glomeruli / vessels. presents with fevers, flank pain (costovertebral angle tenderness), nausea / vomiting, chills.",
+        "entailed": true,
+        "max_entail_score": 0.55908203125,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_08279"
+      },
+      {
+        "cited": true,
+        "claim": "Acute pyelonephritis presents with fevers, flank pain (costovertebral angle tenderness), nausea / vomiting, chills.",
+        "entailed": false,
+        "max_entail_score": 0.3505859375,
+        "option_id": "B",
+        "predicted_option": false,
+        "question_id": "train_08279"
+      },
+      {
+        "cited": true,
+        "claim": "Acute pyelonephritis presents with fevers, flank pain (costovertebral angle tenderness), nausea / vomiting, chills.",
+        "entailed": true,
+        "max_entail_score": 0.94384765625,
+        "option_id": "B",
+        "predicted_option": false,
+        "question_id": "train_08279"
+      },
+      {
+        "cited": true,
+        "claim": "Pyelonephritis is unilateral and right-sided in more than half of cases, and it is bilateral in a fourth. Fever and shaking chills usually develop rather abruptly.",
+        "entailed": false,
+        "max_entail_score": 0.47021484375,
+        "option_id": "B",
+        "predicted_option": false,
+        "question_id": "train_08279"
+      },
+      {
+        "cited": true,
+        "claim": "Pyelonephritis is unilateral and right-sided in more than half of cases, and it is bilateral in a fourth. Fever and shaking chills usually develop rather abruptly, and patients have aching pain in one or both lumbar regions.",
+        "entailed": false,
+        "max_entail_score": 0.454833984375,
+        "option_id": "C",
+        "predicted_option": false,
+        "question_id": "train_08279"
+      },
+      {
+        "cited": true,
+        "claim": "neutrophils infiltrate renal interstitium a. affects cortex with relative sparing of glomeruli / vessels. presents with fevers, flank pain (costovertebral angle tenderness), nausea / vomiting, chills.",
+        "entailed": true,
+        "max_entail_score": 0.51318359375,
+        "option_id": "C",
+        "predicted_option": false,
+        "question_id": "train_08279"
+      },
+      {
+        "cited": true,
+        "claim": "a serum level between 1.5 and 6 mcg / ml measured 8 hours after infusion correlates with an appropriate trough level. alternatively, the same total daily dose could be divided and administered every 8 hours, as a conventional dosing strategy.",
+        "entailed": true,
+        "max_entail_score": 0.95263671875,
+        "option_id": "C",
+        "predicted_option": false,
+        "question_id": "train_08279"
+      },
+      {
+        "cited": true,
+        "claim": "Pyelonephritis is described as developing more frequently in the second trimester and presenting with fever, chills, and lumbar pain, which aligns with inpatient treatment with antibiotics.",
+        "entailed": false,
+        "max_entail_score": 0.2362060546875,
+        "option_id": "D",
+        "predicted_option": false,
+        "question_id": "train_08279"
+      },
+      {
+        "cited": true,
+        "claim": "Acute pyelonephritis is characterized by fever, flank pain, nausea, vomiting, and chills, which can be treated inpatient with antibiotics.",
+        "entailed": false,
+        "max_entail_score": 0.162841796875,
+        "option_id": "D",
+        "predicted_option": false,
+        "question_id": "train_08279"
+      },
+      {
+        "cited": true,
+        "claim": "Ampicillin and gentamicin are mentioned as effective against uropathogens, supporting their use in treatment.",
+        "entailed": false,
+        "max_entail_score": 0.10150146484375,
+        "option_id": "D",
+        "predicted_option": false,
+        "question_id": "train_08279"
+      },
+      {
+        "cited": true,
+        "claim": "Ceftriaxone is indicated for the treatment of infections caused by gram-negative bacteria, supporting the claim.",
+        "entailed": false,
+        "max_entail_score": 0.35400390625,
+        "option_id": "A",
+        "predicted_option": false,
+        "question_id": "train_08935"
+      },
+      {
+        "cited": true,
+        "claim": "Piperacillin-tazobactam is described as a broad-spectrum antibiotic covering gram-negative and gram-positive bacteria.",
+        "entailed": false,
+        "max_entail_score": 0.414794921875,
+        "option_id": "C",
+        "predicted_option": true,
+        "question_id": "train_08935"
+      },
+      {
+        "cited": true,
+        "claim": "Vancomycin is used for gram-positive infections.",
+        "entailed": false,
+        "max_entail_score": 0.17529296875,
+        "option_id": "D",
+        "predicted_option": false,
+        "question_id": "train_08935"
+      },
+      {
+        "cited": true,
+        "claim": "Direct immunofluorescence microscopy of perilesional skin from pg patients reveals the immunopathologic hallmark of this disorder : linear deposits of c3 in the epidermal basement membrane.",
+        "entailed": false,
+        "max_entail_score": 0.056915283203125,
+        "option_id": "A",
+        "predicted_option": true,
+        "question_id": "train_09195"
+      },
+      {
+        "cited": true,
+        "claim": "The evidence states that this area is typically involved in autoimmune blistering diseases, contradicting the claim.",
+        "entailed": false,
+        "max_entail_score": 0.278076171875,
+        "option_id": "B",
+        "predicted_option": false,
+        "question_id": "train_09195"
+      },
+      {
+        "cited": true,
+        "claim": "Biopsies of early lesional skin show teardrop-shaped subepidermal vesicles forming in dermal papillae in association with an eosinophil-rich leukocytic infiltrate.",
+        "entailed": false,
+        "max_entail_score": 0.00507354736328125,
+        "option_id": "C",
+        "predicted_option": false,
+        "question_id": "train_09195"
+      },
+      {
+        "cited": true,
+        "claim": "The evidence indicates that the given data are not adequate for calculating the confidence interval, as it focuses on plotting measurements on growth charts.",
+        "entailed": false,
+        "max_entail_score": 0.4130859375,
+        "option_id": "B",
+        "predicted_option": false,
+        "question_id": "train_09674"
+      },
+      {
+        "cited": true,
+        "claim": "Accurate measurements of height are required for the timely diagnosis of growth disorders.",
+        "entailed": true,
+        "max_entail_score": 0.99169921875,
+        "option_id": "C",
+        "predicted_option": false,
+        "question_id": "train_09674"
+      },
+      {
+        "cited": true,
+        "claim": "The total sample size is needed to calculate the standard error, which is a statistical measure often used in studies.",
+        "entailed": false,
+        "max_entail_score": 0.4677734375,
+        "option_id": "D",
+        "predicted_option": false,
+        "question_id": "train_09674"
+      },
+      {
+        "cited": true,
+        "claim": "Sample size affects the width of the confidence interval, which is a statistical measure used in studies.",
+        "entailed": false,
+        "max_entail_score": 0.45849609375,
+        "option_id": "D",
+        "predicted_option": false,
+        "question_id": "train_09674"
+      },
+      {
+        "cited": true,
+        "claim": "Unless there is a contraindication, medical therapy should be initiated with intensive lifestyle interventions and multiple medications may be required to achieve glycemic control in patients with type 2 diabetes.",
+        "entailed": true,
+        "max_entail_score": 0.74365234375,
+        "option_id": "C",
+        "predicted_option": true,
+        "question_id": "train_09863"
+      }
+    ],
+    "primary": "hallucination_rate_predicted_option",
+    "threshold": 0.5
+  },
+  "v5_minus_b2_predicted_option": -0.05956112852664586,
+  "v5_run": "medqa_V5_aa73199-dirty_20260907T170604Z"
+}

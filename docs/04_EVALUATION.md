@@ -161,18 +161,34 @@ run after seeing grid numbers is reported as unplanned, excluded from the Holm
 family, and flagged as post-hoc. If the grid is expanded back toward the full
 `§5` schema, this family is recomputed and re-registered *before* those runs.
 
+The halluc-rate tests in the family use the 0.5 entailment threshold; ADR-031
+(§5.7) established that threshold is metric-strict, so alongside the family
+tests the V3/V5 runs also report halluc-rate at 0.3 / 0.5 / 0.7 as a
+robustness display — not a paired test, not in the Holm family, there to show
+the V3-vs-V5 *ordering* on halluc-rate does not flip with the threshold.
+
 ## 2. Factual fidelity
 - **RAGAS faithfulness** — fraction of generated claims entailed by the retrieved
   context. Pin the RAGAS version; run with a fixed judge model recorded in config.
 - **Context precision / recall** — retrieval quality independent of the generator.
 
 ## 3. Hallucination rate
-- Split the answer rationale into atomic claims (`src/eval/nli.py`).
-- For each claim, run cross-encoder NLI against its **cited** evidence.
+- Split the answer rationale into atomic claims (`src/eval/nli.py:split_claims`
+  — regex, decimals/abbreviations guarded, no LLM).
+- For each claim, run NLI (`MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli`)
+  against its **cited** evidence.
 - `hallucination_rate = ungrounded_claims / total_claims`, where ungrounded =
-  no cited evidence reaches ENTAILMENT ≥ 0.5.
+  no cited evidence reaches ENTAILMENT ≥ 0.5. Reported under **both**
+  denominators (predicted option / all SUPPORT cells; ADR-029).
+- **Relative comparison only (ADR-031).** The control in §5.7 shows this
+  criterion marks ~70% of clinical rationale claims not-entailed *regardless of
+  pipeline* (B2-equal-budget 0.741 vs V5 0.682 on the dev-20, both 0 uncited) —
+  it is metric-strict. Use `hallucination_rate` to compare variants at a fixed
+  threshold, never as an absolute "X% hallucinated" statement. Phase 7 adds a
+  threshold sweep (0.3 / 0.5 / 0.7) on the V3/V5 runs to show the variant
+  *ordering* is threshold-stable.
 - Also report `invalid_citation_count` (cited id not in the bundle) — a strictly
-  worse failure than a weak entailment.
+  worse, unambiguous failure than a weak entailment.
 
 ## 4. Diagnostic ranking quality
 - **Precision@K** (K = 1, 2) over the ranked option list.
@@ -613,6 +629,54 @@ handed the chance to weight it cannot find a stable weight, because there is
 almost no variance in the feature to constrain one. Report gamma's interval
 alongside its point estimate; the point estimate alone reads as a real effect
 it is not.
+
+### 5.7 Phase 6 harness — hallucination-rate control (dev-20, NOT a grid result)
+
+The Phase 6 harness exit test (`src.eval.harness --config configs/v5.yaml
+--dataset medqa --split train --limit 20`,
+`results/medqa_V5_aa73199-dirty_20260907T170604Z/`) reported
+`hallucination_rate_predicted_option = 0.682` (n=22 SUPPORT-cell claims for the
+predicted option; `hallucination_rate_all_support_cells = 0.718`, n=78).
+`hallucination_rate` here is: split each SUPPORT cell's rationale into claims
+(`src.eval.nli.split_claims` — regex, decimals/abbreviations guarded), NLI each
+claim against **its cited evidence text**, ungrounded = no cited evidence
+reaches `MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli` entailment
+**≥ 0.5** (`docs/04` §3).
+
+**0.682 needs a control** — a 0.5 DeBERTa-NLI entailment threshold is strict,
+and a clinical claim that is genuinely supported *after one step of inference*
+scores as not-entailed. So run the identical scorer / threshold / splitter over
+a **non-agent** pipeline's rationales on the same 20 questions
+(`scripts/analysis/hallucination_control.py`, artifact
+`results/phase6_hallucination_control/control.json`):
+
+| pipeline (dev-20, same scorer, threshold 0.5, same `split_claims`) | halluc-rate (predicted option) | n claims | uncited |
+|---|---|---|---|
+| **B2 equal-budget** (hybrid RAG, one LLM call, 12-item bundle) | **0.741** | 58 | 0 |
+| **V5** (agents + calibration) | **0.682** | 22 | 0 |
+| V5 − B2 | **−0.060** | — | — |
+
+**The number reflects the NLI criterion's strictness, not the agent layer.**
+Both pipelines land near 0.7, **both with zero uncited claims** — so this is
+not about missing citations, it is the NLI model declining to score
+cited-but-inferential clinical claims as entailed at ≥ 0.5. Example from the B2
+run (`train_00409`, cited to the correct passage): *"This protein is crucial
+for the activation of B cells by T cells… its deficiency leads to low levels of
+IgG, IgM, and IgA"* scores 0.545 (just entailed); the sibling claim *"the
+patient has a defect in the activation-induced cytidine deaminase (AID)
+protein"* scores 0.331 against the same passage. If anything V5 is marginally
+*lower* than plain hybrid RAG (−0.060, n=20 single-seed — no significance
+claimed).
+
+**Reading (ADR-031):** at threshold 0.5, DeBERTa NLI marks ~70% of clinical
+rationale claims as not-entailed by their cited evidence **regardless of
+pipeline**. `hallucination_rate` is therefore usable as a *relative* comparison
+across variants at a fixed threshold (its role in the Phase 7 exploratory
+family, `§1.0`), **not** as an absolute "70% of claims are hallucinated"
+statement — that framing would be measuring the entailment threshold. The
+threshold and splitter are stated here and in ADR-031 so the number is
+auditable; Phase 7 additionally reports `invalid_citation_count` (a cited id
+not in the bundle — a strictly worse and unambiguous failure) alongside it.
 
 ## 6. Run discipline
 - `results/<run_id>/config.yaml` — full resolved config incl. model ids + seed

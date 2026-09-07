@@ -1984,3 +1984,65 @@ number + the lettered-prompt 0.00 as prompt-sensitivity), §5.5 Finding 3
 contamination.py` gains `pubmedqa_contamination_report`. The multiplicity
 family is recomputed and re-registered if the grid is expanded back toward
 `docs/04` §5's full schema.
+
+## ADR-031 — `hallucination_rate` at NLI threshold 0.5 is metric-strict, not an agent-layer signal; report it as a relative comparison only
+Date: 2026-09-08 · Phase: 6 · Status: accepted
+
+**Context.** The Phase 6 harness exit test (V5, dev-20) reported
+`hallucination_rate_predicted_option = 0.682`
+(`results/medqa_V5_aa73199-dirty_20260907T170604Z/`). Read naively that says
+"the agent layer produces citations that support its claims only ~32% of the
+time" — a strong agent-layer claim. But `docs/04` §3's criterion is DeBERTa-v3
+NLI entailment **≥ 0.5** of a claim by its cited evidence, and that threshold
+is strict: a clinical claim that is genuinely supported *after one inferential
+step* scores below it. The number could be measuring the metric, not the
+pipeline.
+
+**The control** (`scripts/analysis/hallucination_control.py`,
+`results/phase6_hallucination_control/control.json`): the **identical** scorer
+(`MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli`), threshold (0.5)
+and claim splitter (`src.eval.nli.split_claims`) run over the equal-budget B2
+run's rationales + citations on the **same dev-20** (B2 re-run with
+`Prediction.rationale` recorded:
+`results/medqa_B2eq_79ee599-dirty_20260907T210514Z/`, acc/macro-F1 reproduced
+exactly from the superseded `…aa73199…` run):
+
+| pipeline (dev-20) | halluc-rate (predicted option) | n claims | uncited |
+|---|---|---|---|
+| B2 equal-budget (hybrid RAG, one LLM call) | **0.741** | 58 | 0 |
+| V5 (agents + calibration) | **0.682** | 22 | 0 |
+
+**Decision — the 0.682 is a metric-strictness artifact, reported as such.**
+Both pipelines land near 0.7, **both with zero uncited claims**, so the number
+is not about citation *presence* — it is DeBERTa NLI declining to score
+cited-but-inferential clinical claims as entailed at ≥ 0.5. V5 is if anything
+marginally *lower* than plain hybrid RAG (−0.060; n=20 single-seed, no
+significance). Consequences:
+
+1. `hallucination_rate` is used in Phase 7 as a **relative** comparison across
+   variants at a fixed threshold (its role in the `§1.0` exploratory family),
+   **never** as an absolute "X% of claims are hallucinated" statement in the
+   paper — that framing measures the threshold.
+2. The threshold (0.5) and the splitter (`split_claims`, regex, decimals /
+   abbreviations guarded) are stated wherever the number appears (`docs/04`
+   §5.7, §3) so it is auditable.
+3. `invalid_citation_count` (a cited id absent from the bundle — a strictly
+   worse, unambiguous failure) is reported alongside `hallucination_rate` for
+   every variant; on the dev-20 both V5 and B2-equal-budget have
+   `invalid_citation_count` ∈ {0, 1}.
+4. A sensitivity sweep of the entailment threshold (0.3 / 0.5 / 0.7) on the
+   Phase 7 V3/V5 runs is added to the exploratory reporting, so the paper can
+   show the *ordering* between variants is threshold-stable even though the
+   absolute rate is not. Not gating; recorded here so it is not dropped.
+
+**What this does NOT license.** It is not evidence that V5's rationales *are*
+well-grounded — only that they are no worse-grounded, under this metric, than a
+one-call hybrid RAG baseline. The honest statement is "at this entailment
+threshold the metric does not discriminate the two pipelines", not "V5 is
+faithful".
+
+**Consequences.** New: `scripts/analysis/hallucination_control.py`,
+`results/phase6_hallucination_control/control.json`,
+`results/medqa_B2eq_79ee599-dirty_20260907T210514Z/` (B2 re-run with rationale;
+the earlier `…aa73199…` B2eq run is stamped `superseded`). `docs/04` §5.7
+records the control; §3 and `§1.0` gain the "relative only" framing.

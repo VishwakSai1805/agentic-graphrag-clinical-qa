@@ -51,8 +51,8 @@
   "run_id": "medqa_B2eq_aa73199-dirty_20260907T162956Z",
   "seed": 42,
   "split": "train",
-  "superseded": false,
-  "superseded_by": null,
-  "superseded_reason": null,
+  "superseded": true,
+  "superseded_by": "medqa_B2eq_79ee599-dirty_20260907T210514Z",
+  "superseded_reason": "Re-run with identical config/seed (acc 0.600, macroF1 0.594 reproduced exactly) by medqa_B2eq_79ee599-dirty_20260907T210514Z, which additionally records Prediction.rationale (Phase 6 / ADR-029) needed for the hallucination-rate control (ADR-031). No measured value changed.",
   "variant": "B2eq"
 }
