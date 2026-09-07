@@ -106,8 +106,9 @@ fixes.
 ### 1.0 Pre-registered analysis plan (AUDIT 2026-09-06 §6.7)
 
 **Registered 2026-09-07, before any Phase 7 grid run exists.** Committed at the
-Phase 6 checkpoint (`docs/05_DECISIONS.md` ADR-030); the grid launches Wednesday
-2026-09-09. Multiple comparison discipline is fixed *here and now* precisely
+Phase 6 checkpoint (commit `ca8f8df`, `docs/05_DECISIONS.md` ADR-030); the grid
+launches Wednesday 2026-09-09. Multiple comparison discipline is fixed *here and
+now* precisely
 because deciding it after seeing grid numbers is worthless: ADR-012 already ran
 3 uncorrected comparisons and ADR-018 ran 2, and the grid multiplies that.
 

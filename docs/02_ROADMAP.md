@@ -185,7 +185,7 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done (add run_id/commit)
   gives gamma std=0.234 (>3x alpha's 0.072) with an interval spanning
   [−0.40, +0.66] — consistent with zero. See ADR-028.
 
-## Phase 6 — Evaluation harness  `[x]` (COMMIT_SHA_PENDING, 2026-09-07) — exit test passed on the dev-20
+## Phase 6 — Evaluation harness  `[x]` (ca8f8df, 2026-09-07) — exit test passed on the dev-20
 - `src/eval/harness.py` — **minimal: run → score → write** (ADR-029). `run_eval(config, dataset, split, limit, variant, …)`, sequential. `metrics.py` gains `precision_at_k` / `reciprocal_rank_option` / `mean_*`. `src/eval/nli.py` = claim split + NLI hallucination vs *cited* evidence, both denominators (ADR-029). `ragas_eval.py` **dropped** (`docs/SCHEDULE.md`).
 - **CUT (SCHEDULE, ADR-029):** the `asyncio.Semaphore` concurrency layer, resumability, and the 1/2/4 concurrency benchmark. `docs/04` §0.2's planning-estimate speedup is not replaced by a measured number — Phase 7 runs sequentially and that is fine at n=500.
 - `scripts/report.py` → `paper/tables/results_grid.{md,tex}` from `results/*/metrics.json`, superseded runs skipped, every cell a JSON field or `TBD`/`--`.
