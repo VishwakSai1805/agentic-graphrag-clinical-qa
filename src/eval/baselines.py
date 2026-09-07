@@ -28,12 +28,15 @@ from typing import TYPE_CHECKING, Literal
 
 from pydantic import BaseModel
 
+from src.agents.evidence_select import select_evidence
 from src.llm.client import LLMContextBudgetError, chat
 
 if TYPE_CHECKING:
+    from src.agents.evidence_select import KGSlotRankFn
+    from src.config import AgentsConfig
     from src.kg.dataset_questions import Question
     from src.llm.client import StatsTracker
-    from src.pipeline import TriModalPipeline
+    from src.pipeline import EvidenceBundle, TriModalPipeline
 
 BASELINES = ("B0", "B1", "B2", "B3")
 
@@ -337,6 +340,38 @@ def _generate_answer(
     return _parse_answer(resp.text, set(options))
 
 
+def _apply_equal_budget(
+    bundle: EvidenceBundle,
+    agents_cfg: AgentsConfig,
+    kg_rank_fn: KGSlotRankFn | None,
+) -> EvidenceBundle:
+    """Trims `bundle` to `agents_cfg.max_evidence` via the SAME
+    modality-reserved-slot-with-backfill algorithm V4/V5 use
+    (`src.agents.evidence_select.select_evidence`, ADR-023).
+
+    AUDIT 2026-09-06 §4.3: without this, B2/B3 receive up to 12 reranked
+    passages **plus all cached KG triples** (up to 40 -- ~52 evidence items
+    total), while V4/V5 receive `max_evidence` total (12 by default). Any
+    accuracy or rank-1 comparison between them then confounds "the agent
+    layer helps" with "the agent layer got 4x less evidence" -- the
+    finding `docs/04_EVALUATION.md` §5.5 explicitly said must not be read
+    until this existed. Passing `--equal-budget` in `scripts/run_baselines.py`
+    wires this in; the default (no flag) leaves B0-B3 exactly as before,
+    so no already-committed run's numbers are affected retroactively.
+    """
+    evidence, _mix = select_evidence(
+        query=bundle.query,
+        passages=bundle.passages,
+        triples=bundle.triples,
+        split=tuple(agents_cfg.evidence_split),
+        max_evidence=agents_cfg.max_evidence,
+        kg_slot_rank_fn=kg_rank_fn if bundle.triples else None,
+    )
+    passages = [e for e in evidence if e.modality != "kg"]
+    triples = [e for e in evidence if e.modality == "kg"]
+    return bundle.model_copy(update={"passages": passages, "triples": triples})
+
+
 def _run_generation(
     question: Question,
     gold_option: str,
@@ -345,6 +380,7 @@ def _run_generation(
     tracker: StatsTracker | None,
     seed: int,
     modalities: frozenset[str],
+    agents_cfg: AgentsConfig | None = None,
 ) -> Prediction:
     options = _resolve_options(question)
     bundle = pipeline.build_bundle(
@@ -354,6 +390,9 @@ def _run_generation(
         question_id=question.question_id,
         modalities=modalities,
     )
+    if agents_cfg is not None:
+        kg_rank_fn = pipeline.reranker.rerank if agents_cfg.kg_slot_rerank else None
+        bundle = _apply_equal_budget(bundle, agents_cfg, kg_rank_fn)
     letter, citations, status = _generate_answer(question, options, bundle, tracker, seed)
     return _finalize(
         question_id=question.question_id,
@@ -373,6 +412,7 @@ def _run_b3(
     dataset: str,
     tracker: StatsTracker | None,
     seed: int,
+    agents_cfg: AgentsConfig | None = None,
 ) -> Prediction:
     options = _resolve_options(question)
     bundle = pipeline.build_bundle(
@@ -382,6 +422,9 @@ def _run_b3(
         question_id=question.question_id,
         modalities=_HYBRID_MODALITIES,
     )
+    if agents_cfg is not None:
+        kg_rank_fn = pipeline.reranker.rerank if agents_cfg.kg_slot_rerank else None
+        bundle = _apply_equal_budget(bundle, agents_cfg, kg_rank_fn)
     valid_ids = bundle.valid_citation_ids()
     evidence_block = _format_evidence(bundle.evidence())
 
@@ -459,7 +502,15 @@ def run_baseline(
     dataset: str,
     tracker: StatsTracker | None = None,
     seed: int = 42,
+    agents_cfg: AgentsConfig | None = None,
 ) -> Prediction:
+    """`agents_cfg` (AUDIT 2026-09-06 §4.3, `scripts/run_baselines.py
+    --equal-budget`): when given, B1/B2/B3's evidence bundle is trimmed to
+    `agents_cfg.max_evidence` via the same modality-reserved-slot algorithm
+    V4/V5 use, so a B2/B3-vs-agent comparison isn't confounded by B2/B3
+    getting up to ~52 evidence items against the agents' 12. `None` (the
+    default) leaves B0-B3 exactly as before -- no already-committed run's
+    numbers are affected retroactively."""
     if name not in BASELINES:
         raise ValueError(f"unknown baseline {name!r}; expected one of {BASELINES}")
     if name != "B0" and pipeline is None:
@@ -470,13 +521,27 @@ def run_baseline(
             return _run_b0(question, gold_option, tracker, seed)
         if name == "B1":
             return _run_generation(
-                question, gold_option, pipeline, dataset, tracker, seed, _DENSE_MODALITIES
+                question,
+                gold_option,
+                pipeline,
+                dataset,
+                tracker,
+                seed,
+                _DENSE_MODALITIES,
+                agents_cfg,
             )
         if name == "B2":
             return _run_generation(
-                question, gold_option, pipeline, dataset, tracker, seed, _HYBRID_MODALITIES
+                question,
+                gold_option,
+                pipeline,
+                dataset,
+                tracker,
+                seed,
+                _HYBRID_MODALITIES,
+                agents_cfg,
             )
-        return _run_b3(question, gold_option, pipeline, dataset, tracker, seed)
+        return _run_b3(question, gold_option, pipeline, dataset, tracker, seed, agents_cfg)
     except LLMContextBudgetError:
         # Hard stop, not a silent truncation (CLAUDE.md budget-guard rule).
         # n_llm_calls=0: a multi-call B3 may have made several calls before the

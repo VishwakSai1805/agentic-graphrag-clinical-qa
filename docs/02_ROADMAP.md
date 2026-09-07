@@ -243,17 +243,19 @@ The 2026-09-07 session fixed the leakage (§3.1), the four integrity blockers
 contribution claims (§5.1–5.6) and ADR-021 (§6.6). These were explicitly
 deferred to this batch and **must be closed before the grid runs**:
 
-- **§1.1 + §1.2 — write real `metrics.json` for Phase 1.** `BLOCKER`. The
-  entire Phase 1 gate exists only in gitignored logs: NFCorpus nDCG@10
-  (0.3362 / 0.2929 / 0.3327) and all three CIs live in `logs/eval_nfcorpus.log`;
-  the PubMedQA infra-floor Recall@10/MRR and the MedQA diagnostic row live in
-  `logs/eval_pubmedqa_v2.log`. From a clean clone, Phase 1 is unverifiable.
-  Make `scripts/analysis/nfcorpus_significance.py` write
+- **§1.1 + §1.2 — write real `metrics.json` for Phase 1.** `BLOCKER`. **Code
+  landed 2026-09-08; artifacts pending the overnight run.**
+  `scripts/analysis/nfcorpus_significance.py` now writes
   `results/phase1_nfcorpus/metrics.json` (means, all three CIs, `n_resamples`,
-  `seed`) and `scripts/eval_retrieval.py` write
-  `results/phase1_retrieval_<dataset>/metrics.json` per mode; then re-point
-  `docs/04_EVALUATION.md` §5.2 at those paths. Until this is done, every Phase 1
-  number in the docs violates CLAUDE.md §2.
+  `seed`); `scripts/eval_retrieval.py` now writes
+  `results/phase1_retrieval_<dataset>/metrics.json` per mode (nfcorpus /
+  pubmedqa / medqa). `docs/04_EVALUATION.md` §5.2 is re-pointed at both paths
+  and states plainly that the numbers shown there are not yet backed by
+  either artifact. `scripts/run_overnight.ps1` queues all four regeneration
+  runs (nfcorpus significance + eval_retrieval ×3 modes) to close this out
+  without a Claude Code session. Until that run completes and the doc is
+  re-checked against the fresh artifacts, treat §5.2's numbers as carried
+  forward from the pre-fix state, not yet re-verified.
 - **§4.1 — B3 prompt-sensitivity check.** `MAJOR`. `verifier_decision_rate`
   currently rests on a single verifier phrasing while B2 gets a neutral
   instruction, which leaves the project's designated motivating result open to
@@ -265,14 +267,18 @@ deferred to this batch and **must be closed before the grid runs**:
   the open question is specifically wording, not stability in general. Fold
   into the existing *B3 verifier-collapse robustness check* item above — same
   claim, two different sensitivity axes.
-- **§4.3 — equal-budget B2 comparator.** `MAJOR`. B2/B3 receive up to 12
-  reranked passages **plus** all cached KG triples (up to 40) ≈ up to 52
-  evidence items; V4 receives `max_evidence: 12` (8 passages + 4 triples).
-  `docs/04_EVALUATION.md` §5.5 Finding 3 reports V4's rank-1-by-support 0.35
-  "vs B2's 0.65 on the same slice" and attributes the gap to the absence of
-  calibration with the budget asymmetry unstated. Add a 12-item-trimmed-bundle
-  B2 as the correct comparator, and state the asymmetry at §5.5 in the
-  meantime. **Phase 5 must not read that gap until this exists.**
+- **§4.3 — equal-budget B2 comparator.** `MAJOR`. **Code landed 2026-09-08,
+  not yet run.** `scripts/run_baselines.py --equal-budget` trims B1/B2/B3's
+  evidence bundle to `agents.max_evidence` via the exact modality-reserved
+  split V4/V5 use (`src.eval.baselines._apply_equal_budget`, reusing
+  `src.agents.evidence_select.select_evidence` directly rather than
+  reimplementing it). Default off — no already-committed run's numbers
+  changed. `scripts/run_overnight.ps1` queues
+  `--dataset medqa --split train --limit 20 --baselines B2 --equal-budget`
+  (writes `results/medqa_B2eq_<sha>_<ts>/`, distinguishable on disk from the
+  original `medqa_B2_*` run by the `eq` suffix). **Phase 5's rank-1 gap must
+  still not be read against B2 until this run exists and is checked against
+  the original.**
 - **§6.7 — multiple-comparison discipline.** `MAJOR`. The grid is 8 MedQA
   variants + 2 datasets × 2 variants at ~9 metrics each; ADR-012 already ran 3
   comparisons and ADR-018 ran 2, all at an uncorrected 95% CI, and nothing

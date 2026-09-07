@@ -161,6 +161,19 @@ don't belong in §5's table schema and have no `run_id` (Phase 6's harness
 doesn't exist yet). Reproduce via `scripts/eval_retrieval.py` and
 `scripts/analysis/nfcorpus_significance.py`. See ADR-012 for full context.
 
+**Traceability fix (2026-09-08, AUDIT 2026-09-06 §1.1/§1.2):** both scripts
+previously printed to stdout only, so these numbers existed solely in a
+gitignored log — a CLAUDE.md §2 violation. Both now write a committed
+artifact: `scripts/analysis/nfcorpus_significance.py` →
+`results/phase1_nfcorpus/metrics.json` (means, all three pairwise CIs,
+`n_resamples`, `seed`); `scripts/eval_retrieval.py` →
+`results/phase1_retrieval_<dataset>/metrics.json` per mode (nfcorpus /
+pubmedqa / medqa). **The numbers below are the last values recorded before
+this fix and are not yet backed by either artifact** — regeneration is
+queued in `scripts/run_overnight.ps1`; once it completes, re-point this
+table's citations at the two paths above and treat any number that drifts
+from the table below as the current, authoritative one.
+
 | Benchmark | Metric | dense | bm25 | rrf | Verdict |
 |---|---|---|---|---|---|
 | NFCorpus (BEIR), n=323, gating | nDCG@10 | 0.3362 | 0.2929 | 0.3327 | **PASS** — statistical tie vs. dense (95% CI [-0.0171, +0.0103]); RRF significantly beats bm25 (CI [+0.0242, +0.0564]) |

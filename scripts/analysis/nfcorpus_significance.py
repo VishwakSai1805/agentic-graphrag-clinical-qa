@@ -32,10 +32,13 @@ from __future__ import annotations
 
 import json
 import sys
+from datetime import UTC, datetime
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
+
+RESULTS_PATH = REPO_ROOT / "results" / "phase1_nfcorpus" / "metrics.json"
 
 from src.config import load_config  # noqa: E402
 from src.retrieval.dense import DenseIndex  # noqa: E402
@@ -140,12 +143,39 @@ def main() -> None:
         ("rrf_vs_bm25", rrf_ndcg, bm25_ndcg),
         ("dense_vs_bm25", dense_ndcg, bm25_ndcg),
     ]
+    comparisons: dict[str, dict] = {}
     for name, a, b in pairs:
         diffs = [x - y for x, y in zip(a, b, strict=True)]
         mean_diff, lo, hi = paired_bootstrap_ci(diffs, n_resamples=N_RESAMPLES, seed=BOOTSTRAP_SEED)
         significant = lo > 0 or hi < 0
         verdict = "SIGNIFICANT" if significant else "not significant (CI includes 0)"
         print(f"{name}: mean diff = {mean_diff:+.4f}, 95% CI = [{lo:+.4f}, {hi:+.4f}] -> {verdict}")
+        comparisons[name] = {
+            "mean_diff": mean_diff,
+            "ci_lo": lo,
+            "ci_hi": hi,
+            "significant": significant,
+        }
+
+    # AUDIT 2026-09-06 §1.1: this script used to print to stdout only, with no
+    # persisted artifact -- the entire Phase 1 gate existed only in a
+    # gitignored log. Write the real numbers CLAUDE.md §2 requires.
+    result = {
+        "generated_at_utc": datetime.now(UTC).isoformat(),
+        "n_evaluated": len(eval_qids),
+        "k": K,
+        "n_resamples": N_RESAMPLES,
+        "seed": BOOTSTRAP_SEED,
+        "mean_ndcg": {
+            "dense": sum(dense_ndcg) / len(dense_ndcg),
+            "bm25": sum(bm25_ndcg) / len(bm25_ndcg),
+            "rrf": sum(rrf_ndcg) / len(rrf_ndcg),
+        },
+        "comparisons": comparisons,
+    }
+    RESULTS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    RESULTS_PATH.write_text(json.dumps(result, indent=2, sort_keys=True), encoding="utf-8")
+    print(f"\nwrote {RESULTS_PATH}")
 
 
 if __name__ == "__main__":

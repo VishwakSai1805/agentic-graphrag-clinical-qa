@@ -90,9 +90,10 @@ fitting-set discipline applies once/if a PubMedQA calibration pipeline exists
 **C4 — Empirical study.** `PENDING Phase 7.` Baseline parity on PubMedQA
 (binary), and the MedQA-USMLE / MedMCQA multi-choice comparison, with an
 ablation grid isolating each modality and each agent. **Every row of the §5
-grid in `docs/04_EVALUATION.md` is currently `TBD`**, and PubMedQA has never
-run through any baseline — `scripts/run_baselines.py --dataset` accepts only
-`{medqa, medmcqa}`, so "baseline parity on PubMedQA" has no code path yet. The
+grid in `docs/04_EVALUATION.md` is currently `TBD`.** `scripts/run_baselines.py
+--dataset` now accepts `pubmedqa` (2026-09-08, was `{medqa, medmcqa}` only) —
+the code path "baseline parity on PubMedQA" needs now exists, but no run has
+happened yet; a smoke run is queued in `scripts/run_overnight.ps1`. The
 Phase 3/4 numbers that do exist are n=20 single-seed dev-slice plumbing checks,
 explicitly not grid results, and sit inside a **measured ±0.05 noise floor**
 (ADR-021's no-op perturbation row). Nothing here is a comparison claim yet.

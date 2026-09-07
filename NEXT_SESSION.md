@@ -3,7 +3,43 @@
 **Done:** Phases 0–5, all committed to `master`. Phase 3 `b10c385`/`d445423`,
 Phase 4 `e75de9c`/`6f9690e`/`1388904`, ADR-025 conflict fix `30700f9`/`ccba531`,
 2026-09-07 audit remediation `a714fe0`, Phase 5 evidential calibration
-`a0060cf`, Phase 5 temperature-scaling ablation `b9bcda9`. 398 tests pass, ruff clean.
+`a0060cf`, Phase 5 temperature-scaling ablation `b9bcda9`. 420 tests pass, ruff clean.
+
+**2026-09-08 small-budget session (code only, no new phase — Phase 6 deliberately
+deferred):** four AUDIT items landed as code, plus an overnight script to run
+them without spending a session. **Before doing anything else, check whether
+`scripts/run_overnight.ps1` has been run** (`results/phase1_nfcorpus/`,
+`results/phase1_retrieval_*/`, `results/medqa_B2eq_*/`,
+`results/pubmedqa_B*_*/` existing means it has) and read its logs under
+`logs/` before trusting anything below that depends on it:
+
+1. **§1.1/§1.2 — Phase 1 traceability, BLOCKER.** `scripts/analysis/
+   nfcorpus_significance.py` and `scripts/eval_retrieval.py` now write
+   `results/phase1_nfcorpus/metrics.json` and
+   `results/phase1_retrieval_<dataset>/metrics.json` per mode instead of
+   stdout-only. `docs/04_EVALUATION.md` §5.2 is re-pointed at both paths and
+   says plainly its numbers are pre-fix, not yet re-verified — **do that
+   re-check first** once the overnight run has produced the artifacts.
+2. **§5.4 — PubMedQA wired into `run_baselines.py --dataset`.** Was
+   `{medqa, medmcqa}` only. 3-way yes/no/maybe handled in `option_letters()`
+   and `gold_option()`; `src/eval/baselines.py`'s prompt/parse/verify logic
+   needed no changes (already dict-driven over whatever `options` it's given).
+3. **§4.3 — equal-budget B2, `--equal-budget` flag.** Trims B1/B2/B3's bundle
+   to `agents.max_evidence` via the exact modality-reserved-slot algorithm
+   V4/V5 use (`src.agents.evidence_select.select_evidence`, reused directly).
+   Default off, so no committed run's numbers changed. **Once the overnight
+   `medqa_B2eq_*` run exists, that's what §5.5's "V4 0.35 vs B2 0.65" gap may
+   finally be read against — not before.**
+4. `scripts/run_overnight.ps1` — sequential, logs to `logs/`, one PowerShell
+   invocation, continues past a failed job rather than aborting the rest,
+   prints a pass/fail summary table at the end. Queues: the 4 Phase 1
+   regeneration jobs, the equal-budget B2 dev-20 run, and a PubMedQA
+   B0–B3 smoke run (`--split dev --limit 20`).
+
+All four items are code-only per the session's explicit scope — none of the
+three overnight jobs has been run yet, and none of the numbers they'll
+produce exist anywhere in the docs yet. Don't infer results from the code
+changes; read the actual `results/*/metrics.json` the overnight run writes.
 
 ---
 

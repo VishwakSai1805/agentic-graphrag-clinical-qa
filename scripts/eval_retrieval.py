@@ -60,6 +60,7 @@ import json
 import random
 import sys
 from collections.abc import Iterable
+from datetime import UTC, datetime
 from pathlib import Path
 
 import torch
@@ -94,6 +95,19 @@ NFCORPUS_DENSE_DIR = REPO_ROOT / "indexes" / "nfcorpus" / "dense"
 NFCORPUS_BM25_DIR = REPO_ROOT / "indexes" / "nfcorpus" / "bm25"
 
 PUBMEDQA_RECALL_FLOOR = 0.9
+
+
+def write_phase1_metrics(dataset: str, metrics: dict) -> Path:
+    """AUDIT 2026-09-06 §1.2: this script used to print to stdout only, with
+    no persisted artifact per mode -- the Phase 1 gate/floor numbers existed
+    only in a gitignored log. Writes `results/phase1_retrieval_<dataset>/
+    metrics.json`, the real numbers CLAUDE.md §2 requires."""
+    path = REPO_ROOT / "results" / f"phase1_retrieval_{dataset}" / "metrics.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    out = {"generated_at_utc": datetime.now(UTC).isoformat(), "dataset": dataset, **metrics}
+    path.write_text(json.dumps(out, indent=2, sort_keys=True), encoding="utf-8")
+    print(f"[eval_retrieval] wrote {path}")
+    return path
 
 
 def print_gpu_status() -> None:
@@ -327,6 +341,24 @@ def eval_nfcorpus(cfg, limit: int, k: int, seed: int) -> bool:
             "retrieval-plumbing correctness, not fusion value; the fusion-value question is "
             "Phase 7's job (H1, docs/00_RESEARCH_SPEC.md). Do not read this as a win for RRF."
         )
+
+    write_phase1_metrics(
+        "nfcorpus",
+        {
+            "n_evaluated": len(sample_qids),
+            "k": k,
+            "seed": seed,
+            "n_resamples": 10_000,
+            "mean_ndcg": {name: results[name][ndcg_col] for name in results},
+            "significance": {
+                "compared_against": best_single_name,
+                "mean_diff": mean_diff,
+                "ci_lo": ci_lo,
+                "ci_hi": ci_hi,
+            },
+            "gate_pass": gate_pass,
+        },
+    )
     return gate_pass
 
 
@@ -478,8 +510,22 @@ def eval_pubmedqa(cfg, limit: int, k: int, seed: int) -> bool:
         }
         print_metrics_table(hard_results)
     else:
+        hard_results = None
         print("[diagnostic] hard subset is empty -- dense got top-1 right on every sampled query.")
 
+    write_phase1_metrics(
+        "pubmedqa",
+        {
+            "n_evaluated": len(sample),
+            "k": k,
+            "seed": seed,
+            "recall_floor": PUBMEDQA_RECALL_FLOOR,
+            "metrics": results,
+            "floor_pass": floor_pass,
+            "hard_subset_n": len(hard_idx),
+            "hard_subset_metrics": hard_results,
+        },
+    )
     return floor_pass
 
 
@@ -562,6 +608,17 @@ def eval_medqa(cfg, limit: int, k: int, seed: int) -> None:
     print_metrics_table(results)
     print()
     print("(medqa mode always exits 0 -- diagnostic only, not a gate. See ADR-011.)")
+
+    write_phase1_metrics(
+        "medqa",
+        {
+            "n_evaluated": len(sample),
+            "k": k,
+            "seed": seed,
+            "metrics": results,
+            "note": "diagnostic only, lexically biased toward BM25, never gates -- ADR-011",
+        },
+    )
 
 
 def main() -> None:

@@ -598,3 +598,159 @@ def test_contamination_assertion_unknown_dataset_is_not_checked():
 
     out = contamination_assertion("medmcqa", [], None)
     assert out["checked"] is False
+
+
+# --------------------------------------------------------------------------
+# Equal-budget trim (AUDIT 2026-09-06 §4.3)
+# --------------------------------------------------------------------------
+
+
+def _real_bundle(n_passages, n_triples):
+    from src.pipeline import EvidenceBundle
+
+    passages = [
+        Evidence(
+            id=f"chunk::doc{i}#0",
+            modality="dense",
+            text=f"passage {i}",
+            source_meta={},
+            scores={"rerank": 1.0 / (i + 1)},
+        )
+        for i in range(n_passages)
+    ]
+    triples = [
+        Evidence(
+            id=f"kg::a{i}|treats|b{i}",
+            modality="kg",
+            text=f"triple {i}",
+            source_meta={},
+            scores={},
+        )
+        for i in range(n_triples)
+    ]
+    return EvidenceBundle(
+        query="q?",
+        options={"A": "a", "B": "b"},
+        passages=passages,
+        triples=triples,
+        kg_cache_hit=True,
+    )
+
+
+def test_apply_equal_budget_trims_to_max_evidence():
+    from src.config import AgentsConfig
+    from src.eval.baselines import _apply_equal_budget
+
+    bundle = _real_bundle(n_passages=12, n_triples=40)  # up to ~52 items, the audited problem
+    agents_cfg = AgentsConfig(max_evidence=12, evidence_split=[8, 4], kg_slot_rerank=False)
+    trimmed = _apply_equal_budget(bundle, agents_cfg, kg_rank_fn=None)
+    assert len(trimmed.passages) + len(trimmed.triples) == 12
+    assert len(trimmed.triples) == 4
+
+
+def test_apply_equal_budget_backfills_passages_when_kg_available_is_short():
+    from src.config import AgentsConfig
+    from src.eval.baselines import _apply_equal_budget
+
+    bundle = _real_bundle(n_passages=12, n_triples=1)  # far fewer triples than the 4 slot wants
+    agents_cfg = AgentsConfig(max_evidence=12, evidence_split=[8, 4], kg_slot_rerank=False)
+    trimmed = _apply_equal_budget(bundle, agents_cfg, kg_rank_fn=None)
+    assert len(trimmed.triples) == 1
+    assert len(trimmed.passages) == 11  # 8 + 3 freed KG slots backfilled
+    assert len(trimmed.passages) + len(trimmed.triples) == 12
+
+
+def test_apply_equal_budget_leaves_a_within_budget_bundle_unchanged_in_size():
+    from src.config import AgentsConfig
+    from src.eval.baselines import _apply_equal_budget
+
+    bundle = _real_bundle(n_passages=5, n_triples=2)
+    agents_cfg = AgentsConfig(max_evidence=12, evidence_split=[8, 4], kg_slot_rerank=False)
+    trimmed = _apply_equal_budget(bundle, agents_cfg, kg_rank_fn=None)
+    assert len(trimmed.passages) == 5
+    assert len(trimmed.triples) == 2
+
+
+def test_apply_equal_budget_preserves_query_and_options():
+    from src.config import AgentsConfig
+    from src.eval.baselines import _apply_equal_budget
+
+    bundle = _real_bundle(n_passages=3, n_triples=1)
+    agents_cfg = AgentsConfig(max_evidence=12, evidence_split=[8, 4], kg_slot_rerank=False)
+    trimmed = _apply_equal_budget(bundle, agents_cfg, kg_rank_fn=None)
+    assert trimmed.query == bundle.query
+    assert trimmed.options == bundle.options
+
+
+def test_apply_equal_budget_uses_kg_rank_fn_when_given():
+    from src.config import AgentsConfig
+    from src.eval.baselines import _apply_equal_budget
+
+    bundle = _real_bundle(n_passages=8, n_triples=10)
+    agents_cfg = AgentsConfig(max_evidence=12, evidence_split=[8, 4], kg_slot_rerank=True)
+    seen = {}
+
+    def fake_rank(query, triples, n):
+        seen["query"] = query
+        seen["n"] = n
+        return list(reversed(triples))[:n]  # distinguishable order from "keep first n"
+
+    trimmed = _apply_equal_budget(bundle, agents_cfg, kg_rank_fn=fake_rank)
+    assert seen["n"] == 4
+    assert seen["query"] == "q?"
+    assert [e.id for e in trimmed.triples] == [e.id for e in list(reversed(bundle.triples))[:4]]
+
+
+def test_run_baseline_b2_without_agents_cfg_keeps_full_bundle(monkeypatch):
+    """Regression: the default (no --equal-budget) must be byte-identical to
+    before this feature existed -- every already-committed B2 run's numbers
+    must not change."""
+    bundle = _real_bundle(n_passages=12, n_triples=40)
+    pipeline = FakePipeline(bundle)
+    chat_obj = _patch(monkeypatch, ScriptedChat('{"answer":"A","citations":["chunk::doc0#0"]}'))
+
+    run_baseline("B2", _question(), "A", pipeline=pipeline, dataset="medqa", agents_cfg=None)
+
+    # 12 passages + 40 triples = 52 evidence lines rendered into the prompt
+    prompt = chat_obj.prompts[0]
+    assert prompt.count("passage ") == 12
+    assert prompt.count("triple ") == 40
+
+
+def test_run_baseline_b2_with_agents_cfg_trims_bundle(monkeypatch):
+    from src.config import AgentsConfig
+
+    bundle = _real_bundle(n_passages=12, n_triples=40)
+    pipeline = FakePipeline(bundle)
+    chat_obj = _patch(monkeypatch, ScriptedChat('{"answer":"A","citations":["chunk::doc0#0"]}'))
+    agents_cfg = AgentsConfig(max_evidence=12, evidence_split=[8, 4], kg_slot_rerank=False)
+
+    run_baseline("B2", _question(), "A", pipeline=pipeline, dataset="medqa", agents_cfg=agents_cfg)
+
+    prompt = chat_obj.prompts[0]
+    assert prompt.count("passage ") == 8
+    assert prompt.count("triple ") == 4
+
+
+def test_run_baseline_b3_with_agents_cfg_trims_the_verify_evidence_block(monkeypatch):
+    from src.config import AgentsConfig
+
+    bundle = _real_bundle(n_passages=12, n_triples=40)
+    pipeline = FakePipeline(bundle)
+    # B3 verifies each of the question's 4 options in turn.
+    chat_obj = _patch(
+        monkeypatch,
+        ScriptedChat(
+            '{"verdict":"SUPPORTED","evidence_id":"chunk::doc0#0"}',
+            '{"verdict":"NOT_SUPPORTED","evidence_id":null}',
+            '{"verdict":"NOT_SUPPORTED","evidence_id":null}',
+            '{"verdict":"NOT_SUPPORTED","evidence_id":null}',
+        ),
+    )
+    agents_cfg = AgentsConfig(max_evidence=12, evidence_split=[8, 4], kg_slot_rerank=False)
+
+    run_baseline("B3", _question(), "A", pipeline=pipeline, dataset="medqa", agents_cfg=agents_cfg)
+
+    for prompt in chat_obj.prompts:
+        assert prompt.count("passage ") == 8
+        assert prompt.count("triple ") == 4
