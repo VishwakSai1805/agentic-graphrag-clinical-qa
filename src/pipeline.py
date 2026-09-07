@@ -321,14 +321,29 @@ def _aggregate_agent_metrics(matrices: list[dict]) -> dict:
     status = Counter(m["status"] for m in matrices)
     total_cells = sum(len(m["cells"]) for m in matrices)
     raw_invalid = sum(m["raw_invalid_citation_count"] for m in matrices)
-    surviving_invalid = 0  # cells are filtered at audit time; this is the exit-test invariant
-    all_valid_ids_ok = all(
-        all(
-            c["evidence_id"]
-            for c in m["cells"]  # every surviving cell has a non-empty id (filtered against bundle)
-        )
-        for m in matrices
-    )
+    # AUDIT 2026-09-06 §2.1: this used to be the literal `0`, justified as "cells
+    # are filtered at audit time". That made the Phase 4 exit-test invariant a
+    # hardcoded constant reported as a measurement, and the companion flag only
+    # checked that `evidence_id` was truthy -- never bundle membership. Both are
+    # now REAL re-validations against the per-question evidence-id set the agents
+    # were actually shown (`SupportMatrix.bundle_evidence_ids`, persisted into
+    # `predictions.jsonl` so this is also recomputable post hoc). A matrix with no
+    # stored id set cannot be validated, and is counted in
+    # `questions_without_bundle_id_set` rather than silently passing.
+    surviving_invalid = 0
+    questions_without_bundle_id_set = 0
+    all_valid_ids_ok = True
+    for m in matrices:
+        bundle_ids = set(m.get("bundle_evidence_ids") or [])
+        if not bundle_ids:
+            questions_without_bundle_id_set += 1
+            if m["cells"]:
+                all_valid_ids_ok = False
+            continue
+        for c in m["cells"]:
+            if not c["evidence_id"] or c["evidence_id"] not in bundle_ids:
+                surviving_invalid += 1
+                all_valid_ids_ok = False
     mix_all_passage = sum(1 for m in matrices if m["mix"] and m["mix"]["n_triples"] == 0)
     kg_slot_filled = sum(1 for m in matrices if m["mix"] and m["mix"]["kg_slot_filled"])
     # ADR-025: conflict is claim-level. fire_count = claim-level conflicts the
@@ -346,6 +361,8 @@ def _aggregate_agent_metrics(matrices: list[dict]) -> dict:
         "status_counts": dict(status),
         "surviving_invalid_citation_count": surviving_invalid,
         "every_surviving_cell_has_valid_id": all_valid_ids_ok,
+        "questions_without_bundle_id_set": questions_without_bundle_id_set,
+        "surviving_invalid_checked_against_bundle": True,
         "raw_invalid_citation_count": raw_invalid,
         "raw_invalid_citation_rate_per_cell": (raw_invalid / (total_cells + raw_invalid))
         if (total_cells + raw_invalid)

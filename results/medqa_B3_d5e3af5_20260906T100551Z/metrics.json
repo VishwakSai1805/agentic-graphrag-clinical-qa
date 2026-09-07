@@ -34,5 +34,8 @@
   "run_id": "medqa_B3_d5e3af5_20260906T100551Z",
   "seed": 42,
   "split": "train",
+  "superseded": true,
+  "superseded_by": "medqa_B3_d5e3af5_20260906T102134Z",
+  "superseded_reason": "Produced with Ollama num_ctx=4096, which truncated the evidence block mid-prompt. Superseded by the num_ctx=8192 re-run of the same code and seed. Retained (not deleted) as the context-window sensitivity comparator cited in docs/04_EVALUATION.md \u00a75.4 and docs/05_DECISIONS.md ADR-021; never tabulate it as a headline result.",
   "variant": "B3"
 }

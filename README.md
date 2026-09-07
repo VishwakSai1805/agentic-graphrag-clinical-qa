@@ -18,8 +18,10 @@ Benchmarks: PubMedQA (parity), MedQA-USMLE (primary novelty), MedMCQA (breadth).
 | Evaluation protocol | [`docs/04_EVALUATION.md`](docs/04_EVALUATION.md) |
 | Decision log | [`docs/05_DECISIONS.md`](docs/05_DECISIONS.md) |
 
-**Status:** Phase 0 — scaffold. No results yet; every number in `docs/` is `TBD`
-until a real run writes it.
+**Status:** Phases 0–4 complete (retrieval infra, KG layer, baselines, multi-
+agent consensus network). The `docs/04_EVALUATION.md` §5 ablation grid
+(Phase 7) is still `TBD` — every number that does exist there is traceable to
+a committed `results/*/metrics.json`, per CLAUDE.md §2.
 
 Uses only public, de-identified benchmark data. Research artifact — not a
 clinical decision support system and not for patient care.

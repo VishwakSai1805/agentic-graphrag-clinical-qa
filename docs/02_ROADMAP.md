@@ -81,8 +81,8 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done (add run_id/commit)
 - **Exit test (literal):** `python -m scripts.kg_probe --dataset medqa --limit 200` reports KG-hit rate ≥ 60% and dumps 10 sample subgraphs for manual inspection; then `docker compose down` (Neo4j stopped) and re-running the same 200 questions from the cache file reproduces identical KG-hit rate and subgraphs byte-for-byte.
   **Literal result: PASSED.** Real run on n=200 MedQA test: `aggregate_hit_rate = 0.960` (≥0.60 floor); cache-reproducibility confirmed byte-for-byte (only the provenance timestamp differs) after a full `docker compose down`/container-removal cycle. Full artifact: `results/phase2_kg_probe/medqa_n200.json`; table: `docs/04_EVALUATION.md` §5.3.
   **Substantive result (the one that matters for C1, per ADR-016 — do not read the literal PASS above as a coverage or value claim):** the 96% hit rate is an arithmetic artifact of high entity fan-out (`entity_level_mapping_rate = 0.1122`; `naive_expected_hit_rate_under_independence = 0.9998` — a hit is near-guaranteed by having ~74 linked entities/question, regardless of real coverage). The defensible C1 evidence figure is `overall_novel_and_relevant_rate = 0.4063` (final, seeded-random-subset measurement — see below) — real but middling, bottlenecked by retrieval precision (only `overall_relevant_rate = 0.4734` of kept triples are even on-topic; hub-node noise from ADR-015's 40-triple cap, saturated on 192/200 questions) more than by redundancy with dense passages (`overall_novel_given_relevant_rate = 0.8581` — when a triple *is* relevant, it usually is novel). **The KG modality's marginal value over dense retrieval is not yet established; this is the honest position Phase 3 inherits, not a result to soften.**
-  **Follow-up corrections, same phase, after initial close-out (ADR-014, ADR-016, ADR-018):** (1) PrimeKG's raw edge count (8,100,498 directional rows, ~4.05M unique undirected edges) is now stated alongside the 740,674 post-allowlist figure so it reads as a deliberate filter, not an incomplete load. (2) The novelty/relevance scoring's triple subset selection was alphabetically biased; fixed to a seeded random sample — real effect on the headline figure was small (0.4078→0.4063). (3) `precompute_kg_cache.py` has now also been run for real on PubMedQA (500 test + 500 dev) and MedMCQA (500-question seeded validation subsample), matching ADR-005's evaluation scope exactly (not full splits — verified on disk: 1000 pubmedqa files split 500/500, 500 medmcqa files all `validation_*`). (4) An ablatable `kg_rerank` flag (MedCPT cross-encoder triple selection) was implemented and tested via a real paired-bootstrap significance check (ADR-018): a narrow significant win on `relevant_rate`, but a **tie** on the primary `novel_and_relevant_rate` metric at n=200 — ships off by default, not adopted as a result.
-  **Still deferred, stated plainly:** full-scope novelty scoring (all ~38 triples/question × 12 passages, currently a disclosed 10-triple subset); a paraphrase-aware relevance check (currently exact-substring); the CUI→PrimeKG crosswalk still covers drug/gene entities via name-matching only, no licensed UMLS Metathesaurus (ADR-014); `kg_rerank`'s tied primary metric has not been re-tested at larger n.
+  **Follow-up corrections, same phase, after initial close-out (ADR-014, ADR-016, ADR-018):** (1) PrimeKG's raw edge count (8,100,498 directional rows, ~4.05M unique undirected edges) is now stated alongside the 740,674 post-allowlist figure so it reads as a deliberate filter, not an incomplete load. (2) The novelty/relevance scoring's triple subset selection was alphabetically biased; fixed to a seeded random sample — real effect on the headline figure was small (0.4078→0.4063). (3) `precompute_kg_cache.py` has now also been run for real on PubMedQA (500 test + 500 dev) and MedMCQA (500-question seeded validation subsample), matching ADR-005's evaluation scope exactly (not full splits — verified on disk: 1000 pubmedqa files split 500/500, 500 medmcqa files all `validation_*`). (4) An ablatable `kg_rerank` flag (MedCPT cross-encoder triple selection) was implemented and tested via a real paired-bootstrap significance check (ADR-018): a narrow significant win on `relevant_rate`, but a **tie** on the primary `novel_and_relevant_rate` metric at n=200 — ships off by default, not adopted as a result. **(All four of these Phase 2 measurements were made on the MedQA TEST split — AUDIT 2026-09-06 §3.1. Re-derived on a train-500 slice on 2026-09-07, ADR-027: ADR-015/016/017 upheld, ADR-018's primary-metric tie flipped to a significant win that survives Holm-Bonferroni correction across the 2-metric family (AUDIT §6.8). The default stays off anyway — a named pre-registration deviation from ADR-018's own rule, recorded in ADR-027 with its reasons. The train artifacts `results/phase2_kg_probe/medqa_train_n500*.json` are now authoritative; the test-split ones are stamped `superseded: true`.)**
+  **Still deferred, stated plainly:** full-scope novelty scoring (all ~38 triples/question × 12 passages, currently a disclosed 10-triple subset); a paraphrase-aware relevance check (currently exact-substring); the CUI→PrimeKG crosswalk still covers drug/gene entities via name-matching only, no licensed UMLS Metathesaurus (ADR-014); ~~`kg_rerank`'s tied primary metric has not been re-tested at larger n~~ (re-tested 2026-09-07 on train-500, ADR-027: the tie flipped to a significant win that survives Holm correction across the 2-metric family; default stays off as a named pre-registration deviation, settled by the Phase 7 grid row).
 
 ## Phase 3 — Tri-modal bundle + baseline RAG  `[x]` (b10c385, 2026-09-06)
 - `src/pipeline.py` — `EvidenceBundle` (query, options, passages[], triples[],
@@ -157,15 +157,27 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done (add run_id/commit)
 - **Exit test:** one command reproduces a full dataset run from a config and regenerates identical tables; the concurrency benchmark table (1/2/4) is written to `results/` with no `TBD`.
 
 ## Pre-Phase-7 fixes — MUST complete before any grid run  `[ ]`
-Two items parked earlier, tracked here so they are not silently dropped. Neither
-affects Phases 3–6; both gate the Phase 7 ablation grid.
+Items parked earlier plus the AUDIT 2026-09-06 findings deferred on 2026-09-07,
+tracked here so they are not silently dropped. None affects Phases 3–6; all gate
+the Phase 7 ablation grid.
 - **BM25 parameter tuning** (`k1`/`b`) — parked in Phase 1; retune on a fixed
   dev slice, report Recall@10/MRR before/after, record the chosen values in an
   ADR and `configs/base.yaml`.
-- **`kg_rerank` re-test at n=500** — ADR-018 left `overall_novel_and_relevant_rate`
-  a statistical tie at n=200. Re-run `scripts/kg_rerank_ablation.py` on the
-  500-question MedQA slice and a fresh paired-bootstrap check; decide adopt /
-  keep-off from that verdict, not the point estimate.
+- ~~**`kg_rerank` re-test at n=500**~~ — **DONE 2026-09-07 (ADR-027).** Re-run on
+  a 500-question MedQA **train** slice (not test — the original n=200 was
+  test-split, AUDIT §3.1). The primary metric's tie **flipped to a significant
+  win**: `novel_and_relevant_rate_for_question` +0.0367, 95% CI
+  [+0.0044, +0.0681], n_paired=477, two-sided p=0.0256. Holm-Bonferroni
+  correction across this 2-metric family was run the same day, not deferred —
+  **both metrics survive** (`src.retrieval.metrics.paired_bootstrap_p` +
+  `holm_bonferroni`, AUDIT §6.8). `kg_rerank` stays off by default and becomes
+  its own Phase 7 grid row — **not** because ADR-018's pre-registered rule
+  said keep-off (it said adopt on a cleared verdict, and the verdict cleared:
+  this is recorded in ADR-027 as a named deviation from that rule, with
+  reasons, not as compliance with it). The grid-wide multiplicity discipline
+  for the full Phase 7 grid (~9 metrics × ~10 variant-pairs) is still §6.7,
+  deferred below. Artifact:
+  `results/phase2_kg_probe/medqa_train_n500_kg_rerank_ablation.json`.
 - **B3 verifier-collapse robustness check** — Phase 3's `verifier_decision_rate
   = 0.05` (`n_supported = 0` on 15/20) is evidence for C2's binary bottleneck,
   but could instead be a 7B model with a mis-calibrated SUPPORTED threshold.
@@ -183,6 +195,69 @@ affects Phases 3–6; both gate the Phase 7 ablation grid.
   SUPPORT/CONTRADICT/NEUTRAL discrimination + grounding (the V4−audit cell).
   The grid's leave-one-agent-out cells are the evidence; run them before
   writing the C2 section, not after.
+
+### Deferred from AUDIT 2026-09-06 (triaged 2026-09-07)
+The 2026-09-07 session fixed the leakage (§3.1), the four integrity blockers
+(§2.1, §3.2, §6.1, §6.2), the calibration/corpus overlap (§3.3), the §3
+contribution claims (§5.1–5.6) and ADR-021 (§6.6). These were explicitly
+deferred to this batch and **must be closed before the grid runs**:
+
+- **§1.1 + §1.2 — write real `metrics.json` for Phase 1.** `BLOCKER`. The
+  entire Phase 1 gate exists only in gitignored logs: NFCorpus nDCG@10
+  (0.3362 / 0.2929 / 0.3327) and all three CIs live in `logs/eval_nfcorpus.log`;
+  the PubMedQA infra-floor Recall@10/MRR and the MedQA diagnostic row live in
+  `logs/eval_pubmedqa_v2.log`. From a clean clone, Phase 1 is unverifiable.
+  Make `scripts/analysis/nfcorpus_significance.py` write
+  `results/phase1_nfcorpus/metrics.json` (means, all three CIs, `n_resamples`,
+  `seed`) and `scripts/eval_retrieval.py` write
+  `results/phase1_retrieval_<dataset>/metrics.json` per mode; then re-point
+  `docs/04_EVALUATION.md` §5.2 at those paths. Until this is done, every Phase 1
+  number in the docs violates CLAUDE.md §2.
+- **§4.1 — B3 prompt-sensitivity check.** `MAJOR`. `verifier_decision_rate`
+  currently rests on a single verifier phrasing while B2 gets a neutral
+  instruction, which leaves the project's designated motivating result open to
+  a "strawman by prompt construction" objection. Run B3 on the dev-20 with at
+  least two further phrasings (one neutral, one permissive) and report
+  `verifier_decision_rate` and the `n_supported` distribution for all three.
+  Note the bar this must now clear: §5.4 already shows the rate is invariant at
+  0.05 across a context-window change that inverts the failure direction, so
+  the open question is specifically wording, not stability in general. Fold
+  into the existing *B3 verifier-collapse robustness check* item above — same
+  claim, two different sensitivity axes.
+- **§4.3 — equal-budget B2 comparator.** `MAJOR`. B2/B3 receive up to 12
+  reranked passages **plus** all cached KG triples (up to 40) ≈ up to 52
+  evidence items; V4 receives `max_evidence: 12` (8 passages + 4 triples).
+  `docs/04_EVALUATION.md` §5.5 Finding 3 reports V4's rank-1-by-support 0.35
+  "vs B2's 0.65 on the same slice" and attributes the gap to the absence of
+  calibration with the budget asymmetry unstated. Add a 12-item-trimmed-bundle
+  B2 as the correct comparator, and state the asymmetry at §5.5 in the
+  meantime. **Phase 5 must not read that gap until this exists.**
+- **§6.7 — multiple-comparison discipline.** `MAJOR`. The grid is 8 MedQA
+  variants + 2 datasets × 2 variants at ~9 metrics each; ADR-012 already ran 3
+  comparisons and ADR-018 ran 2, all at an uncorrected 95% CI, and nothing
+  mentions family-wise error. **Pre-register in `docs/04_EVALUATION.md` §1,
+  before the grid runs, the single confirmatory comparison (V3 vs V5), declare
+  every other comparison exploratory, and specify Holm correction for the
+  exploratory family.** Pre-registration after seeing grid numbers is worthless,
+  so this one is ordered first in this batch.
+- **All AUDIT MINORs** (§1.10–1.14, §2.7–2.9, §3.5, §3.6, §4.4–4.6, §6.8–6.10).
+  Mostly one-line doc/number corrections — quote 5.75 not 5.8; the
+  `-ling-wanli` NLI model id in CLAUDE.md §3; `off-label use` in
+  `docs/03_DATASETS.md`; ADR-018's status line; per-variant `configs/B*.yaml`;
+  `models_used` in the call-stats; the B3 "19/20 identical to B2 by
+  construction" annotation; `src/eval/harness.py` marked not-yet-implemented.
+  Two are not cosmetic and should be done with the code, not the docs pass:
+  **§6.8** (`paired_bootstrap_ci` returns no p-value while §1 mandates them,
+  and its upper percentile index is off by one — this affects every CI the
+  project has reported) and **§6.5** (the KG cache is keyed on a positional
+  index into a raw HF file, so any re-fetch that reorders rows silently
+  re-associates every cached subgraph with the wrong question).
+
+Also still open from the audit and **not** in the 2026-09-07 work order —
+flagged here so they are not lost: §2.2 (ADR-024 is `Status: accepted` while
+still asserting the `conflict_fire_rate = 0.55` numbers ADR-025 retracts — a
+BLOCKER, and a one-line status fix), §1.3–1.9, §2.3–2.6, §3.4, §5.5 (H4 cannot
+be measured — no p-vector is persisted), §6.3, §6.4.
 
 ## Phase 7 — Full runs & ablation grid  `[ ]`
 

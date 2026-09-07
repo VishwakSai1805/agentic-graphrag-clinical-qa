@@ -212,3 +212,89 @@ def test_missing_corpus_raises(tmp_path):
             question_id="train_00000",
             modalities=frozenset({"dense"}),
         )
+
+
+# --------------------------------------------------------------------------
+# _aggregate_agent_metrics: surviving_invalid is a real re-validation
+# (AUDIT 2026-09-06 §2.1 -- it used to be the literal 0)
+# --------------------------------------------------------------------------
+
+
+def _matrix(cells, bundle_ids, **over):
+    """Minimal matrix dict shaped like SupportMatrix.model_dump()."""
+    m = {
+        "status": "ok",
+        "cells": [{"evidence_id": c} for c in cells],
+        "bundle_evidence_ids": list(bundle_ids),
+        "raw_invalid_citation_count": 0,
+        "mix": None,
+        "kg_hit": False,
+        "conflict_fire_count": 0,
+        "conflict_log": [],
+        "llm_calls": 1,
+        "rounds": 1,
+        "option_support": [],
+        "gold_option": None,
+    }
+    m.update(over)
+    return m
+
+
+def test_surviving_invalid_zero_when_every_cell_is_in_the_bundle():
+    from src.pipeline import _aggregate_agent_metrics
+
+    ids = ["chunk::a#1", "kg::x|r|y"]
+    out = _aggregate_agent_metrics([_matrix(ids, ids)])
+    assert out["surviving_invalid_citation_count"] == 0
+    assert out["every_surviving_cell_has_valid_id"] is True
+    assert out["questions_without_bundle_id_set"] == 0
+
+
+def test_surviving_invalid_counts_a_cell_citing_a_non_bundle_id():
+    """The regression test for the hardcoded `surviving_invalid = 0`: a cell
+    citing an id that is truthy but NOT in the bundle must be counted."""
+    from src.pipeline import _aggregate_agent_metrics
+
+    out = _aggregate_agent_metrics(
+        [_matrix(["chunk::a#1", "chunk::HALLUCINATED#9"], ["chunk::a#1"])]
+    )
+    assert out["surviving_invalid_citation_count"] == 1
+    assert out["every_surviving_cell_has_valid_id"] is False
+
+
+def test_surviving_invalid_counts_an_empty_evidence_id():
+    from src.pipeline import _aggregate_agent_metrics
+
+    out = _aggregate_agent_metrics([_matrix(["", "chunk::a#1"], ["chunk::a#1"])])
+    assert out["surviving_invalid_citation_count"] == 1
+    assert out["every_surviving_cell_has_valid_id"] is False
+
+
+def test_surviving_invalid_sums_across_questions():
+    from src.pipeline import _aggregate_agent_metrics
+
+    out = _aggregate_agent_metrics(
+        [
+            _matrix(["chunk::bad#1"], ["chunk::a#1"]),
+            _matrix(["chunk::a#1"], ["chunk::a#1"]),
+            _matrix(["chunk::bad#2", "chunk::bad#3"], ["chunk::a#1"]),
+        ]
+    )
+    assert out["surviving_invalid_citation_count"] == 3
+
+
+def test_matrix_without_a_stored_bundle_id_set_is_flagged_not_silently_passed():
+    """A matrix from before this fix has no id set, so the invariant is
+    unverifiable for it -- that must be visible, never counted as clean."""
+    from src.pipeline import _aggregate_agent_metrics
+
+    out = _aggregate_agent_metrics([_matrix(["chunk::a#1"], [])])
+    assert out["questions_without_bundle_id_set"] == 1
+    assert out["every_surviving_cell_has_valid_id"] is False
+
+
+def test_metrics_record_that_the_check_was_against_the_bundle():
+    from src.pipeline import _aggregate_agent_metrics
+
+    out = _aggregate_agent_metrics([_matrix(["chunk::a#1"], ["chunk::a#1"])])
+    assert out["surviving_invalid_checked_against_bundle"] is True

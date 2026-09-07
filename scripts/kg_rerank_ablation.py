@@ -57,7 +57,11 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
 
-from src.retrieval.metrics import paired_bootstrap_ci  # noqa: E402
+from src.retrieval.metrics import (  # noqa: E402
+    holm_bonferroni,
+    paired_bootstrap_ci,
+    paired_bootstrap_p,
+)
 
 _OVERALL_METRICS = [
     "aggregate_hit_rate",
@@ -135,9 +139,19 @@ def compute_significance(naive: dict, reranked: dict) -> dict:
       - otherwise  -> "tie" (CI includes 0 -- not evidence of a difference,
         must be reported as a tie, never as a win)
 
-    Pure aside from calling `paired_bootstrap_ci` (itself pure/deterministic
-    given a seed) -- no file I/O, so it's unit-testable directly against
-    hand-built `per_question` fixtures (tests/test_kg_rerank_ablation.py)."""
+    This script always tests exactly `_SIGNIFICANCE_METRICS` together as one
+    decision (adopt/keep-off `kg_rerank`), so it also runs a Holm-Bonferroni
+    correction across that 2-metric family (`holm_bonferroni`,
+    `src/retrieval/metrics.py`) and reports, per metric, whether it survives
+    correction for the family -- not just the uncorrected per-metric verdict
+    above. This is a targeted fix for this one decision (AUDIT 2026-09-06
+    §6.8/ADR-027), not the family-wise discipline the full Phase 7 grid needs
+    across ~9 metrics x 10 variant-pairs (AUDIT §6.7, still deferred there).
+
+    Pure aside from calling `paired_bootstrap_ci`/`paired_bootstrap_p` (all
+    pure/deterministic given a seed) -- no file I/O, so it's unit-testable
+    directly against hand-built `per_question` fixtures
+    (tests/test_kg_rerank_ablation.py)."""
     significance = {
         "n_resamples": N_BOOTSTRAP_RESAMPLES,
         "seed": BOOTSTRAP_SEED,
@@ -146,37 +160,66 @@ def compute_significance(naive: dict, reranked: dict) -> dict:
             "ci_hi < 0 -> significant_loss, otherwise -> tie (CI includes 0, "
             "not evidence of a difference)."
         ),
+        "multiplicity_correction": (
+            "Holm-Bonferroni (src.retrieval.metrics.holm_bonferroni) across the "
+            f"{len(_SIGNIFICANCE_METRICS)} metrics in _SIGNIFICANCE_METRICS, alpha=0.05 "
+            "(AUDIT 2026-09-06 §6.8, ADR-027). `holm_survives=False` means the metric's "
+            "uncorrected CI excludes 0 but it does not survive family-wise correction -- "
+            "must then be reported as not significant, not as a win."
+        ),
         "metrics": {},
     }
+    p_values: dict[str, float] = {}
+    per_metric: dict[str, dict] = {}
     for metric_key in _SIGNIFICANCE_METRICS:
         diffs, n_excluded = pair_per_question_diffs(naive, reranked, metric_key)
         if not diffs:
-            significance["metrics"][metric_key] = {
+            per_metric[metric_key] = {
                 "n_paired": 0,
                 "n_excluded": n_excluded,
                 "mean_diff": None,
                 "ci_lo": None,
                 "ci_hi": None,
+                "p": None,
                 "verdict": "no_pairable_questions",
             }
             continue
         mean_diff, ci_lo, ci_hi = paired_bootstrap_ci(
             diffs, n_resamples=N_BOOTSTRAP_RESAMPLES, seed=BOOTSTRAP_SEED
         )
+        p = paired_bootstrap_p(diffs, n_resamples=N_BOOTSTRAP_RESAMPLES, seed=BOOTSTRAP_SEED)
         if ci_lo > 0:
             verdict = "significant_win"
         elif ci_hi < 0:
             verdict = "significant_loss"
         else:
             verdict = "tie"
-        significance["metrics"][metric_key] = {
+        p_values[metric_key] = p
+        per_metric[metric_key] = {
             "n_paired": len(diffs),
             "n_excluded": n_excluded,
             "mean_diff": mean_diff,
             "ci_lo": ci_lo,
             "ci_hi": ci_hi,
+            "p": p,
             "verdict": verdict,
         }
+    if p_values:
+        holm = holm_bonferroni(p_values, alpha=0.05)
+        for metric_key, h in holm.items():
+            per_metric[metric_key]["holm_rank"] = h["rank"]
+            per_metric[metric_key]["holm_threshold"] = h["threshold"]
+            per_metric[metric_key]["holm_survives"] = h["reject"]
+            # A metric can only claim "significant_win"/"significant_loss" as the
+            # FINAL verdict if it also survives the family-wise correction --
+            # otherwise downgrade to "tie_after_correction" so a reader who reads
+            # only "verdict" (not "holm_survives") cannot report a win that did
+            # not clear multiplicity.
+            uncorrected = per_metric[metric_key]["verdict"]
+            if uncorrected in ("significant_win", "significant_loss") and not h["reject"]:
+                per_metric[metric_key]["uncorrected_verdict"] = uncorrected
+                per_metric[metric_key]["verdict"] = "tie_after_correction"
+    significance["metrics"] = per_metric
     return significance
 
 
@@ -263,11 +306,17 @@ def print_table(comparison: dict) -> None:
         if vals["mean_diff"] is None:
             print(f"  {metric_key}: no pairable questions (n_excluded={vals['n_excluded']})")
             continue
+        holm_s = (
+            f"  Holm: rank={vals['holm_rank']} p={vals['p']:.5f} "
+            f"threshold={vals['holm_threshold']:.4f} survives={vals['holm_survives']}"
+            if "holm_survives" in vals
+            else ""
+        )
         print(
             f"  {metric_key}: mean_diff={vals['mean_diff']:+.4f}  "
             f"95% CI=[{vals['ci_lo']:+.4f}, {vals['ci_hi']:+.4f}]  "
             f"n_paired={vals['n_paired']} n_excluded={vals['n_excluded']}  "
-            f"-> {vals['verdict'].upper()}"
+            f"-> {vals['verdict'].upper()}{holm_s}"
         )
 
 

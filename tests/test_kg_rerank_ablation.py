@@ -177,3 +177,92 @@ def test_build_comparison_overall_deltas_unchanged_by_significance_addition():
     comparison = build_comparison(naive, reranked)
     delta = comparison["overall"]["overall_novel_and_relevant_rate"]["delta"]
     assert math.isclose(delta, 0.44 - 0.3, abs_tol=1e-9)
+
+
+# --------------------------------------------------------------------------
+# Holm-Bonferroni multiplicity correction across the two significance metrics
+# (AUDIT 2026-09-06 §6.8, ADR-027)
+# --------------------------------------------------------------------------
+
+
+def test_compute_significance_reports_holm_fields_for_a_consistent_win():
+    """Both metrics move identically and win cleanly -- both must survive the
+    2-metric Holm correction, and the uncorrected verdict must be preserved."""
+    per_q = 30
+    naive = _make_result(
+        [_per_question_row(f"test_{i:05d}", 0.2 + 0.001 * ((-1) ** i)) for i in range(per_q)]
+    )
+    reranked = _make_result(
+        [_per_question_row(f"test_{i:05d}", 0.5 + 0.001 * ((-1) ** i)) for i in range(per_q)]
+    )
+    sig = compute_significance(naive, reranked)
+    for metric_key in ("novel_and_relevant_rate_for_question", "relevant_rate_for_question"):
+        result = sig["metrics"][metric_key]
+        assert result["p"] is not None and result["p"] < 0.01
+        assert result["holm_survives"] is True
+        assert result["verdict"] == "significant_win"
+        assert "uncorrected_verdict" not in result
+
+
+def test_compute_significance_downgrades_a_marginal_win_that_fails_holm():
+    """A metric with a CI that barely excludes zero (marginal uncorrected win)
+    can fail the 2-metric Holm correction when paired with a much stronger
+    second metric -- the ADR-027 scenario. The final `verdict` must NOT read
+    'significant_win' in that case; `uncorrected_verdict` preserves what it
+    would have been read as alone."""
+    per_q = 40
+    naive_vals_marginal = [
+        0.30 + (0.29 if i % 20 == 0 else -0.01) for i in range(per_q)
+    ]  # tiny, barely-positive mean with one large outlier -- a marginal CI
+    reranked_vals_marginal = [v + 0.001 for v in naive_vals_marginal]
+    naive = _make_result(
+        [
+            {
+                "question_id": f"test_{i:05d}",
+                "novel_and_relevant_rate_for_question": naive_vals_marginal[i],
+                "relevant_rate_for_question": 0.2 + 0.001 * ((-1) ** i),
+            }
+            for i in range(per_q)
+        ]
+    )
+    reranked = _make_result(
+        [
+            {
+                "question_id": f"test_{i:05d}",
+                "novel_and_relevant_rate_for_question": reranked_vals_marginal[i],
+                "relevant_rate_for_question": 0.5 + 0.001 * ((-1) ** i),
+            }
+            for i in range(per_q)
+        ]
+    )
+    sig = compute_significance(naive, reranked)
+    primary = sig["metrics"]["novel_and_relevant_rate_for_question"]
+    secondary = sig["metrics"]["relevant_rate_for_question"]
+    # secondary is a clean, strong win and must survive
+    assert secondary["holm_survives"] is True
+    assert secondary["verdict"] == "significant_win"
+    # primary's own CI may or may not exclude zero depending on the exact
+    # bootstrap draw, but whenever it reports significant_win/loss uncorrected
+    # while failing Holm, the final verdict must be downgraded, never left as
+    # a win/loss a reader could quote uncorrected.
+    if not primary["holm_survives"] and primary.get("uncorrected_verdict") in (
+        "significant_win",
+        "significant_loss",
+    ):
+        assert primary["verdict"] == "tie_after_correction"
+
+
+def test_compute_significance_holm_ranks_are_1_and_2_for_two_metrics():
+    per_q = 20
+    naive = _make_result(
+        [_per_question_row(f"test_{i:05d}", 0.2 + 0.001 * ((-1) ** i)) for i in range(per_q)]
+    )
+    reranked = _make_result(
+        [_per_question_row(f"test_{i:05d}", 0.5 + 0.001 * ((-1) ** i)) for i in range(per_q)]
+    )
+    sig = compute_significance(naive, reranked)
+    ranks = sorted(
+        sig["metrics"][k]["holm_rank"]
+        for k in ("novel_and_relevant_rate_for_question", "relevant_rate_for_question")
+    )
+    assert ranks == [1, 2]

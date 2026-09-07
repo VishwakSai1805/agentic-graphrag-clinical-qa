@@ -9,8 +9,24 @@
 | MedMCQA | `openlifescienceai/medmcqa` | 4-option MCQ, 21 subjects | 500-question fixed seeded subsample of official validation (test labels withheld) | Diagnostic breadth across specialties |
 
 Notes:
-- PubMedQA `pqa_artificial` (211k) may be used **only** to fit calibration
-  weights, never for reporting.
+- **Calibration weights are fitted on the `pqa_labeled` DEV half (500 items),
+  not on `pqa_artificial`** — corrected 2026-09-07, ADR-026 (AUDIT 2026-09-06
+  §3.3). This doc previously reserved `pqa_artificial` for calibration
+  fitting, but `configs/base.yaml` *also* builds the retrieval corpus from a
+  20,000-doc `pqa_artificial` subset (`data/MANIFEST.json: n_pubmed_docs =
+  20000`), so the calibration items' own source abstracts were indexed and
+  retrievable while the temperature was fitted on them. `pqa_labeled` draws
+  from a pubid pool disjoint from `pqa_artificial`; that disjointness is
+  *executed*, not assumed, by
+  `src.eval.contamination.assert_calibration_fit_set_uncontaminated`, which
+  Phase 5 must call before fitting (verified 2026-09-07 against the built
+  corpus: 0 of the 500 fit PMIDs are indexed).
+- `pqa_artificial` (211k) is a **retrieval-corpus source only**, never a
+  reporting set and no longer a fitting set.
+- The `pqa_labeled` TEST half (500) remains the reported set and stays
+  blocklisted from the corpus (`blocklisted_pmids("pubmedqa")`). Test and dev
+  come from the same `pubmedqa_split()` call, so the fit set is exactly the
+  complement of the reported set.
 - MedMCQA test labels are not public → report on validation and say so.
 - MedMCQA's full validation split (~4.2k questions) is cut to a 500-question
   fixed seeded subsample (seed 42) for scale parity with PubMedQA and MedQA

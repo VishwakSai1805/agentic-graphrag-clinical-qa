@@ -142,3 +142,153 @@ def assert_no_contamination(corpus_path: Path, blocklist: set[str]) -> None:
             f"{len(offending)} blocklisted document id(s) found in {corpus_path}: "
             f"{sorted(set(offending))}"
         )
+
+
+# --------------------------------------------------------------------------
+# MedQA-side overlap check (AUDIT 2026-09-06 §3.2 / §3.6)
+# --------------------------------------------------------------------------
+#
+# MedQA has no source-abstract blocklist -- its items are not generated from
+# indexed documents, so `blocklisted_pmids("medqa")` correctly raises. But the
+# corpus DOES contain the 18 MedQA USMLE textbooks (ADR-009), i.e. the source
+# material the items were written from, which means "no blocklist applies" was
+# never the same statement as "no leakage was measured". Until this function
+# existed, `scripts/run_baselines.py: contamination_assertion` returned a
+# literal `{"checked": True, ...}` dict without executing anything, and that
+# unearned `checked: true` was written into all eight `results/medqa_B*/
+# metrics.json`, directly violating CLAUDE.md's "assert this in code, do not
+# merely comment it".
+#
+# What is measured here instead: the fraction of a question stem's word
+# n-grams that appear VERBATIM in any passage actually retrieved for that
+# question. This is a real executed measurement over the real retrieval path,
+# reported as a distribution -- not a pass/fail gate. Some overlap is expected
+# and disclosed (ADR-009); the number that would indicate a leak is a stem
+# reproduced near-verbatim inside a retrieved chunk.
+
+_OVERLAP_NGRAM_N = 8
+_OVERLAP_FLAG_THRESHOLD = 0.5
+
+
+def _word_ngrams(text: str, n: int) -> set[tuple[str, ...]]:
+    """Lowercased, whitespace-tokenised word n-grams, punctuation stripped from
+    token edges. Returns an empty set when the text has fewer than n tokens
+    (a stem too short to n-gram is not evidence of anything either way)."""
+    tokens = [t.strip(".,;:!?()[]{}\"'`") for t in text.lower().split()]
+    tokens = [t for t in tokens if t]
+    if len(tokens) < n:
+        return set()
+    return {tuple(tokens[i : i + n]) for i in range(len(tokens) - n + 1)}
+
+
+def max_ngram_overlap(stem: str, chunk_texts: list[str], n: int = _OVERLAP_NGRAM_N) -> float:
+    """Max over `chunk_texts` of |stem n-grams ∩ chunk n-grams| / |stem n-grams|.
+
+    0.0 when the stem yields no n-grams (too short) or no chunk shares one.
+    1.0 means every n-gram of the stem occurs verbatim in a single chunk.
+    """
+    stem_grams = _word_ngrams(stem, n)
+    if not stem_grams:
+        return 0.0
+    best = 0.0
+    for text in chunk_texts:
+        shared = len(stem_grams & _word_ngrams(text, n))
+        if shared:
+            best = max(best, shared / len(stem_grams))
+    return best
+
+
+def medqa_overlap_check(
+    stems_and_chunks: list[tuple[str, list[str]]],
+    *,
+    n: int = _OVERLAP_NGRAM_N,
+    flag_threshold: float = _OVERLAP_FLAG_THRESHOLD,
+) -> dict:
+    """Execute the stem-vs-retrieved-chunk overlap check over a whole eval slice.
+
+    `stems_and_chunks` pairs each question stem with the texts of the passages
+    actually retrieved for it. Returns the record written into `metrics.json`:
+    `checked` is True because this function ran, and `applies` is set from the
+    executed outcome (True iff at least one question's overlap reaches
+    `flag_threshold`), never from a hardcoded assumption.
+    """
+    overlaps = [max_ngram_overlap(stem, chunks, n) for stem, chunks in stems_and_chunks]
+    n_q = len(overlaps)
+    if not n_q:
+        return {
+            "checked": False,
+            "applies": True,
+            "note": "medqa_overlap_check called with zero questions; nothing measured",
+        }
+    ordered = sorted(overlaps)
+    flagged = [o for o in overlaps if o >= flag_threshold]
+    return {
+        "checked": True,
+        "applies": bool(flagged),
+        "check": "medqa_stem_vs_retrieved_chunk_ngram_overlap",
+        "ngram_n": n,
+        "flag_threshold": flag_threshold,
+        "n_questions": n_q,
+        "n_flagged": len(flagged),
+        "max_overlap": max(overlaps),
+        "mean_overlap": sum(overlaps) / n_q,
+        "median_overlap": ordered[n_q // 2],
+        "p95_overlap": ordered[min(n_q - 1, int(0.95 * n_q))],
+        "n_questions_with_any_shared_ngram": sum(1 for o in overlaps if o > 0.0),
+        "note": (
+            f"Executed check: fraction of each question stem's {n}-grams appearing verbatim "
+            "in any passage retrieved for that question. MedQA has no source-abstract "
+            "blocklist (blocklisted_pmids('medqa') raises by design); the 18 USMLE textbooks "
+            "are in the corpus disclosed under ADR-009, so non-zero overlap is expected and "
+            f"is reported as a distribution. `applies` is True iff >=1 question reaches "
+            f"{flag_threshold} verbatim overlap, which would indicate a stem reproduced "
+            "inside a retrieved chunk."
+        ),
+    }
+
+
+# --------------------------------------------------------------------------
+# Calibration-fitting split (AUDIT 2026-09-06 §3.3, ADR-026)
+# --------------------------------------------------------------------------
+#
+# docs/03_DATASETS.md originally reserved `pqa_artificial` for fitting the
+# Phase 5 calibration weights. But `configs/base.yaml` also builds the
+# retrieval corpus from a 20,000-document `pqa_artificial` subset
+# (`data/MANIFEST.json: n_pubmed_docs = 20000`). Those two uses collide: the
+# calibration items' own source abstracts would be indexed and retrievable
+# while the temperature is fitted on them, which is the structure behind the
+# 0.995 Recall@10 saturation ADR-012 observed. A temperature fitted under
+# retrieval that good does not transfer to a test question whose source
+# abstract is NOT in the index.
+#
+# ADR-026 resolves this by fitting calibration on the `pqa_labeled` DEV half
+# instead. That half is verified below to be absent from the corpus rather
+# than assumed: `pqa_labeled` draws from a pubid pool disjoint from
+# `pqa_artificial`, and `assert_calibration_fit_set_uncontaminated` executes
+# that check against the built corpus.
+
+
+def calibration_fit_pmids() -> set[str]:
+    """The PMIDs Phase 5 may fit calibration weights on: the `pqa_labeled`
+    DEV half (500 items), never the test half and never `pqa_artificial`.
+
+    `pubmedqa_split` is the single source of truth for the partition, so the
+    fit set is byte-for-byte the complement of the reported test set.
+    """
+    _test_pmids, dev_pmids = pubmedqa_split()
+    return dev_pmids
+
+
+def assert_calibration_fit_set_uncontaminated(corpus_path: Path) -> None:
+    """Hard-fail if any calibration-fitting document is indexed in the corpus.
+
+    This is the executable form of ADR-026: fitting a calibration temperature
+    on items whose source abstracts are retrievable inflates the evidence
+    scores the temperature is fitted against, and the resulting temperature
+    does not transfer to the reported test set. Phase 5 must call this before
+    fitting.
+
+    Raises:
+        ContaminationError: if one or more calibration-fit PMIDs are in the corpus.
+    """
+    assert_no_contamination(corpus_path, calibration_fit_pmids())

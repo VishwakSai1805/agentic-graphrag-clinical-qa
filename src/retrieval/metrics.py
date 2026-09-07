@@ -133,3 +133,57 @@ def paired_bootstrap_ci(
     lo_idx = int((alpha / 2) * n_resamples)
     hi_idx = int((1 - alpha / 2) * n_resamples)
     return sum(diffs) / n, boot_means[lo_idx], boot_means[hi_idx]
+
+
+def paired_bootstrap_p(diffs: Sequence[float], n_resamples: int = 10_000, seed: int = 42) -> float:
+    """Two-sided percentile-bootstrap p-value for the mean of paired differences.
+
+    AUDIT 2026-09-06 §6.8: `paired_bootstrap_ci` returns `(mean_diff, ci_lo,
+    ci_hi)` and no p-value, while `docs/04_EVALUATION.md` §1 mandates reporting
+    one. This uses the exact same resampling procedure (same `diffs`,
+    `n_resamples`, `seed` -> the identical `boot_means` distribution), so it is
+    consistent with `paired_bootstrap_ci`'s CI-based decision rule by
+    construction: `p < alpha` iff the `alpha`-level CI from the same call
+    excludes zero.
+
+    `p = 2 * min(P(bootstrap mean <= 0), P(bootstrap mean >= 0))`, capped at
+    1.0 -- the standard percentile-bootstrap two-sided p-value. Needed to Holm-
+    correct a family of comparisons (e.g. ADR-027's two `kg_rerank` metrics),
+    which a CI alone does not support combining.
+    """
+    if not diffs:
+        raise ValueError("diffs must be non-empty")
+    n = len(diffs)
+    rng = random.Random(seed)
+    boot_means = [sum(diffs[rng.randrange(n)] for _ in range(n)) / n for _ in range(n_resamples)]
+    n_le0 = sum(1 for m in boot_means if m <= 0)
+    n_ge0 = sum(1 for m in boot_means if m >= 0)
+    return min(1.0, 2 * min(n_le0, n_ge0) / n_resamples)
+
+
+def holm_bonferroni(p_values: Mapping[str, float], alpha: float = 0.05) -> dict[str, dict]:
+    """Holm-Bonferroni step-down correction over a named family of p-values.
+
+    Sorts ascending. The i-th smallest (0-indexed) is tested against
+    `alpha / (m - i)`; the step-down rule means that once one hypothesis fails
+    to clear its threshold, every hypothesis with a larger p-value is ALSO not
+    rejected, regardless of its own (looser) threshold -- this is what
+    distinguishes Holm from testing each p-value against its threshold in
+    isolation.
+
+    Returns `{name: {"p", "rank" (1-indexed, ascending p), "threshold",
+    "reject"}}`, one entry per input name.
+    """
+    if not p_values:
+        raise ValueError("p_values must be non-empty")
+    m = len(p_values)
+    ordered = sorted(p_values.items(), key=lambda kv: kv[1])
+    out: dict[str, dict] = {}
+    still_rejecting = True
+    for i, (name, p) in enumerate(ordered):
+        threshold = alpha / (m - i)
+        reject = still_rejecting and p <= threshold
+        if not reject:
+            still_rejecting = False
+        out[name] = {"p": p, "rank": i + 1, "threshold": threshold, "reject": reject}
+    return out

@@ -518,3 +518,83 @@ def test_b3_context_exceeded_leaves_verifier_fields_none(monkeypatch):
     assert pred.verifier_decided is None
     assert pred.n_supported is None
     assert pred.per_option_verdict is None
+
+
+# --------------------------------------------------------------------------
+# contamination_assertion executes a real check (AUDIT 2026-09-06 §3.2)
+# --------------------------------------------------------------------------
+
+
+class _FakeBundle:
+    def __init__(self, texts):
+        self.passages = [
+            Evidence(id=f"chunk::d{i}#0", modality="dense", text=t, source_meta={}, scores={})
+            for i, t in enumerate(texts)
+        ]
+
+
+class _FakePipeline:
+    """Stands in for TriModalPipeline: only `cfg.retrieval.top_k_rerank` and
+    `build_bundle` are touched by contamination_assertion."""
+
+    def __init__(self, texts_by_qid):
+        self._texts = texts_by_qid
+        self.cfg = type(
+            "C", (), {"retrieval": type("R", (), {"top_k_rerank": 12})()}
+        )()
+
+    def build_bundle(self, question, options, *, dataset, question_id):
+        return _FakeBundle(self._texts[question_id])
+
+
+def _q(qid, stem):
+    return Question(
+        question_id=qid,
+        dataset="medqa",
+        split="train",
+        question=stem,
+        options={"A": "a", "B": "b", "C": "c", "D": "d"},
+        answer="a",
+    )
+
+
+def test_contamination_assertion_runs_and_reports_clean():
+    from scripts.run_baselines import contamination_assertion
+
+    stem = "a 45 year old man presents with crushing substernal chest pain radiating"
+    qs = [_q("train_1", stem)]
+    out = contamination_assertion("medqa", qs, _FakePipeline({"train_1": ["unrelated filler"]}))
+    assert out["checked"] is True
+    assert out["applies"] is False
+    assert out["n_questions"] == 1
+    assert out["retrieved_passages_per_question"] == 12
+
+
+def test_contamination_assertion_detects_a_stem_reproduced_in_a_retrieved_chunk():
+    """The regression test for the literal-dict version: `applies` must flip
+    when a real leak is present."""
+    from scripts.run_baselines import contamination_assertion
+
+    stem = "a 45 year old man presents with crushing substernal chest pain radiating"
+    qs = [_q("train_1", stem)]
+    out = contamination_assertion("medqa", qs, _FakePipeline({"train_1": [f"... {stem} ..."]}))
+    assert out["checked"] is True
+    assert out["applies"] is True
+    assert out["n_flagged"] == 1
+
+
+def test_contamination_assertion_without_a_pipeline_is_not_reported_as_checked():
+    """A B0-only run retrieves nothing, so nothing can be measured -- that must
+    read `checked: false`, not a free pass."""
+    from scripts.run_baselines import contamination_assertion
+
+    out = contamination_assertion("medqa", [_q("train_1", "stem")], None)
+    assert out["checked"] is False
+    assert out["applies"] is True
+
+
+def test_contamination_assertion_unknown_dataset_is_not_checked():
+    from scripts.run_baselines import contamination_assertion
+
+    out = contamination_assertion("medmcqa", [], None)
+    assert out["checked"] is False

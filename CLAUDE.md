@@ -75,7 +75,7 @@ the paper.
 | Agent orchestration | **LangGraph** | chosen for deterministic, checkpointable state graphs over CrewAI/AutoGen |
 | LLM gateway | LiteLLM | supports Anthropic / OpenAI / local vLLM / Ollama via one config key |
 | Reranker | `ncbi/MedCPT-Cross-Encoder` | |
-| NLI hallucination check | `MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli` | |
+| NLI hallucination check | `MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli` | the base `-fever-anli` id 404s on the HF Hub (ADR-016); this is the working id, matching `config.novelty_nli_model` in the committed probe runs |
 | Faithfulness | RAGAS | pinned version, offline-capable |
 | Metrics | scikit-learn + custom `src/eval/metrics.py` | Acc, Macro-F1, P@K, MRR, ECE |
 | Testing | pytest + ruff + mypy (non-strict) | |

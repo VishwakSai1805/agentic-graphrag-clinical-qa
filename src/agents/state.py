@@ -126,6 +126,14 @@ class SupportMatrix(BaseModel):
     option_support: list[OptionSupport] = Field(default_factory=list)
     conflict_log: list[ConflictLogEntry] = Field(default_factory=list)
     mix: MixReport | None = None
+    # The exact evidence-id set the agents were shown for this question (the
+    # union over all rounds -- round 2 may add passages/triples via
+    # `_node_retrieve`). Persisted per question in `predictions.jsonl` so the
+    # Phase 4 exit-test invariant ("no surviving cell cites a non-bundle id")
+    # is RECOMPUTABLE post hoc against a stored set, not asserted as a
+    # constant (AUDIT 2026-09-06 §2.1). `src/pipeline.py:
+    # _aggregate_agent_metrics` re-validates every surviving cell against this.
+    bundle_evidence_ids: list[str] = Field(default_factory=list)
 
     status: Status = "running"
     rounds: int = 1
@@ -183,6 +191,7 @@ class ConsensusState(BaseModel):
             option_support=list(self.option_support),
             conflict_log=list(self.conflict_log),
             mix=self.mix,
+            bundle_evidence_ids=sorted({e.id for e in self.evidence}),
             status=self.status if self.status != "running" else "ok",
             rounds=self.round,
             llm_calls=self.llm_calls,

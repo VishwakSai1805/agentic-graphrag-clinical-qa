@@ -79,11 +79,15 @@ kg:
   # for the real hub-explosion finding that forced this.
   max_triples_per_question: 40
   cache_dir: data/processed/kg_cache
-  # kg_rerank ablation (Phase 2 follow-up, docs/05_DECISIONS.md ADR-018):
-  # default False -- naive alphabetical-order triple selection, the
-  # already-committed canonical data/processed/kg_cache/ behavior. Do not
-  # flip this default; run with --kg-rerank on scripts/precompute_kg_cache.py
-  # for the ablation variant, written to a separate cache dir.
+  # kg_rerank ablation (Phase 2 follow-up, docs/05_DECISIONS.md ADR-018,
+  # re-decided on a clean train-500 split by ADR-027): default False --
+  # naive is raw Neo4j traversal order (a deterministic sort), not the
+  # alphabetical novelty-scoring-subset selection ADR-016 fixed as a
+  # different bug. The KG cache is gitignored and checksum-tracked in
+  # data/MANIFEST.json (ADR-019) -- it is not, and was never, committed to
+  # git. Do not flip this default; run with --kg-rerank on
+  # scripts/precompute_kg_cache.py for the ablation variant, written to a
+  # separate cache dir.
   kg_rerank: false
   kg_rerank_pool_size: 150
 

@@ -546,7 +546,7 @@ confound the per-question-category hit-rate breakdown (this phase's amended
 exit test) is designed to surface rather than hide behind an aggregate.
 
 ## ADR-015 — KG traversal degree cap alone is insufficient; added a per-question triple cap
-Date: 2026-09-05 · Phase: 2 · Status: accepted
+Date: 2026-09-05 · Phase: 2 · Status: accepted - evidential basis SUPERSEDED by ADR-027 (2026-09-07): this ADR was decided on MedQA TEST-split probe output (AUDIT 2026-09-06 §3.1); re-derived on train-500 and UPHELD
 
 **Context.** `docs/03_DATASETS.md`'s degree cap (200 edges per expanded node
 per hop) was designed against the classic single-hub-node scenario (its own
@@ -605,7 +605,7 @@ revisited once Phase 4's real `max_evidence=12` trim is implemented and its
 interaction with a noisy 40-triple KG pool is measured.
 
 ## ADR-016 — KG-hit rate is an arithmetic artifact of entity fan-out, not KG coverage; novel-relation-rate must be relevance-conditioned to say anything about C1
-Date: 2026-09-05 · Phase: 2 · Status: accepted (supersedes this ADR's own first-draft numbers, corrected within the same phase, before any commit)
+Date: 2026-09-05 · Phase: 2 · Status: accepted (supersedes this ADR's own first-draft numbers, corrected within the same phase, before any commit) - evidential basis SUPERSEDED by ADR-027 (2026-09-07): this ADR was decided on MedQA TEST-split probe output (AUDIT 2026-09-06 §3.1); re-derived on train-500 and UPHELD
 
 **Context.** Per this phase's second amended requirement, `scripts/kg_probe.py`
 measures what fraction of retrieved KG triples express a relation not already
@@ -753,7 +753,7 @@ ADR, currently exact-substring only) — three distinct, now-quantified
 follow-up targets for Phase 3+, not a single fix.
 
 ## ADR-018 — KG triple reranking (kg_rerank): a marginal, only partially significant fix to the retrieval-precision bottleneck; ships off by default
-Date: 2026-09-06 · Phase: 2 · Status: accepted
+Date: 2026-09-06 · Phase: 2 · Status: accepted - evidential basis SUPERSEDED by ADR-027 (2026-09-07): this ADR was decided on MedQA TEST-split probe output (AUDIT 2026-09-06 §3.1); re-derived on train-500 and its primary-metric TIE VERDICT FLIPPED to a significant win (default stays off; see ADR-027)
 
 **Context.** ADR-016 identified retrieval *precision*, not redundancy with
 dense passages, as the real bottleneck on `novel_and_relevant_rate`: only
@@ -844,7 +844,7 @@ real and committed, so re-testing at scale requires no new implementation —
 only a bigger run and a fresh significance check.
 
 ## ADR-017 — MedQA question-category heuristic (no gold subject label exists)
-Date: 2026-09-05 · Phase: 2 · Status: accepted
+Date: 2026-09-05 · Phase: 2 · Status: accepted - evidential basis SUPERSEDED by ADR-027 (2026-09-07): this ADR was decided on MedQA TEST-split probe output (AUDIT 2026-09-06 §3.1); re-derived on train-500 and UPHELD
 
 **Context.** This phase's first amended requirement is a per-category
 KG-hit-rate breakdown for MedQA. Unlike MedMCQA (`docs/03_DATASETS.md`: 21
@@ -956,14 +956,27 @@ official test split reserved. Phase 2 only ever precomputed a KG cache for
 MedQA **test** (200 q, seed 42). Running Phase 3's KG-using baselines (B2, B3)
 on a roadmap-faithful dev slice therefore needed a fresh precompute.
 
+**Correction (2026-09-07, AUDIT 2026-09-06 §2.6 / ADR-027):** the sentence
+below originally read "the test-set hygiene held since Phase 1 is worth more
+than the few minutes saved" as an unqualified project-wide claim. That was
+false: it held for the *retrieval corpus and Phase 3/4 baselines* (this ADR's
+actual subject), but the Phase 2 KG probe had already run on the MedQA test
+split at the time this ADR was written (`medqa_n200.json`,
+`per_question[*].question_id = "test_*"`), and ADR-015/016/017/018 were
+decided from it — see ADR-027 for the full remediation. The claim below is
+read as scoped to Phase 3/4 baseline plumbing, not as a project-wide
+guarantee.
+
 **Decision.**
 - **Dev slice = MedQA train split, `load_question_sample("medqa", "train",
   limit, seed=42)`.** The Phase 3 exit test runs on 20 of these (CLAUDE.md §5
   "20-question dev slice"); a KG cache for the 20 was precomputed
   (`--split train --limit 20`, Neo4j already loaded, 88 s). The official test
   split stays untouched until Phase 7. The alternative (reuse the existing
-  test-slice cache) was rejected by the project owner: the test-set hygiene
-  held since Phase 1 is worth more than the few minutes saved.
+  test-slice cache) was rejected by the project owner: test-set hygiene for
+  the *retrieval corpus and baselines* is worth more than the few minutes
+  saved. (This did not hold for the KG layer at the time — see the correction
+  above and ADR-027.)
 - **Baseline → retrieval mapping.** B0 zero-shot (no retrieval, ungrounded by
   construction — a documented carve-out from CLAUDE.md's "empty citation set
   is a bug" rule, since B0 is the ungrounded floor). B1 dense-only
@@ -1012,7 +1025,10 @@ for the full 500-question MedQA train slice is still outstanding (tracked
 under `data/MANIFEST.json: kg_cache` regen commands and Phase 6's needs).
 
 ## ADR-021 — `llm.num_ctx` + a hard context-budget guard: a silent tail-truncation was corrupting the hybrid baselines
-Date: 2026-09-06 · Phase: 3 · Status: accepted
+Date: 2026-09-06 · Phase: 3 · Status: accepted · amended 2026-09-07 (AUDIT
+2026-09-06 §6.6: no-op perturbation row added; the B1 accuracy delta is
+retracted as an effect — the decision itself stands on the B2/B3 categorical
+evidence)
 
 **Context.** The first Phase 3 exit run used Ollama's default context window
 (4096 tokens, confirmed via `/api/ps`). The tri-modal prompt is question +
@@ -1035,6 +1051,47 @@ claim, plumbing only):
 | B1 dense-only     | 0.55 | 0.60 | 0.00 | 0.95 | 2 | 0 |
 | B2 hybrid         | **0.15** | **0.65** | 0.00 | 0.95 | **12** | 0 |
 | B3 binary verifier| **0.15** | **0.65** | 0.00 | 0.95 | **12** | 0 |
+
+**Amendment 2026-09-07 (AUDIT 2026-09-06 §6.6) — the no-op perturbation row,
+and what it does to the B1 reading above.**
+
+The table above pairs an *intervention* (num_ctx 4096 -> 8192) with a *delta*
+and, for B1, invited that delta to be read as the fix's effect. It has no
+control. B0 is that control: B0 does no retrieval, so its prompt is question +
+options only, nowhere near 4096 tokens, and the intervention cannot touch it.
+Measured on the same two batches, from `predictions.jsonl`:
+
+| baseline | intervention reaches the prompt? | answers changed | net acc | reading |
+|---|---|---|---|---|
+| **B0 (no-op control)** | **no** — nothing to truncate | **1/20** (`train_06912` A→B) | 0.55 → 0.55 | pure run-to-run nondeterminism |
+| B1 dense-only | yes | 5/20 | 0.55 → 0.60 (net +1) | see below |
+
+B0's flip changed an answer without changing accuracy only because both A and
+B are wrong (gold D). A single flip that happens to cross the gold option is
+worth exactly 5 accuracy points at n=20. So the noise floor for an accuracy
+delta between these two batches is **at least ±0.05, measured, under an
+intervention that provably does nothing.**
+
+B1's `0.55 → 0.60` is exactly that size. It is also not one question changing
+its mind: B1 changed **5 of 20** answers between the batches, netting +1.
+Two are genuine truncation recoveries (`train_00520`, `train_01424`:
+`parse_error` → `ok`, and *both are still wrong*). The other three
+(`train_01679` B→C, gold B — lost; `train_04012` D→A, gold A — gained;
+`train_08279` B→C, gold C — gained) parsed cleanly in *both* runs, so
+truncation never touched them; the model simply answered differently. The
+headline `+0.05` is the net of that churn, and every question it actually
+gained was gained on an input the fix did not repair.
+
+**Therefore: the B1 0.55 → 0.60 delta is inside the noise floor and is no
+longer read as an effect of the num_ctx fix, here or in
+`docs/04_EVALUATION.md` §5.4.** The evidence that ADR-021 fixed a real bug is
+*not* that delta and never needed to be — it is the categorical, far-outside-
+noise B2/B3 signal: `parse_error` 12/20 → 0/20 and `grounded_rate`
+0.00 → 0.95, changes no plausible 1-flip noise process produces. B1's
+`parse_error` 2 → 0 belongs to that same categorical evidence; B1's accuracy
+number does not. Any future n=20 comparison in this project must clear this
+measured ±0.05 floor before it is called an effect, or be reported as a tie
+(CLAUDE.md: "A tie is reported as a tie, never as a win").
 
 The B2/B3 collapse under truncation (0.15) is entirely an artifact: 12/20
 prompts were cut mid-output so the model never emitted a parseable answer.
@@ -1147,7 +1204,13 @@ dynamic per-question split by a learned gate (rejected -- adds a confound to
 the ablation, ADR-002's spirit).
 
 ## ADR-024 — Phase 4 agent graph: deterministic Hypothesis, source-precedence-only Conflict, and the conflict-resolver-never-resolves finding
-Date: 2026-09-06 · Phase: 4 · Status: accepted
+Date: 2026-09-06 · Phase: 4 · Status: partly superseded by ADR-025 (the §3
+`conflict_fire_rate = 0.55` / resolved-0/unresolved-18 numbers below are
+retracted — they were an artifact of the wrong option-level conflict
+definition; ADR-025's claim-level `conflict_fire_rate = 0.00` is the correct
+figure. Everything else in this ADR — the deterministic Hypothesis agent, the
+source-precedence-only Conflict tiebreak mechanism, and the graph structure —
+stands)
 
 **1. Hypothesis is deterministic by default.** `docs/01`/ADR-001 allow the
 Hypothesis agent to sample. It decomposes *given* MCQ options into claims --
@@ -1258,3 +1321,257 @@ NEUTRAL discrimination rather than the Conflict resolver; the re-run's
 retired (v1 file kept for provenance). Any future claim that the Conflict
 agent contributes to accuracy must cite the claim-level `conflict_fire_rate`
 and the resolved/unresolved/spurious split, not an option-level fire rate.
+
+## ADR-026 — Calibration weights are fitted on `pqa_labeled` dev, not `pqa_artificial`
+Date: 2026-09-07 · Phase: 5 (pre-requisite) · Status: accepted
+
+**Context.** AUDIT 2026-09-06 §3.3. `docs/03_DATASETS.md` reserved
+`pqa_artificial` (211k) *only* for fitting calibration weights.
+`configs/base.yaml` independently builds the retrieval corpus from a
+20,000-document `pqa_artificial` subset (`base.yaml: pubmed_subset_size:
+20000`, `pubmed_seed: 42`; `data/MANIFEST.json: n_pubmed_docs = 20000`,
+`n_chunks_per_source.pubmed_abstract = 32683`). Nothing connected the two
+statements, so the fitting set and a fifth of the retrieval corpus were drawn
+from the same pool.
+
+Why that is not a cosmetic overlap: a calibration temperature maps evidence
+scores to probabilities. If the fitting items' own source abstracts are
+indexed, retrieval on the fitting set is near-perfect — this is precisely the
+`Recall@10 = 0.995` saturation ADR-012 recorded on `pqa_artificial` — so the
+temperature is fitted against an evidence-score distribution that no reported
+test question will ever see. The result is a systematically over-confident
+calibration on the test set, and ECE (C3's headline metric) would be measuring
+the leak rather than the method. Phase 5 was unsound until this was resolved.
+
+`src/eval/contamination.py` could not catch it: `blocklisted_pmids` blocks only
+the `pqa_labeled` TEST PMIDs and raises for every other dataset, so nothing in
+the codebase held an opinion about the fitting set at all.
+
+**Decision.** Fit calibration on the **`pqa_labeled` DEV half (500 items)**.
+
+1. `calibration_fit_pmids()` returns `pubmedqa_split()[1]` — the dev half. The
+   fit set is therefore *by construction* the exact complement of the reported
+   test half, from the same single-source-of-truth split function.
+2. `assert_calibration_fit_set_uncontaminated(corpus_path)` hard-raises
+   `ContaminationError` if any fit PMID is indexed. **Phase 5 must call this
+   before fitting** — per CLAUDE.md this is an assertion in code, not a comment.
+3. `pqa_artificial` is reclassified as a retrieval-corpus source only: never a
+   reporting set, and no longer a fitting set.
+
+**Verified, not assumed.** `pqa_labeled` draws from a pubid pool disjoint from
+`pqa_artificial`, which until now was only a code comment in
+`scripts/build_corpus.py`. Executed against the built corpus on 2026-09-07:
+20,000 distinct PubMed doc_ids indexed, of which **0 of the 500 dev
+(calibration-fit) PMIDs and 0 of the 500 test PMIDs** appear. The overlap the
+audit identified is therefore removable with no index rebuild.
+
+**Alternatives considered.**
+- *Extend the blocklist to the exact `pqa_artificial` calibration items and
+  rebuild the corpus* (the audit's other option) — rejected. It costs a full
+  ~17-minute GPU index rebuild, shrinks the corpus, and leaves calibration
+  fitted on a set drawn from the same distribution as 20k indexed documents
+  (near-duplicate abstracts by other authors remain retrievable even once the
+  exact PMIDs are excluded). Switching pools removes the leak at the source
+  instead of patching its most visible symptom.
+- *Fit on MedQA train* — rejected for now: calibration is fitted per dataset,
+  and PubMedQA is the dataset whose parity claim (C4) depends on it.
+
+**Consequences.** The Phase 5 fitting set is 500 items rather than 211k. That
+is a real cost — a 500-item fit supports a single global temperature, not a
+richly parameterised per-feature calibrator — and it must be stated as a
+limitation when C3 is reported, not quietly absorbed. It does not change the
+reported test set, the corpus, or any index. `docs/03_DATASETS.md` is corrected
+of record; `configs/base.yaml`'s corpus block is unchanged and correct as it
+stands.
+
+## ADR-027 — Phase 2 KG decisions re-derived on a MedQA *train* slice; ADR-018's verdict flips
+Date: 2026-09-07 · Phase: 2 (remediation) · Status: accepted · supersedes the
+test-split basis of ADR-015, ADR-016, ADR-017, ADR-018
+
+**Context.** AUDIT 2026-09-06 §3.1, the audit's most serious finding. The Phase 2
+KG probe ran on the MedQA **test** split (`results/phase2_kg_probe/medqa_n200.json`,
+`per_question[*].question_id = "test_*"`; the overnight `medqa_n500.json`
+extended the same mistake). Every Phase 2 design decision was then made by
+reading test-split outputs — ADR-015's 40-triple cap (motivated by observing
+`test_00001`), ADR-016's relevance/novelty correction, ADR-017's category
+heuristic (tuned by inspecting `test_00006`), and ADR-018's `kg_rerank`
+adopt/keep-off verdict. Phase 7 evaluates on a 500-question seeded subset of
+that same test split, and `load_question_sample` draws both from one file with
+`random.Random(42).sample`, so the sets overlap (~79 questions in expectation
+between the 200 and the 500). Parameters were selected by looking at a quantity
+they will later be judged on. ADR-020's claim that "test-set hygiene held since
+Phase 1" was false for the KG layer.
+
+**Remediation performed (2026-09-07).**
+1. Precomputed the `kg_rerank` cache for a 500-question MedQA **train** slice
+   (seed 42) into `data/processed/kg_cache_kg_rerank/medqa/train_*.json` (500
+   files; the naive train-500 cache already existed).
+2. Re-ran `scripts/kg_probe.py` on train-500 for **both** variants →
+   `results/phase2_kg_probe/medqa_train_n500.json` and
+   `…_kg_rerank_variant.json` (0 cache misses in either).
+3. Re-ran `scripts/kg_rerank_ablation.py` on those two →
+   `…_kg_rerank_ablation.json`.
+4. Stamped the four test-split probe artifacts `superseded: true` via
+   `scripts/mark_superseded.py --preset phase2-kg-probe-test-split` (retained,
+   not deleted — they are the provenance for this ADR).
+5. Disclosed the original test-split selection in `docs/00_RESEARCH_SPEC.md` §7.
+
+**The measurements barely moved. The selection was still illegitimate.** Both
+things are true and both matter:
+
+| metric | TEST n=200 (superseded) | TRAIN n=500 (authoritative) |
+|---|---|---|
+| `aggregate_hit_rate` | 0.9600 | **0.9540** |
+| `entity_level_mapping_rate` | 0.1122 | **0.1158** |
+| `naive_expected_hit_rate_under_independence` | 0.9998 | **0.9999** |
+| `mean_linked_entities_per_question` | 73.95 | **75.17** |
+| `overall_novel_relation_rate` | 0.9016 | **0.9019** |
+| `overall_relevant_rate` | 0.4734 | **0.4744** |
+| `overall_novel_and_relevant_rate` | 0.4062 | **0.4237** |
+| `overall_novel_given_relevant_rate` | 0.8581 | **0.8931** |
+
+That the numbers reproduce is *not* a retroactive excuse for having selected on
+test — a parameter chosen by looking at the reporting split is contaminated
+whether or not the reading happened to be stable, because the stability is only
+knowable after the fact, as here. It does mean the Phase 2 *findings* survive
+intact and no downstream work has to be discarded.
+
+**Decision, re-derived per ADR, from the train numbers only.**
+
+- **ADR-015 (40-triple per-question cap) — UPHELD.** The cap's premise is
+  saturation, and it reproduces: on train-500, **476/500 (95.2%)** questions hit
+  the 40-triple cap (test: 96.0%), median 40, mean 38.1, and 23 questions yield
+  zero triples. Triple volume is still bounded by the cap and not by the
+  per-node degree cap, which is exactly what ADR-015 argued. The cap value 40
+  itself remains an untuned ceiling justified by the downstream `max_evidence=12`
+  budget, not by an optimisation on any split — that was true on test and is
+  still true; it is not laundered into a "tuned on train" claim here.
+- **ADR-016 (hit-rate is an arithmetic artifact; relevance-conditioned novelty)
+  — UPHELD, and strengthened.** On train: `entity_level_mapping_rate = 0.1158`
+  with 75.17 linked mentions per question gives
+  `naive_expected_hit_rate_under_independence = 0.9999`, which again *exceeds*
+  the observed `aggregate_hit_rate = 0.9540`. The permissive question-level hit
+  definition is still measuring entity fan-out rather than coverage. This is the
+  C5 contribution in `docs/00_RESEARCH_SPEC.md` §3, and it is now established on
+  a split the project does not report on.
+- **ADR-017 (MedQA category heuristic) — UPHELD.** The heuristic was originally
+  tuned by inspecting a test question. Applied unchanged to 500 unseen train
+  questions it does not degenerate: all six categories populate
+  (pharmacology 127, pathology_diagnosis 116, treatment_management 101, other 92,
+  physiology 41, anatomy 23), and the `other` catch-all takes **18.4%** of train
+  questions vs 20.0% of test — no collapse into `other`, and no category
+  starved. `anatomy` (n=23) now clears `MIN_CATEGORY_N_FOR_RATE = 15` and gets a
+  reported rate on train, where at n=200 it was suppressed at n=8.
+- **ADR-018 (`kg_rerank` adopt / keep-off) — VERDICT FLIPS. The primary metric
+  is now a significant win, not a tie.** ADR-018 pre-registered the rule:
+  primary metric `novel_and_relevant_rate_for_question`, paired bootstrap
+  (10k resamples, seed 42), decide adopt/keep-off from the verdict and never
+  from the point estimate. Re-run on train-500:
+
+| metric | naive | kg_rerank | paired mean diff | 95% CI | verdict |
+|---|---|---|---|---|---|
+| `novel_and_relevant_rate_for_question` (**primary**) | 0.4237 | 0.4604 | **+0.0367** | **[+0.0044, +0.0681]** | **significant win** (was a *tie* at n=200 test) |
+| `relevant_rate_for_question` (secondary) | 0.4744 | 0.5296 | +0.0551 | [+0.0203, +0.0889] | significant win (was a marginal win) |
+
+  `n_paired = 477`, `n_excluded = 23` — the 23 exclusions are the zero-triple
+  questions, identical in both variants, so this is not a variant-specific
+  exclusion bias. ADR-018 predicted this outcome explicitly ("n=200 (192 paired)
+  may simply be underpowered for an effect this size") and pre-committed to
+  re-deciding on a larger n. That re-test has now run, on a clean split, and the
+  tie resolved into a win.
+
+**Multiplicity correction, run now rather than deferred (2026-09-07).** The
+primary metric's CI lower bound is **+0.0044** — one-tenth of the point
+estimate — and this is 2 comparisons read as one decision, so it is corrected
+for multiplicity *before* that decision is recorded, not folded into the §6.7
+grid-wide discipline still deferred to the pre-Phase-7 batch (that item covers
+the ~9-metric × ~10-variant-pair Phase 7 grid; this is a single, narrow,
+targeted correction for the one decision this ADR makes today).
+
+`src.retrieval.metrics.paired_bootstrap_p` (new, AUDIT §6.8) computes a
+two-sided percentile-bootstrap p-value from the *same* bootstrap distribution
+`paired_bootstrap_ci` already draws (same `diffs`/`n_resamples`/`seed`), so
+`p < α` is consistent with that call's own CI excluding zero by construction.
+`src.retrieval.metrics.holm_bonferroni` applies the standard step-down
+procedure over the two metrics together. Computed from the same train-500
+`per_question` arrays (`scripts/kg_rerank_ablation.py`, now emitting `p`,
+`holm_rank`, `holm_threshold`, `holm_survives` per metric):
+
+| metric | p (two-sided) | Holm rank | Holm threshold (α=0.05, m=2) | survives |
+|---|---|---|---|---|
+| `relevant_rate_for_question` (secondary) | 0.0026 | 1 | 0.025 | **yes** |
+| `novel_and_relevant_rate_for_question` (**primary**) | 0.0256 | 2 | 0.050 | **yes** |
+
+**Both metrics survive Holm correction for this 2-comparison family.** This is
+worth stating plainly because it was not the expected outcome going in — the
+primary's CI lower bound sitting close to zero reads as fragile, and the
+natural guess is that a stricter corrected threshold eats it. It does not,
+for a specific, checkable reason: Holm's step-down procedure only tightens the
+threshold for the *smaller* p-value in a family (here, the secondary, tested
+against α/2 = 0.025, which its p=0.0026 clears easily); the *largest* p-value
+in the family — here, the primary — is tested against the **same threshold as
+the uncorrected case, α itself**, because it is the last hypothesis in the
+step-down chain. With exactly two comparisons and the primary being the
+weaker one, Holm correction changes nothing about the bar the primary has to
+clear. It would have mattered with a third, even-weaker comparison in the
+family, or if the primary had been the stronger of the two — neither is the
+case here. So: **the primary result stands as a significant win, corrected for
+this family, not merely uncorrected** — a materially different (better)
+epistemic status than "recorded as exploratory" would suggest, and this ADR
+is revised accordingly from an earlier draft that reasoned about the
+correction rather than computing it.
+
+**Decision on shipping: `kg_rerank` stays `false` by default and is promoted to
+a first-class Phase 7 grid row.** The pre-registered rule speaks to the *KG
+evidence-quality* verdict, and that verdict is now "win," Holm-corrected — so
+the claim "`kg_rerank` improves KG evidence quality" is, from this ADR forward,
+permitted and must cite this train-500 CI and its Holm-survival result. But
+`novel_and_relevant_rate` is an intermediate proxy, not an outcome: no run yet
+shows better triple selection moving any downstream metric, and flipping the
+default now would silently change the evidence bundle underneath the committed
+Phase 3/4 dev-20 results and make them non-comparable to everything after.
+Adoption is therefore decided by the Phase 7 grid cell, on a downstream
+metric — see the pre-registration deviation immediately below for why this is
+a deviation from ADR-018's own rule, not a restatement of it.
+
+**Pre-registration deviation, named explicitly.** ADR-018 pre-registered a
+concrete rule: run the paired-bootstrap check on `novel_and_relevant_rate` at
+a larger n, and "decide adopt/keep-off from that verdict, not the point
+estimate." The verdict at n=500 — now Holm-corrected — is unambiguously
+"win." **The rule said adopt. This ADR does not adopt; it keeps `kg_rerank`
+off by default.** That is a deviation from the pre-registered decision
+procedure, made *after* seeing the data the procedure was supposed to decide
+on, and it is recorded as exactly that rather than presented as if ADR-018 had
+always contemplated this outcome.
+
+The reasons for the deviation are stated above (proxy-metric vs. downstream
+outcome; comparability of the committed Phase 3/4 dev-20 results) and are
+judged sound. But soundness of the reasons is not the point pre-registration
+guards against — the point is that a rule abandoned after seeing favorable
+data, for reasons that were not part of the rule, is exactly how motivated
+post-hoc reasoning enters a project that otherwise holds itself to a strict
+"decide before you look" discipline (CLAUDE.md §2, ADR-012's whole point).
+Recording it as a plain default-vs-decision distinction, without naming the
+deviation, would have let this ADR read as compliant with ADR-018 when it is
+not. **The Phase 7 grid's `kg_rerank` row is therefore the thing that actually
+settles this** — not as a formality, but because it is the only remaining
+check on whether keeping the default off was the right call or a rationalised
+one. If that grid cell also shows a downstream win, the deviation cost nothing
+but a phase's delay; if it shows no downstream effect, the deviation will have
+been the correct caution and ADR-018's original rule the wrong one to have
+pre-registered in the first place (it targeted a proxy metric, not an
+outcome). Either finding is informative and this ADR does not pre-judge it.
+
+**Consequences.** ADR-015/016/017/018 keep their reasoning and are corrected of
+record as to their evidential basis: each now cites the train-500 artifacts, and
+their original test-split basis is superseded. ADR-020's "test-set hygiene held
+since Phase 1" is false as written and is corrected by this ADR (and by a direct
+correction landed in ADR-020 itself). `src.retrieval.metrics` gains
+`paired_bootstrap_p` and `holm_bonferroni` (AUDIT §6.8), and
+`scripts/kg_rerank_ablation.py` reports Holm-corrected significance by default
+for its 2-metric family — any future re-run of this exact ablation inherits the
+correction automatically. The Phase 7 grid gains a `kg_rerank` row, which is
+now also the open item that resolves this ADR's pre-registration deviation, not
+merely an ordinary ablation cell. The four test-split probe JSONs remain in
+`results/phase2_kg_probe/` carrying `superseded: true` and must never be cited
+as the basis of a decision.

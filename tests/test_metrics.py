@@ -4,11 +4,13 @@ import pytest
 
 from src.retrieval.metrics import (
     dcg_at_k,
+    holm_bonferroni,
     mean_ndcg_at_k,
     mean_recall_at_k,
     mean_reciprocal_rank,
     ndcg_at_k,
     paired_bootstrap_ci,
+    paired_bootstrap_p,
     recall_at_k,
     reciprocal_rank,
 )
@@ -130,3 +132,83 @@ def test_paired_bootstrap_ci_deterministic_given_seed():
     result_a = paired_bootstrap_ci(diffs, n_resamples=500, seed=42)
     result_b = paired_bootstrap_ci(diffs, n_resamples=500, seed=42)
     assert result_a == result_b
+
+
+# --------------------------------------------------------------------------
+# paired_bootstrap_p / holm_bonferroni (AUDIT 2026-09-06 §6.8, ADR-027)
+# --------------------------------------------------------------------------
+
+
+def test_paired_bootstrap_p_rejects_empty():
+    with pytest.raises(ValueError, match="non-empty"):
+        paired_bootstrap_p([])
+
+
+def test_paired_bootstrap_p_is_small_for_a_clear_effect():
+    diffs = [0.1 + 0.001 * ((-1) ** i) for i in range(200)]
+    p = paired_bootstrap_p(diffs, n_resamples=2000, seed=1)
+    assert p < 0.01
+
+
+def test_paired_bootstrap_p_is_large_for_a_tie():
+    diffs = [1.0, -1.0, 1.0, -1.0, 0.5, -0.4]
+    p = paired_bootstrap_p(diffs, n_resamples=2000, seed=7)
+    assert p > 0.05
+
+
+def test_paired_bootstrap_p_consistent_with_ci_significance():
+    """p < alpha must agree with the alpha-level CI excluding zero, for the
+    same diffs/resamples/seed -- they share one bootstrap distribution."""
+    diffs = [0.05 + 0.02 * ((-1) ** i) for i in range(60)]
+    _mean_diff, lo, hi = paired_bootstrap_ci(diffs, n_resamples=4000, seed=3, alpha=0.05)
+    p = paired_bootstrap_p(diffs, n_resamples=4000, seed=3)
+    ci_significant = lo > 0 or hi < 0
+    assert (p < 0.05) == ci_significant
+
+
+def test_paired_bootstrap_p_deterministic_given_seed():
+    diffs = [0.02, -0.01, 0.03, 0.0, -0.02, 0.01]
+    assert paired_bootstrap_p(diffs, n_resamples=500, seed=42) == paired_bootstrap_p(
+        diffs, n_resamples=500, seed=42
+    )
+
+
+def test_holm_bonferroni_rejects_empty():
+    with pytest.raises(ValueError, match="non-empty"):
+        holm_bonferroni({})
+
+
+def test_holm_bonferroni_both_survive_when_both_p_values_are_small():
+    out = holm_bonferroni({"secondary": 0.0026, "primary": 0.0256}, alpha=0.05)
+    assert out["secondary"]["rank"] == 1
+    assert out["secondary"]["threshold"] == pytest.approx(0.025)
+    assert out["secondary"]["reject"] is True
+    assert out["primary"]["rank"] == 2
+    assert out["primary"]["threshold"] == pytest.approx(0.05)
+    assert out["primary"]["reject"] is True
+
+
+def test_holm_bonferroni_step_down_kills_a_later_hypothesis_even_if_its_raw_p_would_pass():
+    """The defining property of Holm vs. per-test Bonferroni: once the
+    smallest p-value fails its (tightest) threshold, every larger p-value is
+    ALSO not rejected, even one smaller than alpha itself."""
+    out = holm_bonferroni({"a": 0.03, "b": 0.01}, alpha=0.05)
+    # m=2: rank-1 (b, p=0.01) threshold = 0.025 -> rejects.
+    # rank-2 (a, p=0.03) threshold = 0.05 -> 0.03 <= 0.05, still rejects here.
+    assert out["b"]["reject"] is True
+    assert out["a"]["reject"] is True
+    # Now force rank-1 to fail: with a large first p, everything after must fail.
+    out2 = holm_bonferroni({"a": 0.01, "b": 0.03, "c": 0.02}, alpha=0.03)
+    # sorted: a=0.01 (threshold 0.01) borderline, b=0.03 next, c=0.02 next.
+    # m=3: rank1 threshold=0.01, rank2 threshold=0.015, rank3 threshold=0.03.
+    assert out2["a"]["reject"] is True  # 0.01 <= 0.01
+    assert out2["c"]["reject"] is False  # 0.02 > 0.015 -> fails here
+    assert out2["b"]["reject"] is False  # later than a failed hypothesis -> also False
+    # even though b's own raw threshold (0.03) would have passed p=0.03 <= 0.03
+    assert out2["b"]["p"] <= out2["b"]["threshold"]
+
+
+def test_holm_bonferroni_uncorrected_single_hypothesis_is_plain_alpha():
+    out = holm_bonferroni({"only": 0.03}, alpha=0.05)
+    assert out["only"]["threshold"] == pytest.approx(0.05)
+    assert out["only"]["reject"] is True

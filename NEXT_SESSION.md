@@ -1,104 +1,119 @@
 # Next session — start here
 
-**Last completed:** Phase 2 (commits `82f7824`, `04c7c6f`, follow-up
-`36071ef`) — Knowledge graph layer. Real Neo4j 5 + PrimeKG (129,375 nodes /
-740,674 edges after the 7-item allowlist, out of 8,100,498 raw directional
-rows / ~4.05M unique undirected edges — see ADR-014), scispaCy/UMLS entity
-linking, bounded 1–2 hop traversal with a cache-first read path (ADR-007
-confirmed byte-for-byte reproducible after a full `docker compose down` +
-container removal), triple verbalization, and `scripts/kg_probe.py` as the
-KG-hit-rate + marginal-value diagnostic. 115 tests passing, ruff clean.
-KG cache precomputed for MedQA test (n=200), PubMedQA (500 test + 500 dev),
-and MedMCQA (500-question seeded validation subsample) — matches ADR-005's
-evaluation scope, not full splits.
+**Done:** Phases 0–4, all committed to `master`. Phase 3 `b10c385`/`d445423`,
+Phase 4 `e75de9c`/`6f9690e`/`1388904`, ADR-025 conflict fix `30700f9`/`ccba531`.
+298 tests pass, ruff clean.
 
-**The literal exit test passed** (`aggregate_hit_rate = 0.960` ≥ 0.60 floor).
-**The honest finding underneath it did not, and this is what Phase 3 actually
-inherits — read this before assuming KG retrieval is a solved, valuable
-modality:**
-
-- The 96% hit rate is a **question-level arithmetic artifact** of high entity
-  fan-out (~74 linked entities/question), not evidence of PrimeKG coverage.
-  Real per-entity mapping rate is only **11.22%** (`entity_level_mapping_rate`)
-  — always cite this alongside any hit rate. See ADR-016.
-- The defensible C1 evidence figure is **`novel_and_relevant_rate = 0.4063`**
-  (fraction of retrieved KG triples that are both on-topic *and* not already
-  in the real 12-item dense `EvidenceBundle`) — **real but middling**,
-  bottlenecked by retrieval precision (only ~47% of kept triples are even
-  on-topic; hub-node noise, ADR-015) more than by redundancy with dense
-  passages. **The KG modality's marginal value over dense retrieval is not
-  yet established.**
-- An ablatable `kg_rerank` flag (MedCPT cross-encoder triple selection,
-  ADR-018) shows a narrow *significant* win on `relevant_rate` (paired
-  bootstrap CI [+0.003, +0.105]) but a **tie** on the primary
-  `novel_and_relevant_rate` metric (CI [−0.013, +0.088]) at n=200. Ships off
-  by default — real signal, not yet strong enough to adopt.
-
-**Next:** Phase 3 — Tri-modal bundle + baseline RAG (`docs/02_ROADMAP.md`).
+**2026-09-07 audit remediation session (`docs/AUDIT_2026-09-06.md`) is done and
+committed.** Before this session, Phase 5 was unsound (calibration/corpus
+overlap, §3.3) and the Phase 2 KG decisions rested on the wrong split (§3.1).
+Both are fixed. Full detail lives in the ADRs below — this file is the entry
+point, not the record.
 
 ---
 
-## 1. Open Claude Code
+## What changed today, in order
 
-```powershell
-cd "C:\Claude\AI Project"
-claude
-```
+1. **Test-split leakage (§3.1) — fixed. ADR-027.** The Phase 2 KG probe
+   originally ran on MedQA *test* (`medqa_n200.json`, `medqa_n500.json`,
+   `medqa_n200_kg_rerank_*` — now stamped `superseded: true`, retained as
+   provenance, never cite them). Re-ran on a 500-question MedQA **train**
+   slice for both `kg_rerank` variants
+   (`results/phase2_kg_probe/medqa_train_n500*.json` — now authoritative).
+   ADR-015/016/017 upheld on the clean split. **ADR-018's verdict flipped**:
+   `novel_and_relevant_rate` was a tie at n=200 test, is a **significant win**
+   at n=500 train (+0.0367, 95% CI [+0.0044, +0.0681]) — and this was
+   Holm-Bonferroni corrected for the 2-metric family the same day (**both
+   metrics survive**, see `src.retrieval.metrics.paired_bootstrap_p` /
+   `holm_bonferroni`, AUDIT §6.8). `kg_rerank` stays off by default anyway —
+   **ADR-027 names this as a deviation from ADR-018's own pre-registered
+   rule** (which said adopt on a cleared verdict), states the reasons, and
+   points at the Phase 7 `kg_rerank` grid row as what actually settles it.
+2. **Four integrity blockers — fixed.**
+   - §2.1: `surviving_invalid_citation_count` is a real re-validation against
+     `SupportMatrix.bundle_evidence_ids` (persisted per question), not a
+     hardcoded `0`.
+   - §3.2: `contamination_assertion` executes a real 8-gram stem-vs-retrieved-
+     chunk overlap check (`src.eval.contamination.medqa_overlap_check`) — no
+     more literal `{"checked": True}` dict.
+   - §6.1: `git_sha7()` / `git_provenance()` append `-dirty` and record a
+     `git_diff_sha256` + changed-file list when the worktree is dirty.
+   - §6.2: the four canonical `medqa_B*` run ids are named explicitly in
+     `docs/04_EVALUATION.md` §5.4; the four pre-`num_ctx` runs carry
+     `superseded: true` (`scripts/mark_superseded.py`).
+3. **Calibration/corpus overlap (§3.3) — fixed. ADR-026.** Calibration now
+   fits on `pqa_labeled` **dev** (500 items), verified — not assumed — absent
+   from the 20k-doc retrieval corpus
+   (`src.eval.contamination.assert_calibration_fit_set_uncontaminated`,
+   which **Phase 5 must call before fitting**). `pqa_artificial` is a
+   corpus-source only now, never a fitting set.
+4. **`docs/00_RESEARCH_SPEC.md` §3 rewritten.** C1 → diagnostic/negative
+   pending the Phase 7 V2-vs-V3 cell; C2 → audit-discrimination, conflict
+   resolution flagged unverified; "guarantee" dropped from C3; C4 marked
+   pending; **C5 added** — the KG-hit-rate arithmetic artifact, the project's
+   best-supported, fully-traceable finding, was previously unlisted.
+5. **ADR-021 amended** with the no-op perturbation row: B0 (no retrieval,
+   unaffected by the num_ctx fix) still flips 1/20 answers between the two
+   batches, so the measured noise floor at n=20 is ±0.05 — the B1 accuracy
+   delta is retracted as an effect; the decision itself still stands on the
+   categorical B2/B3 evidence (parse_error 12/20→0/20).
+6. **§5.4's B3 framing corrected** (the auditor's reading was wrong): both
+   context conditions show `verifier_decision_rate = 0.05` with exactly one
+   SUPPORTED option on 1/20 questions — only the failure *direction* flips
+   (over-admit at 4096-ctx vs. over-reject at 8192-ctx). Reported as
+   invariance under a perturbation that inverts the failure mode, which is
+   stronger evidence for the binary-bottleneck claim than either run alone,
+   not weaker.
+7. **Five one-liner doc fixes** (§2.2–§2.6): ADR-024 status line now says
+   "partly superseded by ADR-025"; CLAUDE.md's dead NLI model id corrected to
+   the `-ling-wanli` variant; `configs/base.yaml`'s stale `kg_rerank` comment
+   corrected; README's "Phase 0 — scaffold" corrected to "Phases 0–4 complete";
+   ADR-020's "test-set hygiene held since Phase 1" corrected and scoped.
 
-Start a **fresh** session — do not resume the old one. The roadmap and ADRs
-are the memory; a clean context works better.
+**Deferred, tracked in `docs/02_ROADMAP.md`'s "Pre-Phase-7 fixes" section:**
+§1.1/§1.2 (real Phase 1 `metrics.json`), §4.1 (B3 prompt-sensitivity), §4.3
+(equal-budget B2 comparator), §6.7 (grid-wide multiplicity discipline — the
+kg_rerank decision above got its own targeted correction today, this is the
+full ~9-metric × ~10-variant-pair version), all MINORs. Still open and not yet
+triaged: §1.3–1.9, §2.3 *(fixed today, strike from this list)*, §3.4, §5.5,
+§6.3, §6.4.
 
-## 2. Paste this as the first message
+---
 
-> Read CLAUDE.md and docs/00 through docs/05 (pay particular attention to
-> ADR-007 and ADR-014 through ADR-018 in docs/05_DECISIONS.md), then
-> `git log --oneline` to see where we are. Phase 2 is done. Run `/phase 3`.
->
-> Strategic context: Phase 2 found that PrimeKG's real value-add over dense
-> retrieval is not yet established (`novel_and_relevant_rate ≈ 0.41`,
-> middling, bottlenecked by retrieval precision not redundancy). Phase 3
-> assembles the tri-modal `EvidenceBundle` and baselines B0–B3 — treat
-> whether KG evidence actually moves downstream MedQA accuracy as an open
-> empirical question the baselines/ablation must answer, not an assumption
-> to build on.
+## Where the three contributions actually stand (`docs/00_RESEARCH_SPEC.md` §3
+is the authoritative version — this is the short version)
 
-## 3. Expect
+- **C1** — diagnostic/negative, pending Phase 7 V2-vs-V3. No run yet shows the
+  KG arm improving anything downstream; 1/108 audit cells cite KG even with
+  the slot filled 17/20 times.
+- **C2** — audit-discrimination is supported (108 cells, 61/80 options get
+  signal, vs. B3's binary verifier isolating 1/20 under both context
+  conditions tested). Conflict *resolution* is unverified: `conflict_fire_rate
+  = 0.00` under the correct claim-level definition.
+- **C3** — untested. Phase 5 decides it. No "guarantee" language; a temperature
+  fit on 500 items is a real limitation to state alongside the ECE numbers.
+- **C4** — pending Phase 7. PubMedQA has no baseline code path yet
+  (`run_baselines.py --dataset` is `{medqa, medmcqa}` only).
+- **C5 (new)** — SUPPORTED, fully traceable: the KG-hit-rate arithmetic
+  artifact (~96% question-level "coverage" vs. 11% real per-entity mapping).
+  Currently the strongest, most defensible result in the project.
 
-Phase 3 assembles `src/pipeline.py`'s `EvidenceBundle` (dense + BM25 + RRF +
-rerank, now also KG triples read via `src/kg/traversal.py:
-get_subgraph_cached` — cache-only, Neo4j does not need to be running) and
-implements four baselines (B0 zero-shot, B1 dense-only RAG, B2 hybrid RAG,
-B3 MEGA-RAG-style binary verifier reimplementation), scored on a 200-item
-MedQA dev slice. This is the first phase that actually calls the LLM
-gateway (`src/llm/client.py`) in a real eval loop — check the Ollama server
-is up (`OLLAMA_KEEP_ALIVE`/`OLLAMA_NUM_PARALLEL` per ADR-006) before running
-anything at scale.
+---
 
-## 4. Open questions parked for later
+## Delivery schedule
 
-- Is a 7B local model sufficient for the headline results, or do the final
-  runs need a stronger free-tier model? (Decide after the Phase 6
-  sensitivity check, ADR-008.)
-- Real average LLM calls/question for V4/V5 — unknown until Phase 4 prompts
-  exist. Measure on a 20–50 question dev slice before locking the grid scale
-  (`docs/04_EVALUATION.md` §0.2's 3× concurrency speedup is also still a
-  planning estimate, not measured — Phase 6 replaces it).
-- **BM25 may be under-tuned, which would unfairly weaken B2/V2 in the
-  ablation.** Published BEIR baselines put Anserini BM25 on NFCorpus around
-  nDCG@10 ≈ 0.32; this build got 0.2929. Likely causes: `rank_bm25` defaults
-  (k1=1.5, b=0.75) vs. BEIR's (k1=0.9, b=0.4), no stemming/stopword removal,
-  chunking short NFCorpus documents disturbing length normalisation. Not a
-  Phase 1 blocker (the gate was about fusion plumbing), but a reviewer will
-  notice a lexical baseline below the published number, and every
-  BM25-inclusive variant's ablation row depends on it being fairly
-  represented. Fix or explicitly justify before Phase 7 runs.
-- If V1 (dense-only) matches/beats hybrid or agent variants on MedQA
-  downstream accuracy in Phase 7, report that honestly (ADR-012) — don't
-  retune fusion or KG retrieval until it "wins."
-- `kg_rerank`'s tied primary metric (ADR-018) was measured at n=200 — worth
-  re-testing at a larger n (e.g. as part of Phase 7's grid, where it would
-  earn its own ablation row) rather than assumed settled either way.
-- Full-scope KG novelty scoring (all ~38 triples/question × 12 passages,
-  currently a disclosed 10-triple subset per ADR-016) and a paraphrase-aware
-  relevance check (currently exact-substring) are legitimate follow-ups if
-  the C1 figure needs to be tightened for the paper.
+See `docs/SCHEDULE.md` — hard deadline Saturday 2026-09-12, day-by-day plan,
+accepted scope cuts (MedQA-only grid, 5 cells not 8×3×3, RAGAS dropped,
+minimal Phase 6 harness). Today (Mon 7) was the audit-remediation day on that
+schedule. **Next: `/phase 5`** — calibration, ranked output, ECE, p-vectors
+persisted, fit on `pqa_labeled` dev per ADR-026.
+
+## Standing rules
+
+- Per ADR-012/018/025/027: a result that undercuts a contribution is
+  reported, not engineered around — including naming a deviation from a
+  pre-registered decision rule when one happens (ADR-027).
+- n=20 dev numbers are plumbing checks. No "A beats B" claims until Phase 7.
+- Never select a hyper-parameter, threshold, or ablation decision by reading
+  the split Phase 7 reports on (ADR-027 is what happens when this rule is
+  violated and later caught).

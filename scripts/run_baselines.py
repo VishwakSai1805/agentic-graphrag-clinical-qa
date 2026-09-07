@@ -31,9 +31,10 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
 
 import torch  # noqa: E402
-from src.eval.baselines import BASELINES, Prediction, run_baseline  # noqa: E402
 
 from src.config import load_config  # noqa: E402
+from src.eval.baselines import BASELINES, Prediction, run_baseline  # noqa: E402
+from src.eval.contamination import medqa_overlap_check  # noqa: E402
 from src.eval.metrics import accuracy, macro_f1  # noqa: E402
 from src.eval.results import make_run_id, write_run  # noqa: E402
 from src.kg.dataset_questions import Question, load_question_sample  # noqa: E402
@@ -81,23 +82,50 @@ def gold_option(q: Question) -> str:
     raise NotImplementedError(f"gold_option not implemented for dataset {q.dataset!r}")
 
 
-def contamination_assertion(dataset: str) -> dict:
-    """Phase 3 runs MedQA only; MedQA has no source-abstract contamination
-    vector (the Phase 1 blocklist is PubMedQA-specific -- src/eval/contamination.py).
-    Recorded explicitly rather than skipped (CLAUDE.md: assert in code, log the result)."""
-    if dataset == "medqa":
+def contamination_assertion(dataset: str, questions: list[Question], pipeline) -> dict:
+    """Run a REAL contamination check and return its executed outcome.
+
+    AUDIT 2026-09-06 §3.2: this function previously returned a literal
+    `{"checked": True, "applies": False, ...}` dict for MedQA without executing
+    anything, and that unearned `checked: true` was written into every
+    `results/medqa_B*/metrics.json` while `docs/04_EVALUATION.md` listed
+    "contamination assertion passed" as a precondition for believing the
+    results. CLAUDE.md §2 requires the assertion to run in code.
+
+    MedQA genuinely has no source-abstract blocklist (`blocklisted_pmids`
+    raises for it by design), but the corpus does contain the 18 USMLE
+    textbooks the items were written from (ADR-009). So the executed check is
+    a stem-vs-retrieved-chunk verbatim n-gram overlap measurement
+    (`src.eval.contamination.medqa_overlap_check`) over the real retrieval
+    path, reported as a distribution. `checked`/`applies` come from that
+    outcome. Without a retrieval pipeline (a B0-only run) nothing can be
+    retrieved to compare against, and that is recorded as `checked: false`
+    rather than being passed off as a clean check.
+    """
+    if dataset != "medqa":
         return {
-            "checked": True,
-            "applies": False,
-            "note": "MedQA questions are not generated from indexed corpus docs; "
-            "the PubMedQA test-PMID blocklist (src/eval/contamination.py) does not apply. "
-            "MedQA textbooks are in the corpus by design (ADR-009), not a leak.",
+            "checked": False,
+            "applies": True,
+            "note": f"contamination check for {dataset} not wired in Phase 3",
         }
-    return {
-        "checked": False,
-        "applies": True,
-        "note": f"contamination check for {dataset} not wired in Phase 3",
-    }
+    if pipeline is None:
+        return {
+            "checked": False,
+            "applies": True,
+            "note": "no retrieval pipeline loaded (B0-only run): there are no retrieved "
+            "chunks to measure question-stem overlap against, so no MedQA contamination "
+            "check was executed for this run.",
+        }
+    top_k = pipeline.cfg.retrieval.top_k_rerank
+    stems_and_chunks: list[tuple[str, list[str]]] = []
+    for q in questions:
+        bundle = pipeline.build_bundle(
+            q.question, q.options or {}, dataset=dataset, question_id=q.question_id
+        )
+        stems_and_chunks.append((q.question, [e.text for e in bundle.passages]))
+    result = medqa_overlap_check(stems_and_chunks)
+    result["retrieved_passages_per_question"] = top_k
+    return result
 
 
 def summarise(preds: list[Prediction], baseline: str) -> dict:
@@ -175,7 +203,16 @@ def main() -> None:
             cfg, dense=dense, bm25=bm25, reranker=reranker, corpus_path=CORPUS_PATH
         )
 
-    contam = contamination_assertion(args.dataset)
+    contam = contamination_assertion(args.dataset, questions, pipeline)
+    print(
+        f"[run_baselines] contamination check: checked={contam['checked']} "
+        f"applies={contam['applies']}"
+        + (
+            f" max_overlap={contam['max_overlap']:.3f} n_flagged={contam['n_flagged']}"
+            if contam.get("checked")
+            else ""
+        )
+    )
 
     for baseline in requested:
         tracker = StatsTracker()

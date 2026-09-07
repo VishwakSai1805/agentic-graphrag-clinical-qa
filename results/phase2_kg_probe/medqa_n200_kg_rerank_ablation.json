@@ -143,5 +143,8 @@
     },
     "n_resamples": 10000,
     "seed": 42
-  }
+  },
+  "superseded": true,
+  "superseded_by": "medqa_train_n500_kg_rerank_ablation.json",
+  "superseded_reason": "Run on the MedQA TEST split, which Phase 7 reports on (AUDIT 2026-09-06 \u00a73.1). Every Phase 2 KG decision it originally supported (ADR-015/016/017/018) has been re-derived from the train-500 probe named in superseded_by. Retained as provenance and disclosed in docs/00_RESEARCH_SPEC.md \u00a77; must NOT be cited as the basis of any hyper-parameter or keep/drop decision, and must not be reported as a Phase 2 result."
 }

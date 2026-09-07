@@ -175,76 +175,134 @@ as such.
 
 ### 5.3 Phase 2 KG-layer validation (real numbers, NOT part of the ablation grid)
 
-Reproduce via `python -m scripts.kg_probe --dataset medqa --limit 200`,
+**Split correction (2026-09-07, ADR-027 / AUDIT 2026-09-06 §3.1).** The numbers
+in this section were originally measured on the MedQA **test** split — the split
+Phase 7 reports on — and the Phase 2 design decisions were made by reading them.
+Every figure below has been **re-measured on a 500-question MedQA *train* slice**
+and is the train figure. The superseded test-split artifacts
+(`medqa_n200.json`, `medqa_n500.json` and the two `kg_rerank` files) are retained
+in `results/phase2_kg_probe/` carrying `superseded: true`, and must not be cited.
+
+Reproduce via:
+
+```bash
+python -m scripts.kg_probe --dataset medqa --split train --limit 500 \
+    --out results/phase2_kg_probe/medqa_train_n500.json
+```
+
 reading real PrimeKG data cached under `data/processed/kg_cache/medqa/`
 (Neo4j not required — cache-first per ADR-007). Full artifact:
-`results/phase2_kg_probe/medqa_n200.json`. See ADR-014, ADR-015, ADR-016,
-ADR-017 for complete context; this table is the numeric summary only.
+`results/phase2_kg_probe/medqa_train_n500.json` (n=500, 0 cache misses, seed 42).
+See ADR-014, ADR-015, ADR-016, ADR-017 and ADR-027 for complete context; this
+table is the numeric summary only.
 
 Numbers below use the final, seeded-random triple-selection measurement
 (superseding an earlier alphabetical-selection pass whose bias ADR-016
-documents and quantifies — the effect on the headline metric was small,
-0.4078→0.4063, but the fix matters methodologically).
+documents and quantifies).
 
-| Metric | Value | Reading |
+| Metric | Value (train n=500) | Reading |
 |---|---|---|
-| `aggregate_hit_rate` (question-level) | 0.960 | Clears the roadmap's ≥0.60 floor, but see the next row before citing this as coverage |
-| `entity_level_mapping_rate` | 0.1122 | The real per-entity PrimeKG resolution rate — read together with the row above, never alone |
-| `naive_expected_hit_rate_under_independence` | 0.9998 | At ~74 linked entities/question and 11.22% per-entity mapping, a question-level hit is arithmetically near-certain — the 0.960 above is this artifact, not evidence PrimeKG covers 96% of MedQA content |
-| `overall_novel_relation_rate` (vs. real 12-item `EvidenceBundle`) | 0.9016 | Fraction of scored KG triples not entailed by top-12 dense passages (corrected from an initial, wrong top-3 measurement — see ADR-016) |
-| `overall_relevant_rate` | 0.4734 | Fraction of scored triples mentioning an entity the question/options are about |
-| **`overall_novel_and_relevant_rate`** | **0.4063** | **The actual C1 evidence figure** — on-topic *and* not already in dense passages. Middling, not strong; bottlenecked by retrieval precision (only ~47% relevant), not by redundancy with dense retrieval |
-| `overall_novel_given_relevant_rate` | 0.8581 | Conditional on relevance, KG evidence is usually novel — the encouraging half of the finding |
-| `unmapped_cui.unmapped_rate` | 0.8878 | 13,129/14,789 linked entities have no PrimeKG crosswalk hit (ADR-014: disease/phenotype via real ontology xrefs, drug/gene via name-match only) |
-| Per-question triples (post ADR-015 cap) | median 40.0, mean 38.4 (n=200) | 192/200 questions (96%) saturate the 40-triple cap — the cap is the normal case, not a backstop |
-| PrimeKG raw edges vs. loaded | 8,100,498 raw rows (~4.05M unique undirected edges) → 740,674 loaded (9.1%) | Deliberate 7-item allowlist filter, not an incomplete load — see ADR-014 |
+| `aggregate_hit_rate` (question-level) | 0.9540 | Clears the roadmap's ≥0.60 floor, but see the next two rows before citing this as coverage |
+| `entity_level_mapping_rate` | 0.1158 | The real per-entity PrimeKG resolution rate — read together with the row above, never alone |
+| `naive_expected_hit_rate_under_independence` | 0.9999 | At 75.17 linked entities/question and 11.58% per-entity mapping, a question-level hit is arithmetically near-certain — and this expectation *exceeds* the 0.9540 observed. The question-level rate is that artifact, not evidence PrimeKG covers 95% of MedQA content. This is contribution **C5** (`docs/00_RESEARCH_SPEC.md` §3) |
+| `overall_novel_relation_rate` (vs. real 12-item `EvidenceBundle`) | 0.9019 | Fraction of scored KG triples not entailed by top-12 dense passages (corrected from an initial, wrong top-3 measurement — see ADR-016) |
+| `overall_relevant_rate` | 0.4744 | Fraction of scored triples mentioning an entity the question/options are about |
+| **`overall_novel_and_relevant_rate`** | **0.4237** | **The actual C1 evidence figure** — on-topic *and* not already in dense passages. Middling, not strong; bottlenecked by retrieval precision (only ~47% relevant), not by redundancy with dense retrieval |
+| `overall_novel_given_relevant_rate` | 0.8931 | Conditional on relevance, KG evidence is usually novel — the encouraging half of the finding |
+| `unmapped_cui.unmapped_rate` | 0.8842 | 33,231/37,584 linked entities have no PrimeKG crosswalk hit, over 6,852 distinct unmapped CUIs (ADR-014: disease/phenotype via real ontology xrefs, drug/gene via name-match only) |
+| Per-question triples (post ADR-015 cap) | median 40.0, mean 38.1 (n=500) | 476/500 questions (95.2%) saturate the 40-triple cap — the cap is the normal case, not a backstop. 23 questions yield zero triples |
+| PrimeKG raw edges vs. loaded | 8,100,498 raw rows (~4.05M unique undirected edges) → 740,674 loaded (9.1%) | Deliberate 7-item allowlist filter, not an incomplete load — see ADR-014 (corpus/index provenance, traced to `data/MANIFEST.json`) |
 
-Per-category breakdown (`n` shown per this phase's stated discipline; `anatomy`
-n=8 is below `MIN_CATEGORY_N_FOR_RATE=15` and its rates are suppressed —
-see ADR-017):
+Per-category breakdown (`n` shown per this phase's stated discipline;
+`MIN_CATEGORY_N_FOR_RATE=15` — at n=500 every category clears it, including
+`anatomy`, whose rates were suppressed at n=8 on the old test slice — see
+ADR-017):
 
 | Category | n | hit_rate | novel_and_relevant_rate |
 |---|---|---|---|
-| pharmacology | 39 | 1.000 | 0.556 |
-| pathology_diagnosis | 43 | 1.000 | 0.416 |
-| treatment_management | 48 | 0.979 | 0.381 |
-| physiology | 22 | 0.909 | 0.355 |
-| other | 40 | 0.875 | 0.277 |
-| anatomy | 8 | *suppressed (n<15)* | *suppressed (n<15)* |
+| pharmacology | 127 | 0.976 | 0.483 |
+| pathology_diagnosis | 116 | 0.991 | 0.392 |
+| treatment_management | 101 | 0.931 | 0.413 |
+| other | 92 | 0.913 | 0.365 |
+| physiology | 41 | 0.976 | 0.425 |
+| anatomy | 23 | 0.870 | 0.530 |
 
-**KG triple reranking ablation (`kg_rerank`, ADR-018) — a measured result, not
-a shipped default.** Reusing the Phase 1 MedCPT cross-encoder
+**KG triple reranking ablation (`kg_rerank`, ADR-018 → re-decided in ADR-027) —
+the verdict flipped at n=500.** Reusing the Phase 1 MedCPT cross-encoder
 (`src/retrieval/rerank.py`) to select which triples survive the ADR-015
 40-triple cap (instead of raw traversal order) was tested as an off-by-default
-config flag on the same 200 MedQA questions, with a real paired-bootstrap
-significance check (10k resamples, paired by `question_id`, n=192) per
-CLAUDE.md's "never claim A beats B from a raw mean alone" rule:
+config flag, with a real paired-bootstrap significance check (10k resamples,
+seed 42, paired by `question_id`, n_paired=477, n_excluded=23 zero-triple
+questions excluded identically in both variants) per CLAUDE.md's "never claim A
+beats B from a raw mean alone" rule. Artifact:
+`results/phase2_kg_probe/medqa_train_n500_kg_rerank_ablation.json`.
 
-| Metric | naive | kg_rerank | Paired 95% CI | Verdict |
-|---|---|---|---|---|
-| `overall_relevant_rate` | 0.4734 | 0.5276 | [+0.0026, +0.1052] | **significant win** (narrow — CI lower bound close to 0) |
-| `overall_novel_and_relevant_rate` (primary) | 0.4063 | 0.4443 | [−0.0125, +0.0875] | **tie** (CI includes 0) |
+| Metric | naive | kg_rerank | Paired 95% CI | p (two-sided) | Holm survives (m=2) | Verdict (train n=500) | was (test n=200) |
+|---|---|---|---|---|---|---|---|
+| `relevant_rate_for_question` (secondary) | 0.4744 | 0.5296 | [+0.0203, +0.0889] | 0.0026 | **yes** (rank 1, threshold 0.025) | **significant win** | marginal win |
+| `novel_and_relevant_rate_for_question` (**primary**) | 0.4237 | 0.4604 | **[+0.0044, +0.0681]** | 0.0256 | **yes** (rank 2, threshold 0.050) | **significant win** | **tie** |
 
-The primary C1 evidence metric does not clear significance at n=200 — this
-is reported as a tie, not as "reranking helps," exactly per the ADR-012
-precedent. `kg_rerank` ships implemented and tested but **off by default**;
-re-testing at a larger n (e.g. Phase 7's ablation grid) is the natural
-follow-up, not further tuning of this n=200 result.
+At n=200 the primary metric was a tie and was reported as one. At n=500 on a
+clean split it clears significance, exactly as ADR-018 anticipated when it
+pre-committed to re-deciding at larger n. The primary CI's lower bound is
++0.0044 — one-tenth of the point estimate — so this is applied and reported as
+a Holm-Bonferroni-corrected result for the 2-metric family
+(`src.retrieval.metrics.paired_bootstrap_p` + `holm_bonferroni`, AUDIT §6.8),
+not deferred to the grid-wide multiplicity discipline still pending for Phase 7
+(§6.7). **Both metrics survive the correction.** This is not a coincidence to
+skate past: with exactly 2 comparisons, Holm only tightens the *smaller*
+p-value's threshold (secondary, tested at α/2 = 0.025); the *larger* p-value
+(primary) is tested at the same threshold as the uncorrected case, α = 0.05,
+because it is last in the step-down chain — so the primary's significance here
+is genuinely robust to this correction, not narrowly surviving it. It remains a
+*marginal* win in effect size (CI lower bound close to zero) even though it is
+not marginal in significance. See ADR-027 for the full computation and for the
+**pre-registration deviation** this ADR records: ADR-018's rule said adopt on a
+cleared verdict, and this decision does not adopt — `kg_rerank` remains **off
+by default**, because the metric that moved is an intermediate evidence-quality
+proxy and no run yet shows it moving a downstream metric. The Phase 7
+`kg_rerank` grid row is what actually settles whether that caution was
+warranted.
 
-**The honest position going into Phase 3, per ADR-016 and ADR-018:** Phase 2's
-infrastructure is real and correct (verified PrimeKG source, real Neo4j
+**The honest position going into Phase 3, per ADR-016, ADR-018 and ADR-027:**
+Phase 2's infrastructure is real and correct (verified PrimeKG source, real Neo4j
 load, cache-first reproducibility confirmed byte-for-byte). But **the KG
 modality's marginal value over dense retrieval is not yet established** — the
-widely-visible 96% hit rate is an arithmetic artifact of entity fan-out, the
-defensible C1 evidence figure (`novel_and_relevant_rate = 0.4063`) is
-real but middling, limited primarily by retrieval precision (hub-node noise,
-ADR-015) and partial entity crosswalk coverage (ADR-014), not by redundancy
-with dense passages. This is not a result to soften before Phase 3.
+widely-visible ~95% hit rate is an arithmetic artifact of entity fan-out, and the
+defensible C1 evidence figure (`novel_and_relevant_rate = 0.4237`) is real but
+middling, limited primarily by retrieval precision (hub-node noise, ADR-015) and
+partial entity crosswalk coverage (ADR-014), not by redundancy with dense
+passages. Reranking measurably improves triple *selection* without yet being
+shown to improve anything downstream. This is not a result to soften before
+Phase 3.
 
 ### 5.4 Phase 3 baseline plumbing check (dev slice, n=20 — NOT a grid result)
 
 Real numbers from `scripts/run_baselines.py --dataset medqa --split train
---limit 20` (seed 42), stored under `results/medqa_B{0,1,2,3}_<sha>_<ts>/`.
+--limit 20` (seed 42). The four runs the table below reports are, exactly
+(AUDIT 2026-09-06 §6.2 — no wildcard timestamp, because two committed batches
+share the SHA `d5e3af5` and only one is valid):
+
+- `results/medqa_B0_d5e3af5_20260906T101125Z/`
+- `results/medqa_B1_d5e3af5_20260906T101242Z/`
+- `results/medqa_B2_d5e3af5_20260906T101648Z/`
+- `results/medqa_B3_d5e3af5_20260906T102134Z/`
+
+The earlier `~0954–1006Z` batch at the same SHA (`…T095449Z`, `…T095549Z`,
+`…T095935Z`, `…T100551Z`) is the pre-`num_ctx`-fix batch. It is **not**
+deleted — it is the context-window sensitivity comparator used below and in
+ADR-021 — but each of its four `metrics.json` files now carries
+`superseded: true` with a `superseded_reason` and a `superseded_by` run id,
+stamped by `scripts/mark_superseded.py --preset phase3-num-ctx`, so no reader
+and no report script can tabulate it as a headline result by mistake.
+
+Caveat on the recorded SHA: all eight runs were produced from an uncommitted
+worktree, so `d5e3af5` does not identify the code that produced them (AUDIT
+§6.1 — `src/eval/baselines.py` does not exist at that SHA). `src/eval/results.py`
+now stamps `<sha7>-dirty` plus a `git_diff_sha256` for any run made from a dirty
+tree; the eight runs above predate that fix and their SHA must be read as
+"approximately, the tree around `d5e3af5`", not as a checkout target.
+
 This is the Phase 3 exit test: it certifies that query → tri-modal
 `EvidenceBundle` → answer → grounded citations runs end-to-end for all four
 baselines. It is **not** a QA-accuracy result — n=20, a dev (train-split)
@@ -261,18 +319,45 @@ slice, single-seed, no significance test, no "A beats B" claim. The §5 grid
 † position-bias check, not a skill metric on 4-option MCQ (ADR-020).
 ‡ B0 runs no retrieval — ungrounded by construction, not a failure (ADR-020).
 
-**B3 diagnostic (the useful number):** `verifier_decision_rate = 0.05` — the
-binary verifier returned exactly one SUPPORTED option on only 1/20 questions;
-`n_supported` distribution `{0: 15, 1: 1, 2: 4}`. So B3 fell back to B2-style
-generation 19/20 times, which is why B3 ≡ B2 here. A near-zero verifier
-decision rate is **direct empirical evidence for the binary bottleneck C2
-targets** (a per-option yes/no verifier cannot rank competing options), to be
-re-measured at scale in Phase 7. See ADR-020.
+**B3 diagnostic (the useful number), reported under both context conditions.**
+`verifier_decision_rate = 0.05` in *both* runs — the binary verifier isolated
+exactly one SUPPORTED option on 1/20 questions at `num_ctx=4096` and on 1/20
+questions at `num_ctx=8192`. What changes between them is only the *direction*
+in which it fails:
 
-**Recorded per ADR-021:** an earlier run at Ollama's default 4096-token
-context silently truncated the KG-triple block (appended last) and collapsed
-B2/B3 to Acc 0.15 with 12/20 parse errors. The table above is post-fix
-(`llm.num_ctx = 8192` + a hard `LLMContextBudgetError` guard).
+| Run | `num_ctx` | `n_supported` distribution | exactly-one | `verifier_decision_rate` | failure direction |
+|---|---|---|---|---|---|
+| `medqa_B3_d5e3af5_20260906T100551Z` (superseded) | 4096 | `{0: 7, 1: 1, 3: 2, 4: 10}` | 1/20 | **0.05** | over-admits — 10/20 questions have *all four* options SUPPORTED |
+| `medqa_B3_d5e3af5_20260906T102134Z` (reported) | 8192 | `{0: 15, 1: 1, 2: 4}` | 1/20 | **0.05** | over-rejects — 15/20 questions have *no* option SUPPORTED |
+
+Both distributions are traceable to the `n_supported_distribution` and
+`verifier_decision_rate` keys of the two `metrics.json` files named above.
+
+Read correctly, this is a **stronger** result than the single-run version, not a
+weaker one. The decision rate is not a fragile 0.05 that happened to fall out of
+one context setting: under a perturbation that inverts the verifier's entire
+error mode — from admitting everything to admitting nothing — the rate at which
+it isolates a single option is *invariant at 1/20*. A per-option yes/no verifier
+does not rank competing options; it saturates at one end or the other, and which
+end it saturates at is an artifact of how much evidence fits in the window. That
+is **direct empirical evidence for the binary bottleneck C2 targets**, and the
+invariance across the two conditions is what makes it evidence rather than a
+single-point coincidence. To be re-measured at scale in Phase 7. See ADR-020.
+
+Two limits stand regardless: n=20 single-seed (so 1/20 carries a wide interval),
+and the prompt-sensitivity check — B3 under a neutral and a permissive verifier
+phrasing — has **not** been run (AUDIT §4.1, deferred to the pre-Phase-7 batch;
+`docs/02_ROADMAP.md`). Until it has, this result is stated as robust to the
+context window, not to prompt wording.
+
+**Recorded per ADR-021:** the 4096-token batch was Ollama's default context,
+which silently truncated the KG-triple block (appended last) and collapsed
+B2/B3 to Acc 0.15 with 12/20 parse errors. The main table above is post-fix
+(`llm.num_ctx = 8192` + a hard `LLMContextBudgetError` guard). ADR-021 also
+records the no-op perturbation floor measured from the same pair of batches:
+B0, which does no retrieval and is therefore *unaffected* by the context fix,
+still flips one of 20 answers between them — so a 1/20 (0.05) accuracy delta
+across these two batches is inside the noise floor and is not read as an effect.
 
 ### 5.5 Phase 4 multi-agent consensus plumbing check (dev slice, n=20 — NOT a grid result)
 

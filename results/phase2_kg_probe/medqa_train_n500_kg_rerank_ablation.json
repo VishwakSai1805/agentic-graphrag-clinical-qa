@@ -1,0 +1,156 @@
+{
+  "category_breakdown": {
+    "anatomy": {
+      "delta_novel_and_relevant_rate": -0.025000000000000022,
+      "kg_rerank_novel_and_relevant_rate": 0.505,
+      "n_kg_rerank": 23,
+      "n_naive": 23,
+      "naive_novel_and_relevant_rate": 0.53
+    },
+    "other": {
+      "delta_novel_and_relevant_rate": 0.02261904761904765,
+      "kg_rerank_novel_and_relevant_rate": 0.3880952380952381,
+      "n_kg_rerank": 92,
+      "n_naive": 92,
+      "naive_novel_and_relevant_rate": 0.36547619047619045
+    },
+    "pathology_diagnosis": {
+      "delta_novel_and_relevant_rate": 0.026956521739130435,
+      "kg_rerank_novel_and_relevant_rate": 0.4191304347826087,
+      "n_kg_rerank": 116,
+      "n_naive": 116,
+      "naive_novel_and_relevant_rate": 0.39217391304347826
+    },
+    "pharmacology": {
+      "delta_novel_and_relevant_rate": 0.07338709677419347,
+      "kg_rerank_novel_and_relevant_rate": 0.5564516129032258,
+      "n_kg_rerank": 127,
+      "n_naive": 127,
+      "naive_novel_and_relevant_rate": 0.4830645161290323
+    },
+    "physiology": {
+      "delta_novel_and_relevant_rate": 0.012500000000000011,
+      "kg_rerank_novel_and_relevant_rate": 0.4375,
+      "n_kg_rerank": 41,
+      "n_naive": 41,
+      "naive_novel_and_relevant_rate": 0.425
+    },
+    "treatment_management": {
+      "delta_novel_and_relevant_rate": 0.036170212765957444,
+      "kg_rerank_novel_and_relevant_rate": 0.44893617021276594,
+      "n_kg_rerank": 101,
+      "n_naive": 101,
+      "naive_novel_and_relevant_rate": 0.4127659574468085
+    }
+  },
+  "generated_at_utc": "2026-09-07T08:44:10.985929+00:00",
+  "kg_rerank_config": {
+    "cache_dir": "data\\processed\\kg_cache_kg_rerank",
+    "kg_degree_cap": 200,
+    "kg_edge_allowlist": [
+      "indication",
+      "contraindication",
+      "off-label use",
+      "disease_phenotype_positive",
+      "disease_protein",
+      "drug_effect",
+      "disease_disease"
+    ],
+    "kg_linker_threshold": 0.85,
+    "kg_max_hops": 2,
+    "kg_max_triples_per_question": 40,
+    "novelty_entailment_threshold": 0.5,
+    "novelty_max_triples_scored_per_question": 10,
+    "novelty_nli_model": "MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli",
+    "novelty_top_k_dense": 12,
+    "novelty_top_k_dense_source": "retrieval.top_k_rerank",
+    "novelty_triple_selection_method": "seeded random sample per question (seed derived from sha256(seed:question_id)), not the earlier deterministic alphabetical-first-N selection -- see ADR-016 addendum, 2026-09-05 follow-up",
+    "relevance_match_method": "case-insensitive substring match of triple head/tail against the question stem and each answer option's text"
+  },
+  "kg_rerank_n_questions": 500,
+  "kg_rerank_source_file": "results/phase2_kg_probe/medqa_train_n500_kg_rerank_variant.json",
+  "naive_config": {
+    "cache_dir": "data\\processed\\kg_cache",
+    "kg_degree_cap": 200,
+    "kg_edge_allowlist": [
+      "indication",
+      "contraindication",
+      "off-label use",
+      "disease_phenotype_positive",
+      "disease_protein",
+      "drug_effect",
+      "disease_disease"
+    ],
+    "kg_linker_threshold": 0.85,
+    "kg_max_hops": 2,
+    "kg_max_triples_per_question": 40,
+    "novelty_entailment_threshold": 0.5,
+    "novelty_max_triples_scored_per_question": 10,
+    "novelty_nli_model": "MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli",
+    "novelty_top_k_dense": 12,
+    "novelty_top_k_dense_source": "retrieval.top_k_rerank",
+    "novelty_triple_selection_method": "seeded random sample per question (seed derived from sha256(seed:question_id)), not the earlier deterministic alphabetical-first-N selection -- see ADR-016 addendum, 2026-09-05 follow-up",
+    "relevance_match_method": "case-insensitive substring match of triple head/tail against the question stem and each answer option's text"
+  },
+  "naive_n_questions": 500,
+  "naive_source_file": "results/phase2_kg_probe/medqa_train_n500.json",
+  "overall": {
+    "aggregate_hit_rate": {
+      "delta": 0.0,
+      "kg_rerank": 0.954,
+      "naive": 0.954
+    },
+    "overall_novel_and_relevant_rate": {
+      "delta": 0.0366876310272537,
+      "kg_rerank": 0.46037735849056605,
+      "naive": 0.42368972746331235
+    },
+    "overall_novel_given_relevant_rate": {
+      "delta": -0.023703636838829367,
+      "kg_rerank": 0.8693586698337292,
+      "naive": 0.8930623066725586
+    },
+    "overall_novel_relation_rate": {
+      "delta": -0.006079664570230681,
+      "kg_rerank": 0.8958071278825995,
+      "naive": 0.9018867924528302
+    },
+    "overall_relevant_rate": {
+      "delta": 0.05513626834381552,
+      "kg_rerank": 0.529559748427673,
+      "naive": 0.47442348008385743
+    }
+  },
+  "significance": {
+    "decision_rule": "ADR-012 (docs/05_DECISIONS.md): ci_lo > 0 -> significant_win, ci_hi < 0 -> significant_loss, otherwise -> tie (CI includes 0, not evidence of a difference).",
+    "metrics": {
+      "novel_and_relevant_rate_for_question": {
+        "ci_hi": 0.06813417190775674,
+        "ci_lo": 0.0044025157232704445,
+        "holm_rank": 2,
+        "holm_survives": true,
+        "holm_threshold": 0.05,
+        "mean_diff": 0.03668763102725369,
+        "n_excluded": 23,
+        "n_paired": 477,
+        "p": 0.0256,
+        "verdict": "significant_win"
+      },
+      "relevant_rate_for_question": {
+        "ci_hi": 0.0888888888888889,
+        "ci_lo": 0.020335429769392017,
+        "holm_rank": 1,
+        "holm_survives": true,
+        "holm_threshold": 0.025,
+        "mean_diff": 0.055136268343815485,
+        "n_excluded": 23,
+        "n_paired": 477,
+        "p": 0.0026,
+        "verdict": "significant_win"
+      }
+    },
+    "multiplicity_correction": "Holm-Bonferroni (src.retrieval.metrics.holm_bonferroni) across the 2 metrics in _SIGNIFICANCE_METRICS, alpha=0.05 (AUDIT 2026-09-06 \u00a76.8, ADR-027). `holm_survives=False` means the metric's uncorrected CI excludes 0 but it does not survive family-wise correction -- must then be reported as not significant, not as a win.",
+    "n_resamples": 10000,
+    "seed": 42
+  }
+}
