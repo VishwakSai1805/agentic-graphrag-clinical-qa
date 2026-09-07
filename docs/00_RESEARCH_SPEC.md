@@ -183,3 +183,14 @@ datasets are public and de-identified); clinical deployment claims.
 - LLM version drift → pin model ids and record them in every `config.yaml`.
 - PrimeKG coverage gaps for exam-style questions → report KG-hit rate per dataset.
 - Agent cost/latency → report tokens and wall-clock per question alongside accuracy.
+- **One NLI model judges two nominally independent results (AUDIT §3.5).**
+  `MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli` is both the
+  entailment judge behind the Phase 2 KG `novel_and_relevant_rate` (C1's
+  evidence figure) and the Phase 6 hallucination-rate judge (§3 / §5.7). A
+  systematic bias in that one model — e.g. under-entailing biomedical claims
+  that need an inferential step — propagates, correlated, into both. Phase 6's
+  §5.7 control (B2 vs V5 at the same threshold) partly addresses this for the
+  hallucination number by showing it is metric-driven not pipeline-driven; the
+  KG side has no equivalent control yet. State the shared-judge dependence
+  wherever either number is used, and do not present the two as independent
+  corroboration of the KG modality's (lack of) value.

@@ -22,6 +22,6 @@ V2 (`{dense,lexical}`) has never been run. The committed `medqa_B2_*` runs use `
 
 | variant | dataset | Acc | Macro-F1 | note | run_id |
 |---|---|---|---|---|---|
-| B2eq | medqa | 0.600 | 0.594 | B2 equal-budget (§5.5) | medqa_B2eq_aa73199-dirty_20260907T162956Z |
+| B2eq | medqa | 0.600 | 0.594 | B2 equal-budget (§5.5) | medqa_B2eq_79ee599-dirty_20260907T210514Z |
 | B3 | medqa | 0.650 | 0.613 | binary verifier (§5.4) | medqa_B3_d5e3af5_20260906T102134Z |
 | B3 | pubmedqa | 0.300 | 0.212 | binary verifier (§5.4) | pubmedqa_B3_aa73199-dirty_20260907T165909Z |

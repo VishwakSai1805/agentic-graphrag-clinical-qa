@@ -401,10 +401,16 @@ slice, single-seed, no significance test, no "A beats B" claim. The §5 grid
 | B0 zero-shot        | 0.55 | 0.52 | 0.00‡ | 0 | 20 ok |
 | B1 dense-only RAG   | 0.60 | 0.57 | 0.95 | 1 | 20 ok |
 | B2 hybrid (no agents)| 0.65 | 0.61 | 0.95 | 3 | 20 ok |
-| B3 binary verifier  | 0.65 | 0.61 | 0.95 | 3 | 20 ok |
+| B3 binary verifier§  | 0.65 | 0.61 | 0.95 | 3 | 20 ok |
 
 † position-bias check, not a skill metric on 4-option MCQ (ADR-020).
 ‡ B0 runs no retrieval — ungrounded by construction, not a failure (ADR-020).
+§ B3's answer vector is **identical to B2's on 19/20 questions by construction**
+(AUDIT §4.6): the verifier decides on only 1/20 (strict prompt), and on the
+other 19 it issues the byte-identical B2 generation call — `llm_cache_hits: 19`
+in `medqa_B3_d5e3af5_20260906T102134Z/metrics.json`. B3's 0.65 is B2's 0.65
+plus one verifier-decided question; the row is not an independent result and
+the diagnostic value is `verifier_decision_rate` (below), not accuracy.
 
 **B3 diagnostic — the `verifier_decision_rate` is robust to the context window
 but NOT to verifier phrasing (ADR-033, AUDIT §4.1).** The earlier framing
@@ -488,12 +494,12 @@ claim-level conflict fix.
 
 | Invariant / counter | Value |
 |---|---|
-| SupportMatrices emitted | 20/20 (+ per-node traces), 20 distinct |
+| SupportMatrices emitted | 20/20 (+ per-node traces) |
 | surviving cells citing a non-bundle id | **0** (exit-test invariant) |
 | RAW model citation hallucination (dropped at audit) | 6 cells = 5.3% of produced cells |
 | status | `ok` 19 · `insufficient_evidence` 1 |
 | `budget_exceeded` rate | 0.00 |
-| mean LLM calls / question | 5.8 (cap 12) · mean rounds 1.05 |
+| mean LLM calls / question | 5.75 (cap 12) · mean rounds 1.05 |
 | bundle mix | KG slot filled 17/20 · all-passage 3/20 |
 | audit cells | 108 (78 SUPPORT, 30 CONTRADICT); 61/80 options get a signal |
 

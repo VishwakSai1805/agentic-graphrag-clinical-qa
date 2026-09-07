@@ -33,7 +33,9 @@ These are correctness rules, not style preferences. Violating them invalidates
 the paper.
 
 - **Never fabricate a metric.** Every number that appears in a doc, table, chat
-  message or README must be traceable to a JSON file under `results/`. If a run
+  message or README must be traceable to a JSON file under `results/` — or, for
+  corpus / index / KG provenance only (doc & chunk counts, edge counts, cache
+  file counts), to `data/MANIFEST.json` (AUDIT 2026-09-06 §1.14). If a run
   hasn't happened, write `TBD`, not a plausible-looking figure.
 - **Every eval run is reproducible.** Seeded (`seed: 42` default), config-hashed,
   and written to `results/<run_id>/{config.yaml,predictions.jsonl,metrics.json}`.
