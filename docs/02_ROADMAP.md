@@ -138,11 +138,39 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done (add run_id/commit)
   conflict is claim-level, semantic-check-first (ADR-025, amends docs/01);
   CLI in `src/pipeline.py: main()` (CLAUDE.md §4). ADR-022…ADR-025.
 
-## Phase 5 — Evidential calibration & ranking  `[ ]`
-- `src/calibration/scoring.py` (logit assembly), `softmax_rank.py` (temperature scaling, ECE), `citations.py`
-- Fit α,β,γ,δ,T on a **dev** split only; freeze and record in the config
-- Abstention threshold τ + coverage/risk curve
-- **Exit test:** ECE on dev improves vs. raw LLM option log-probs; ranked output includes per-option citations for every question.
+## Phase 5 — Evidential calibration & ranking  `[x]` DONE 2026-09-07 (commit pending — see NEXT_SESSION.md)
+- `src/calibration/scoring.py` (logit assembly), `softmax_rank.py` (temperature
+  scaling + fitting — hand-rolled analytic-gradient Adam, not `scipy.optimize`,
+  which segfaults on bare import in this environment), `citations.py`. ECE
+  itself lives in `src/eval/metrics.py` per CLAUDE.md's file layout, not
+  `softmax_rank.py` — `ece()` (equal-width 15 bins for the Phase 7 grid,
+  equal-mass 5 bins for dev-scale runs) and `paired_bootstrap_ece_diff()`
+  (the ADR-012-style significance check for an ECE comparison).
+- Fit α,β,γ,δ,T on a **dev** split (MedQA train, 60 questions), disjoint by
+  construction from Phase 3/4's dev-20 (`load_question_sample_excluding`) —
+  **and disjoint from the 60-question held-out set the exit test is measured
+  on**, so the result is not circular. See ADR-028.
+- Abstention threshold τ + coverage/risk curve — computed on the held-out set
+  (`tau=0.5458` at a 10% target risk).
+- **Exit test result (real, not simulated):** calibrated ECE 0.0724 vs.
+  raw-logprob-baseline ECE 0.5418 on the same 60 held-out questions
+  (real per-token logprobs via `src.llm.client.chat(logprobs=True)`, same
+  EvidenceBundle as the agent pipeline saw); paired bootstrap (10k resamples,
+  seed 42) on the difference: **95% CI [−0.5426, −0.2826], entirely below
+  0 — calibrated significantly better, not a marginal call.** Ranked output
+  carries per-option citations for all 120 questions × 4 options. **PASSED.**
+  `results/phase5_calibration/medqa_dev_calibration.json`,
+  `results/phase5_calibration/medqa_raw_logprob_baseline.json`,
+  `results/medqa_V4_a714fe0-dirty_20260907T121703Z/`.
+- **Not established by this result:** any comparison to B2/B3 (§4.3's budget
+  asymmetry is still unfixed) or to Phase 4's uncalibrated rank-1-by-support
+  (0.267 calibrated vs 0.35 uncalibrated — reported, not explained away; small-n
+  fit on a disjoint slice, not a controlled ablation of the same questions).
+- **Gamma (KG-evidence weight) is unidentifiable, confirmed from a second
+  direction.** 12/626 cells (1.9%) on this slice are KG-modality SUPPORT
+  cells, reproducing §5.5 Finding 2 (1/108) at n=120. A 200-resample bootstrap
+  gives gamma std=0.234 (>3x alpha's 0.072) with an interval spanning
+  [−0.40, +0.66] — consistent with zero. See ADR-028.
 
 ## Phase 6 — Evaluation harness  `[ ]`
 - `src/eval/harness.py` (parallel, resumable, cached), `metrics.py` (Acc, Macro-F1, P@K, MRR, ECE), `ragas_eval.py`, `nli.py`

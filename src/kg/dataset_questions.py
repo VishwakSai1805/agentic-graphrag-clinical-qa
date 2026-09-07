@@ -233,6 +233,37 @@ def load_question_sample(
     return [_to_question(dataset, split, idx, rows[idx]) for idx in idxs]
 
 
+def load_question_sample_excluding(
+    dataset: str, split: str, limit: int, seed: int, exclude_ids: set[str]
+) -> list[Question]:
+    """Like `load_question_sample`, but draws only from rows whose
+    `question_id` is not in `exclude_ids` -- guarantees disjointness from an
+    earlier sample (e.g. Phase 5's calibration slice must not overlap Phase
+    3/4's dev-20) BY CONSTRUCTION.
+
+    This does NOT reduce to calling `load_question_sample` with a bigger
+    `limit` and assuming the smaller sample nests inside it: `random.sample`
+    with a fixed seed but a different `k` draws a genuinely different
+    sequence internally, so `sample(range(n), 20)` is not a subset of
+    `sample(range(n), 120)` at the same seed in general. Excluding by
+    resolved `question_id` (not by index arithmetic on the RNG call
+    sequence) is the only way to make the guarantee hold regardless of how
+    the excluded sample was itself produced -- the same principle
+    `_load_pubmedqa_dev_sample` already uses for test/dev disjointness,
+    applied here by id instead of by index set."""
+    rows = _iter_raw_rows(dataset, split)
+    candidate_idxs = [
+        i
+        for i in range(len(rows))
+        if _to_question(dataset, split, i, rows[i]).question_id not in exclude_ids
+    ]
+    if limit >= len(candidate_idxs):
+        idxs = candidate_idxs
+    else:
+        idxs = sorted(random.Random(seed).sample(candidate_idxs, limit))
+    return [_to_question(dataset, split, idx, rows[idx]) for idx in idxs]
+
+
 def _load_pubmedqa_dev_sample(limit: int | None, seed: int) -> list[Question]:
     """The 500-question complement of pubmedqa's "test" split (see the note
     above `_PUBMEDQA_LABELED_PARTITION_SIZE`), both drawn from the same

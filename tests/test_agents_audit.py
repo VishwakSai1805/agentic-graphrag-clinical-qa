@@ -148,6 +148,58 @@ def test_kg_source_rank(monkeypatch, evidence):
     assert res.cells[0].source_rank == 0  # kg has highest precedence
 
 
+def test_cell_records_modality_and_rerank_score_from_the_cited_evidence(monkeypatch):
+    """Phase 5 (src/calibration/scoring.py) reads modality/rerank_score
+    straight off SupportCell -- this pins that run_audit populates them from
+    the actual cited Evidence object, not a default."""
+    scored_evidence = [
+        Evidence(
+            id="kg::asthma|treats|albuterol",
+            modality="kg",
+            text="Albuterol is indicated for asthma.",
+            source_meta={},
+            scores={"rerank": 0.87},
+        ),
+    ]
+    chat_obj = ScriptedChat(
+        _cells(
+            {
+                "claim_idx": 0,
+                "evidence_id": "kg::asthma|treats|albuterol",
+                "label": "SUPPORT",
+                "rationale": "KG indication edge.",
+            }
+        )
+    )
+    _patch(monkeypatch, chat_obj)
+
+    res = run_audit("A", "opt", ["c0"], scored_evidence, cfg=CFG)
+
+    assert len(res.cells) == 1
+    assert res.cells[0].modality == "kg"
+    assert res.cells[0].rerank_score == pytest.approx(0.87)
+
+
+def test_cell_rerank_score_defaults_to_zero_when_absent(monkeypatch, evidence):
+    """`evidence` fixture's items carry empty `scores` dicts."""
+    chat_obj = ScriptedChat(
+        _cells(
+            {
+                "claim_idx": 0,
+                "evidence_id": "chunk::tb001#5",
+                "label": "SUPPORT",
+                "rationale": "Textbook support.",
+            }
+        )
+    )
+    _patch(monkeypatch, chat_obj)
+
+    res = run_audit("A", "opt", ["c0"], evidence, cfg=CFG)
+
+    assert res.cells[0].modality == "dense"
+    assert res.cells[0].rerank_score == 0.0
+
+
 def test_bracketed_id_is_normalized_and_kept(monkeypatch, evidence):
     chat_obj = ScriptedChat(
         _cells(

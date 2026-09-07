@@ -1,0 +1,2381 @@
+{
+  "dataset": "medqa",
+  "ece": {
+    "fit": {
+      "binning": "equal_mass",
+      "bins": [
+        {
+          "acc_mean": 0.3333333333333333,
+          "bin_hi": 0.6292883750216713,
+          "bin_lo": 0.4995896270467435,
+          "conf_mean": 0.5625173134002929,
+          "n": 12
+        },
+        {
+          "acc_mean": 0.3333333333333333,
+          "bin_hi": 0.8027641329687597,
+          "bin_lo": 0.6372118944222536,
+          "conf_mean": 0.7328604115328484,
+          "n": 12
+        },
+        {
+          "acc_mean": 0.25,
+          "bin_hi": 0.8690939049560045,
+          "bin_lo": 0.8086322631029038,
+          "conf_mean": 0.8382381772902799,
+          "n": 12
+        },
+        {
+          "acc_mean": 0.4166666666666667,
+          "bin_hi": 0.9398123957430884,
+          "bin_lo": 0.8734828292303122,
+          "conf_mean": 0.909121666800916,
+          "n": 12
+        },
+        {
+          "acc_mean": 0.16666666666666666,
+          "bin_hi": 0.9999730914954009,
+          "bin_lo": 0.9408056943716868,
+          "conf_mean": 0.9626819102599731,
+          "n": 12
+        }
+      ],
+      "ece": 0.5010838958568621,
+      "n": 60,
+      "n_bins": 5
+    },
+    "held_out": {
+      "binning": "equal_mass",
+      "bins": [
+        {
+          "acc_mean": 0.3333333333333333,
+          "bin_hi": 0.6657885883526398,
+          "bin_lo": 0.4281932559742298,
+          "conf_mean": 0.5493551942893291,
+          "n": 12
+        },
+        {
+          "acc_mean": 0.4166666666666667,
+          "bin_hi": 0.8386526468995074,
+          "bin_lo": 0.6685120595433965,
+          "conf_mean": 0.7649122459702083,
+          "n": 12
+        },
+        {
+          "acc_mean": 0.25,
+          "bin_hi": 0.9190578552797233,
+          "bin_lo": 0.8468340381082936,
+          "conf_mean": 0.8831368694151603,
+          "n": 12
+        },
+        {
+          "acc_mean": 0.16666666666666666,
+          "bin_hi": 0.9606816036546674,
+          "bin_lo": 0.9261141514871403,
+          "conf_mean": 0.9492593997320339,
+          "n": 12
+        },
+        {
+          "acc_mean": 0.25,
+          "bin_hi": 0.9999999751300981,
+          "bin_lo": 0.9658176843366378,
+          "conf_mean": 0.9791723215400455,
+          "n": 12
+        }
+      ],
+      "ece": 0.5418338728560221,
+      "n": 60,
+      "n_bins": 5
+    }
+  },
+  "generated_at_utc": "2026-09-07T12:32:43.972549+00:00",
+  "llm_cache_hits": 0,
+  "llm_calls_total": 120,
+  "n_excluded_dev": 20,
+  "n_questions": 120,
+  "note": "Raw per-option probability = softmax(1.0) over the first generated token's logprob for each option letter (from real top_logprobs, src.llm.client.chat(logprobs=True)), given the SAME EvidenceBundle the V4 agent pipeline saw for this question. No agent reasoning, no calibration weights, no temperature scaling -- this is the uncalibrated comparator docs/02_ROADMAP.md's Phase 5 exit test names.",
+  "per_question": [
+    {
+      "gold_letter": "A",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_00106",
+      "raw_probs": {
+        "A": 0.5652831674812098,
+        "B": 0.3931271967719026,
+        "C": 0.02992812656640033,
+        "D": 0.011661509180487355
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_00410",
+      "raw_probs": {
+        "A": 0.8292819384758623,
+        "B": 0.1408904814845399,
+        "C": 0.0013733397634716465,
+        "D": 0.028454240276126128
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_00436",
+      "raw_probs": {
+        "A": 0.6292883750216713,
+        "B": 0.3180319469913295,
+        "C": 0.02075781386031994,
+        "D": 0.03192186412667932
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "B",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_00491",
+      "raw_probs": {
+        "A": 0.9322081982360988,
+        "B": 0.06028596646381741,
+        "C": 0.0004098216762930547,
+        "D": 0.007096013623790697
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "A",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_00524",
+      "raw_probs": {
+        "A": 0.6372118944222536,
+        "B": 0.3374924577083343,
+        "C": 0.01569658335132671,
+        "D": 0.009599064518085348
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_00529",
+      "raw_probs": {
+        "A": 0.7635847916499429,
+        "B": 0.21191206337840435,
+        "C": 0.01046013283880172,
+        "D": 0.014043012132851068
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "C",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_00715",
+      "raw_probs": {
+        "A": 0.9398123957430884,
+        "B": 0.038593200461212035,
+        "C": 0.008125855259716604,
+        "D": 0.013468548535983078
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "A",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_00754",
+      "raw_probs": {
+        "A": 0.9326079871675607,
+        "B": 0.0573495362097326,
+        "C": 0.0014586797581634158,
+        "D": 0.008583796864543379
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "B",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_00775",
+      "raw_probs": {
+        "A": 0.9097636200410548,
+        "B": 0.07141193676968695,
+        "C": 0.007267054033794244,
+        "D": 0.01155738915546403
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "C",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_00920",
+      "raw_probs": {
+        "A": 0.46747038708504984,
+        "B": 0.5138634366511119,
+        "C": 0.00955761902898555,
+        "D": 0.009108557234852698
+      },
+      "raw_text": "B"
+    },
+    {
+      "gold_letter": "A",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_01088",
+      "raw_probs": {
+        "A": 0.7136139129711359,
+        "B": 0.24741555741750323,
+        "C": 0.008966950249349804,
+        "D": 0.030003579362011115
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "B",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_01143",
+      "raw_probs": {
+        "A": 0.30428072049056654,
+        "B": 0.4995896270467435,
+        "C": 0.008684163210765554,
+        "D": 0.1874454892519244
+      },
+      "raw_text": "B"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_01173",
+      "raw_probs": {
+        "A": 0.6725973805097862,
+        "B": 0.22824602990294704,
+        "C": 0.043901337352551445,
+        "D": 0.05525525223471534
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "A",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_01295",
+      "raw_probs": {
+        "A": 0.8601176435654216,
+        "B": 0.11426456086960468,
+        "C": 0.004524231429929395,
+        "D": 0.02109356413504427
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "C",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_01311",
+      "raw_probs": {
+        "A": 0.9847004393560184,
+        "B": 0.014628914648836299,
+        "C": 0.00037330847360774307,
+        "D": 0.0002973375215377116
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "B",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_01429",
+      "raw_probs": {
+        "A": 0.5646928617764826,
+        "B": 0.4298317494952743,
+        "C": 0.00015931144906883757,
+        "D": 0.00531607727917417
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "B",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_01494",
+      "raw_probs": {
+        "A": 0.9077384289813049,
+        "B": 0.04434868260770288,
+        "C": 0.0012615261206649863,
+        "D": 0.04665136229032739
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_01524",
+      "raw_probs": {
+        "A": 0.8776168262986713,
+        "B": 0.07308004993790088,
+        "C": 0.0050328472645860085,
+        "D": 0.04427027649884181
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "B",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_01541",
+      "raw_probs": {
+        "A": 0.7534525491758927,
+        "B": 0.19875749151627184,
+        "C": 0.013541829548933649,
+        "D": 0.034248129758901916
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "C",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_01590",
+      "raw_probs": {
+        "A": 0.5468490941369241,
+        "B": 0.06393077930187362,
+        "C": 0.05456797210126771,
+        "D": 0.33465215445993446
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "A",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_01660",
+      "raw_probs": {
+        "A": 0.9408056943716868,
+        "B": 0.05350271414500027,
+        "C": 0.0017195594321162584,
+        "D": 0.003972032051196508
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "C",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_01681",
+      "raw_probs": {
+        "A": 0.04734418963158447,
+        "B": 0.9516809012580695,
+        "C": 0.0004939131211259475,
+        "D": 0.0004809959892199376
+      },
+      "raw_text": "B"
+    },
+    {
+      "gold_letter": "B",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_01686",
+      "raw_probs": {
+        "A": 0.5168307010008804,
+        "B": 0.34121350232347253,
+        "C": 0.10279518704899095,
+        "D": 0.03916060962665617
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_01803",
+      "raw_probs": {
+        "A": 0.9999730914954009,
+        "B": 1.8342810558969453e-05,
+        "C": 1.8796555512619402e-07,
+        "D": 8.37772848498606e-06
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_01832",
+      "raw_probs": {
+        "A": 0.9545371415380368,
+        "B": 0.03027336401039295,
+        "C": 0.008706167544039625,
+        "D": 0.0064833269075306055
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "C",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_02053",
+      "raw_probs": {
+        "A": 0.8345128318346952,
+        "B": 0.15786381773733393,
+        "C": 0.004892936984267733,
+        "D": 0.002730413443703152
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "A",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_02274",
+      "raw_probs": {
+        "A": 0.8892988434071277,
+        "B": 0.08658014323504637,
+        "C": 0.0075969393123407735,
+        "D": 0.016524074045485157
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "A",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_02295",
+      "raw_probs": {
+        "A": 0.9181052472938466,
+        "B": 0.0627190306960263,
+        "C": 0.005271042010970285,
+        "D": 0.013904679999156806
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_02296",
+      "raw_probs": {
+        "A": 0.9435712483728476,
+        "B": 0.048521791533543336,
+        "C": 0.003503767928606606,
+        "D": 0.004403192165002495
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_02349",
+      "raw_probs": {
+        "A": 0.6274011431903693,
+        "B": 0.2932717006411721,
+        "C": 0.014087165011525172,
+        "D": 0.06523999115693341
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "C",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_02513",
+      "raw_probs": {
+        "A": 0.9488083031990857,
+        "B": 0.0460992422622411,
+        "C": 0.0009967984389336495,
+        "D": 0.004095656099739564
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "A",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_02556",
+      "raw_probs": {
+        "A": 0.792607722939266,
+        "B": 0.19854443595509788,
+        "C": 0.0031022246023619964,
+        "D": 0.005745616503274029
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "A",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_02624",
+      "raw_probs": {
+        "A": 0.8086322631029038,
+        "B": 0.14348024048783173,
+        "C": 0.023460954516714216,
+        "D": 0.024426541892550193
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "A",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_02630",
+      "raw_probs": {
+        "A": 0.9799628677797859,
+        "B": 0.013332706101728363,
+        "C": 0.0023749889052734805,
+        "D": 0.00432943721321219
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_02673",
+      "raw_probs": {
+        "A": 0.6462719911182567,
+        "B": 0.03580062137469304,
+        "C": 0.30692601258362984,
+        "D": 0.01100137492342027
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_02686",
+      "raw_probs": {
+        "A": 0.8182844207589335,
+        "B": 0.14726738287359953,
+        "C": 0.011406232244070858,
+        "D": 0.02304196412339594
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_02812",
+      "raw_probs": {
+        "A": 0.8254612379412032,
+        "B": 0.14787880715325377,
+        "C": 0.005955169465753605,
+        "D": 0.020704785439789562
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "B",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_03159",
+      "raw_probs": {
+        "A": 0.8974625403414598,
+        "B": 0.06954162917430119,
+        "C": 0.01700846605799689,
+        "D": 0.015987364426242264
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "B",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_03266",
+      "raw_probs": {
+        "A": 0.8027641329687597,
+        "B": 0.160650534138173,
+        "C": 0.014138680879936291,
+        "D": 0.022446652013130914
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "B",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_03441",
+      "raw_probs": {
+        "A": 0.7430429552864216,
+        "B": 0.030838510385717745,
+        "C": 0.10959550053212273,
+        "D": 0.116523033795738
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_03465",
+      "raw_probs": {
+        "A": 0.8531339003142083,
+        "B": 0.12272498711190573,
+        "C": 0.00985469789095871,
+        "D": 0.014286414682927113
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "C",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_03492",
+      "raw_probs": {
+        "A": 0.8734828292303122,
+        "B": 0.1032719823345272,
+        "C": 0.008023552710726948,
+        "D": 0.015221635724433394
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "A",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_03536",
+      "raw_probs": {
+        "A": 0.5432357555751932,
+        "B": 0.4540099761753232,
+        "C": 0.00040465070383254655,
+        "D": 0.002349617545650941
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "C",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_03592",
+      "raw_probs": {
+        "A": 0.9550042557589317,
+        "B": 0.006656526040913675,
+        "C": 0.0004364696495320561,
+        "D": 0.03790274855062258
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "B",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_03603",
+      "raw_probs": {
+        "A": 0.8540969446129429,
+        "B": 0.11615744575512013,
+        "C": 0.014339282814246613,
+        "D": 0.015406326817690186
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_03608",
+      "raw_probs": {
+        "A": 0.7061336303631027,
+        "B": 0.23935246633646695,
+        "C": 0.041889389334125574,
+        "D": 0.012624513966304794
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_03621",
+      "raw_probs": {
+        "A": 0.9733112417004469,
+        "B": 0.01942700722829618,
+        "C": 0.0038888869006920316,
+        "D": 0.0033728641705647023
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "A",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_03668",
+      "raw_probs": {
+        "A": 0.8126160943906562,
+        "B": 0.1665179842733578,
+        "C": 0.007977981079290975,
+        "D": 0.012887940256695034
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_03744",
+      "raw_probs": {
+        "A": 0.9772996313213392,
+        "B": 0.011724744518283217,
+        "C": 0.0011589577970656931,
+        "D": 0.009816666363311955
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "A",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_03763",
+      "raw_probs": {
+        "A": 0.7944629437608324,
+        "B": 0.11504967460291692,
+        "C": 0.037803051288931425,
+        "D": 0.05268433034731917
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "A",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_03823",
+      "raw_probs": {
+        "A": 0.9095250113075297,
+        "B": 0.05119155445443102,
+        "C": 0.028123461397724297,
+        "D": 0.011159972840314855
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_03826",
+      "raw_probs": {
+        "A": 0.7685810332285317,
+        "B": 0.12403310468369041,
+        "C": 0.012570373222182334,
+        "D": 0.09481548886559549
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_04023",
+      "raw_probs": {
+        "A": 0.8690939049560045,
+        "B": 0.09844288419831934,
+        "C": 0.005152250250628936,
+        "D": 0.027310960595047458
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "C",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_04025",
+      "raw_probs": {
+        "A": 0.3969255839317235,
+        "B": 0.5741623928502672,
+        "C": 0.0018347708753806804,
+        "D": 0.027077252342628814
+      },
+      "raw_text": "B"
+    },
+    {
+      "gold_letter": "C",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_04053",
+      "raw_probs": {
+        "A": 0.8466592309350963,
+        "B": 0.11458242972537888,
+        "C": 0.013607979541698713,
+        "D": 0.02515035979782615
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "A",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_04317",
+      "raw_probs": {
+        "A": 0.9218380735629363,
+        "B": 0.04967101046147713,
+        "C": 0.02081080101693621,
+        "D": 0.007680114958650556
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "A",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_04346",
+      "raw_probs": {
+        "A": 0.6110584703771393,
+        "B": 0.2811655716901244,
+        "C": 0.01667054886342257,
+        "D": 0.09110540906931355
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_04352",
+      "raw_probs": {
+        "A": 0.5579527356955225,
+        "B": 0.4093108950152934,
+        "C": 0.010782618325873494,
+        "D": 0.02195375096331047
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "B",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_04387",
+      "raw_probs": {
+        "A": 0.8469677165954307,
+        "B": 0.09673206059763943,
+        "C": 0.03243500413789983,
+        "D": 0.023865218669030054
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "B",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_04399",
+      "raw_probs": {
+        "A": 0.9425281069680277,
+        "B": 0.0371444528950793,
+        "C": 0.005970600538835254,
+        "D": 0.014356839598057811
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "B",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_04435",
+      "raw_probs": {
+        "A": 0.981159545511728,
+        "B": 0.015072844522761685,
+        "C": 0.002350486190507805,
+        "D": 0.0014171237750025872
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "B",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_04520",
+      "raw_probs": {
+        "A": 0.4952041349347349,
+        "B": 0.2616664375090388,
+        "C": 0.017683594424020985,
+        "D": 0.22544583313220523
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "C",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_04566",
+      "raw_probs": {
+        "A": 0.9600728763641877,
+        "B": 0.02720459438968232,
+        "C": 0.005609852323731283,
+        "D": 0.0071126769223986645
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "A",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_04568",
+      "raw_probs": {
+        "A": 0.9567287618264503,
+        "B": 0.03272484886798467,
+        "C": 0.0020398993555610263,
+        "D": 0.00850648995000389
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "C",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_04571",
+      "raw_probs": {
+        "A": 0.8026768892577716,
+        "B": 0.18410210244943154,
+        "C": 0.002247298681155091,
+        "D": 0.010973709611641897
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_04755",
+      "raw_probs": {
+        "A": 0.8468340381082936,
+        "B": 0.13916568628507112,
+        "C": 0.00499966618106363,
+        "D": 0.009000609425571756
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "A",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_04817",
+      "raw_probs": {
+        "A": 0.8485165473593898,
+        "B": 0.12178425513719612,
+        "C": 0.01756950383563343,
+        "D": 0.012129693667780652
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "A",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_05169",
+      "raw_probs": {
+        "A": 0.9815208234978058,
+        "B": 0.017688751085096488,
+        "C": 0.000454875790864134,
+        "D": 0.00033554962623334256
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "C",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_05182",
+      "raw_probs": {
+        "A": 0.8591124655195591,
+        "B": 0.11213936801476967,
+        "C": 0.011750709215999319,
+        "D": 0.016997457249671895
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "A",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_05327",
+      "raw_probs": {
+        "A": 0.9999999751300981,
+        "B": 2.3603415412474452e-08,
+        "C": 3.777693414753614e-10,
+        "D": 8.887173598277193e-10
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "C",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_05528",
+      "raw_probs": {
+        "A": 0.9117882153123779,
+        "B": 0.06601797601776575,
+        "C": 0.016221910917019317,
+        "D": 0.005971897752836963
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "B",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_05588",
+      "raw_probs": {
+        "A": 0.7843369997492472,
+        "B": 0.14537806670960235,
+        "C": 0.04200125097581379,
+        "D": 0.028283682565336615
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_05649",
+      "raw_probs": {
+        "A": 0.7719005633124832,
+        "B": 0.08672038992322986,
+        "C": 0.13044892937925476,
+        "D": 0.010930117385032032
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_05834",
+      "raw_probs": {
+        "A": 0.7604933459739845,
+        "B": 0.18393868944151906,
+        "C": 0.017813836027084112,
+        "D": 0.03775412855741218
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_05895",
+      "raw_probs": {
+        "A": 0.4790584563869235,
+        "B": 0.03729536170565721,
+        "C": 0.001341251433127175,
+        "D": 0.48230493047429207
+      },
+      "raw_text": "D"
+    },
+    {
+      "gold_letter": "C",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_05939",
+      "raw_probs": {
+        "A": 0.9858212338583856,
+        "B": 0.012289106342003543,
+        "C": 0.0003101121636935881,
+        "D": 0.0015795476359173498
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_05944",
+      "raw_probs": {
+        "A": 0.6500509259900225,
+        "B": 0.2828342728372553,
+        "C": 0.014347643009361652,
+        "D": 0.05276715816336069
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_05991",
+      "raw_probs": {
+        "A": 0.9740063487779512,
+        "B": 0.020155721472155975,
+        "C": 0.0015856710979511943,
+        "D": 0.004252258651941591
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_06079",
+      "raw_probs": {
+        "A": 0.9261141514871403,
+        "B": 0.04647404010697459,
+        "C": 0.01036547138300231,
+        "D": 0.017046337022882826
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "C",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_06215",
+      "raw_probs": {
+        "A": 0.8946309347989873,
+        "B": 0.09461624731476587,
+        "C": 0.0056865722238006785,
+        "D": 0.0050662456624459605
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "B",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_06230",
+      "raw_probs": {
+        "A": 0.8354862532648336,
+        "B": 0.11285917176750732,
+        "C": 0.03011436775658389,
+        "D": 0.021540207211075378
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "A",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_06238",
+      "raw_probs": {
+        "A": 0.9714092015681123,
+        "B": 0.023028443703028017,
+        "C": 0.0022961716063628255,
+        "D": 0.0032661831224968987
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "C",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_06241",
+      "raw_probs": {
+        "A": 0.9606816036546674,
+        "B": 0.028135279596229166,
+        "C": 0.005745400230150314,
+        "D": 0.005437716518953107
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "C",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_06496",
+      "raw_probs": {
+        "A": 0.8666120855004175,
+        "B": 0.10471610172624556,
+        "C": 0.008300218970641145,
+        "D": 0.020371593802695966
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "C",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_06557",
+      "raw_probs": {
+        "A": 0.9554060548367347,
+        "B": 0.018829889185086993,
+        "C": 0.002646281399441068,
+        "D": 0.023117774578737177
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_06586",
+      "raw_probs": {
+        "A": 0.9606476546473973,
+        "B": 0.013536624492399342,
+        "C": 0.019426555948609987,
+        "D": 0.006389164911593267
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_06887",
+      "raw_probs": {
+        "A": 0.9190578552797233,
+        "B": 0.0680621270262106,
+        "C": 0.002902207727114498,
+        "D": 0.009977809966951804
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "B",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_06927",
+      "raw_probs": {
+        "A": 0.6929614238322676,
+        "B": 0.12841207656955242,
+        "C": 0.1514652132180241,
+        "D": 0.02716128638015605
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "A",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_06931",
+      "raw_probs": {
+        "A": 0.8172889286199623,
+        "B": 0.14545226136605022,
+        "C": 0.010696067713324516,
+        "D": 0.026562742300662925
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "A",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_06939",
+      "raw_probs": {
+        "A": 0.8386526468995074,
+        "B": 0.13827248732850125,
+        "C": 0.008962070431147884,
+        "D": 0.014112795340843642
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_07034",
+      "raw_probs": {
+        "A": 0.9286698455849743,
+        "B": 0.06725029082768545,
+        "C": 0.002444961781760029,
+        "D": 0.0016349018055800992
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "A",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_07374",
+      "raw_probs": {
+        "A": 0.8887718329664321,
+        "B": 0.09547571930943774,
+        "C": 0.00857148553494532,
+        "D": 0.007180962189184921
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "A",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_07443",
+      "raw_probs": {
+        "A": 0.6657885883526398,
+        "B": 0.2855100610997794,
+        "C": 0.015965545791801015,
+        "D": 0.03273580475577973
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_07532",
+      "raw_probs": {
+        "A": 0.9488235023645611,
+        "B": 0.029971297319086324,
+        "C": 0.005746016138548024,
+        "D": 0.015459184177804485
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_07542",
+      "raw_probs": {
+        "A": 0.16973845789305866,
+        "B": 0.12243350858483139,
+        "C": 0.4281932559742298,
+        "D": 0.27963477754788024
+      },
+      "raw_text": "C"
+    },
+    {
+      "gold_letter": "B",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_07588",
+      "raw_probs": {
+        "A": 0.6685120595433965,
+        "B": 0.3202048492117142,
+        "C": 0.006399809085347804,
+        "D": 0.004883282159541444
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "C",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_08100",
+      "raw_probs": {
+        "A": 0.8829964573629017,
+        "B": 0.10613610662958115,
+        "C": 0.0009488670670634385,
+        "D": 0.00991856894045368
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_08194",
+      "raw_probs": {
+        "A": 0.9684522416095473,
+        "B": 0.01651682515118838,
+        "C": 0.0021692360744527597,
+        "D": 0.012861697164811628
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_08295",
+      "raw_probs": {
+        "A": 0.9742578653901772,
+        "B": 0.023822167199748112,
+        "C": 0.0007526934196816484,
+        "D": 0.0011672739903931626
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "C",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_08364",
+      "raw_probs": {
+        "A": 0.6446587641538197,
+        "B": 0.2782220638078458,
+        "C": 0.04384005096260894,
+        "D": 0.03327912107572553
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_08767",
+      "raw_probs": {
+        "A": 0.4065259583241352,
+        "B": 0.47991456426959267,
+        "C": 0.05597811042212489,
+        "D": 0.05758136698414724
+      },
+      "raw_text": "B"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_08801",
+      "raw_probs": {
+        "A": 0.579541969515922,
+        "B": 0.2967155255279263,
+        "C": 0.07327308135910986,
+        "D": 0.05046942359704191
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "B",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_08846",
+      "raw_probs": {
+        "A": 0.37563943155190915,
+        "B": 0.49369149698118536,
+        "C": 0.08585323855431361,
+        "D": 0.04481583291259181
+      },
+      "raw_text": "B"
+    },
+    {
+      "gold_letter": "B",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_08945",
+      "raw_probs": {
+        "A": 0.9404910804392206,
+        "B": 0.04652161509701205,
+        "C": 0.006072167153774873,
+        "D": 0.006915137309992346
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "B",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_08952",
+      "raw_probs": {
+        "A": 0.8914442299334765,
+        "B": 0.05798899467223067,
+        "C": 0.012674243512777758,
+        "D": 0.03789253188151513
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "B",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_09061",
+      "raw_probs": {
+        "A": 0.589295339087807,
+        "B": 0.2417517892900169,
+        "C": 0.06641108038926281,
+        "D": 0.10254179123291324
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "C",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_09142",
+      "raw_probs": {
+        "A": 0.8962534627552008,
+        "B": 0.06553650537625755,
+        "C": 0.013692547622647036,
+        "D": 0.024517484245894585
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "A",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_09213",
+      "raw_probs": {
+        "A": 0.6988386967937793,
+        "B": 0.2702884768358351,
+        "C": 0.01660709614800628,
+        "D": 0.014265730222379274
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "A",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_09215",
+      "raw_probs": {
+        "A": 0.8916243080851661,
+        "B": 0.07336858868708164,
+        "C": 0.024162013258329257,
+        "D": 0.010845089969422907
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_09310",
+      "raw_probs": {
+        "A": 0.3768070173866751,
+        "B": 0.5712521738072471,
+        "C": 0.029149661300061535,
+        "D": 0.022791147506016168
+      },
+      "raw_text": "B"
+    },
+    {
+      "gold_letter": "C",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_09477",
+      "raw_probs": {
+        "A": 0.9658176843366378,
+        "B": 0.027869859444140204,
+        "C": 0.0030244180582948404,
+        "D": 0.0032880381609272655
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "A",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_09578",
+      "raw_probs": {
+        "A": 0.9579158060795706,
+        "B": 0.03554858390362097,
+        "C": 0.0037217432584449556,
+        "D": 0.0028138667583634766
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_09595",
+      "raw_probs": {
+        "A": 0.9784163911163514,
+        "B": 0.01946405277380149,
+        "C": 0.0008698236256017707,
+        "D": 0.001249732484245353
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "C",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_09672",
+      "raw_probs": {
+        "A": 0.9368838503149318,
+        "B": 0.048098389251602716,
+        "C": 0.005300273051251468,
+        "D": 0.009717487382214049
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_09693",
+      "raw_probs": {
+        "A": 0.9890457039999264,
+        "B": 0.008369055932388614,
+        "C": 0.0016455180550588061,
+        "D": 0.0009397220126260696
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "A",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_09790",
+      "raw_probs": {
+        "A": 0.6935553342262559,
+        "B": 0.27826274635253795,
+        "C": 0.010287618562836094,
+        "D": 0.017894300858370044
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "B",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_09883",
+      "raw_probs": {
+        "A": 0.4424393687032707,
+        "B": 0.5123661879304566,
+        "C": 0.01268780263244677,
+        "D": 0.03250664073382589
+      },
+      "raw_text": "B"
+    },
+    {
+      "gold_letter": "A",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_09911",
+      "raw_probs": {
+        "A": 0.8142438101690084,
+        "B": 0.12632166649293777,
+        "C": 0.017907446148703883,
+        "D": 0.0415270771893501
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "D",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_10000",
+      "raw_probs": {
+        "A": 0.9586776091845718,
+        "B": 0.03030567783278516,
+        "C": 0.004820758980011604,
+        "D": 0.006195954002631338
+      },
+      "raw_text": "A"
+    },
+    {
+      "gold_letter": "C",
+      "letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "n_letters_matched_in_top_logprobs": 4,
+      "n_letters_total": 4,
+      "question_id": "train_10153",
+      "raw_probs": {
+        "A": 0.9801608436838264,
+        "B": 0.01567558527366999,
+        "C": 0.001130927346255767,
+        "D": 0.003032643696247699
+      },
+      "raw_text": "A"
+    }
+  ],
+  "seed": 42,
+  "split": "train"
+}

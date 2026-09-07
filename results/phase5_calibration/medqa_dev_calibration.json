@@ -1,0 +1,4090 @@
+{
+  "abstention_target_risk": 0.1,
+  "abstention_tau": 0.5457648774612578,
+  "coverage_risk_curve": [
+    {
+      "coverage": 1.0,
+      "n_covered": 60,
+      "risk": 0.7333333333333334,
+      "tau": 0.25
+    },
+    {
+      "coverage": 0.6166666666666667,
+      "n_covered": 37,
+      "risk": 0.6756756756756757,
+      "tau": 0.2869706096826572
+    },
+    {
+      "coverage": 0.26666666666666666,
+      "n_covered": 16,
+      "risk": 0.625,
+      "tau": 0.32394121936531445
+    },
+    {
+      "coverage": 0.13333333333333333,
+      "n_covered": 8,
+      "risk": 0.5,
+      "tau": 0.36091182904797164
+    },
+    {
+      "coverage": 0.06666666666666667,
+      "n_covered": 4,
+      "risk": 0.25,
+      "tau": 0.3978824387306289
+    },
+    {
+      "coverage": 0.06666666666666667,
+      "n_covered": 4,
+      "risk": 0.25,
+      "tau": 0.4348530484132861
+    },
+    {
+      "coverage": 0.06666666666666667,
+      "n_covered": 4,
+      "risk": 0.25,
+      "tau": 0.4718236580959433
+    },
+    {
+      "coverage": 0.06666666666666667,
+      "n_covered": 4,
+      "risk": 0.25,
+      "tau": 0.5087942677786006
+    },
+    {
+      "coverage": 0.05,
+      "n_covered": 3,
+      "risk": 0.0,
+      "tau": 0.5457648774612578
+    },
+    {
+      "coverage": 0.05,
+      "n_covered": 3,
+      "risk": 0.0,
+      "tau": 0.582735487143915
+    },
+    {
+      "coverage": 0.016666666666666666,
+      "n_covered": 1,
+      "risk": 0.0,
+      "tau": 0.6197060968265722
+    },
+    {
+      "coverage": 0.016666666666666666,
+      "n_covered": 1,
+      "risk": 0.0,
+      "tau": 0.6566767065092294
+    },
+    {
+      "coverage": 0.016666666666666666,
+      "n_covered": 1,
+      "risk": 0.0,
+      "tau": 0.6936473161918866
+    },
+    {
+      "coverage": 0.016666666666666666,
+      "n_covered": 1,
+      "risk": 0.0,
+      "tau": 0.7306179258745439
+    },
+    {
+      "coverage": 0.016666666666666666,
+      "n_covered": 1,
+      "risk": 0.0,
+      "tau": 0.7675885355572011
+    },
+    {
+      "coverage": 0.016666666666666666,
+      "n_covered": 1,
+      "risk": 0.0,
+      "tau": 0.8045591452398583
+    },
+    {
+      "coverage": 0.016666666666666666,
+      "n_covered": 1,
+      "risk": 0.0,
+      "tau": 0.8415297549225155
+    },
+    {
+      "coverage": 0.016666666666666666,
+      "n_covered": 1,
+      "risk": 0.0,
+      "tau": 0.8785003646051727
+    },
+    {
+      "coverage": 0.016666666666666666,
+      "n_covered": 1,
+      "risk": 0.0,
+      "tau": 0.91547097428783
+    },
+    {
+      "coverage": 0.016666666666666666,
+      "n_covered": 1,
+      "risk": 0.0,
+      "tau": 0.9524415839704872
+    }
+  ],
+  "ece_fit": {
+    "binning": "equal_mass",
+    "bins": [
+      {
+        "acc_mean": 0.3333333333333333,
+        "bin_hi": 0.26333209110641365,
+        "bin_lo": 0.25,
+        "conf_mean": 0.25319185159540564,
+        "n": 12
+      },
+      {
+        "acc_mean": 0.16666666666666666,
+        "bin_hi": 0.2774015143198709,
+        "bin_lo": 0.26494474380604993,
+        "conf_mean": 0.27244916729478885,
+        "n": 12
+      },
+      {
+        "acc_mean": 0.08333333333333333,
+        "bin_hi": 0.329762898977062,
+        "bin_lo": 0.27782324020892096,
+        "conf_mean": 0.29661273941890137,
+        "n": 12
+      },
+      {
+        "acc_mean": 0.3333333333333333,
+        "bin_hi": 0.3517677311879545,
+        "bin_lo": 0.33163724496112224,
+        "conf_mean": 0.33883661574584045,
+        "n": 12
+      },
+      {
+        "acc_mean": 0.4166666666666667,
+        "bin_hi": 0.7824783803780951,
+        "bin_lo": 0.3520817900455672,
+        "conf_mean": 0.4262717788324324,
+        "n": 12
+      }
+    ],
+    "ece": 0.08286235660597817,
+    "n": 60,
+    "n_bins": 5
+  },
+  "ece_fit_vs_held_out_gap": -0.010461455456973856,
+  "ece_held_out": {
+    "binning": "equal_mass",
+    "bins": [
+      {
+        "acc_mean": 0.08333333333333333,
+        "bin_hi": 0.27367591942497266,
+        "bin_lo": 0.25,
+        "conf_mean": 0.25692782871951575,
+        "n": 12
+      },
+      {
+        "acc_mean": 0.25,
+        "bin_hi": 0.2870130514839898,
+        "bin_lo": 0.27631110677802945,
+        "conf_mean": 0.2822044016410585,
+        "n": 12
+      },
+      {
+        "acc_mean": 0.25,
+        "bin_hi": 0.3086314545131535,
+        "bin_lo": 0.287858078009844,
+        "conf_mean": 0.2991349518503262,
+        "n": 12
+      },
+      {
+        "acc_mean": 0.25,
+        "bin_hi": 0.3312962862477961,
+        "bin_lo": 0.30871682230142167,
+        "conf_mean": 0.31949599581386395,
+        "n": 12
+      },
+      {
+        "acc_mean": 0.5,
+        "bin_hi": 0.9524415839704872,
+        "bin_lo": 0.33782189781019,
+        "conf_mean": 0.4624253389464095,
+        "n": 12
+      }
+    ],
+    "ece": 0.07240090114900431,
+    "n": 60,
+    "n_bins": 5
+  },
+  "exit_test": {
+    "calibrated_ece_held_out_point": 0.07240090114900431,
+    "diff_bootstrap_mean": -0.42042948766303007,
+    "diff_ci_hi": -0.2826333563863258,
+    "diff_ci_lo": -0.5426113792277871,
+    "diff_point_estimate": -0.4694329717070178,
+    "n_paired": 60,
+    "n_resamples": 10000,
+    "passed": true,
+    "raw_logprob_ece_held_out_point": 0.5418338728560221,
+    "seed": 42,
+    "verdict": "a_significantly_better"
+  },
+  "gamma_bootstrap": {
+    "max": 0.6641803789022308,
+    "mean": 0.23146801825062255,
+    "min": -0.40313289638509203,
+    "std": 0.2340481174517894
+  },
+  "generated_at_utc": "2026-09-07T12:33:31.798085+00:00",
+  "n_fit": 60,
+  "n_held_out": 60,
+  "rank1_accuracy_fit": 0.26666666666666666,
+  "rank1_accuracy_held_out": 0.26666666666666666,
+  "ranked_output_fit": [
+    {
+      "gold_option": "A",
+      "question_id": "train_00106",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Biochemistry_Lippincott#1150"
+          ],
+          "option_id": "B",
+          "p": 0.2520930737435226
+        },
+        {
+          "citations": [
+            "chunk::textbook::Biochemistry_Lippincott#1150"
+          ],
+          "option_id": "C",
+          "p": 0.2520930737435226
+        },
+        {
+          "citations": [
+            "chunk::textbook::Biochemistry_Lippincott#1150"
+          ],
+          "option_id": "D",
+          "p": 0.2520930737435226
+        },
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.24372077876943232
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_00410",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#1705"
+          ],
+          "option_id": "D",
+          "p": 0.27802069820649983
+        },
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.2661368598137132
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.2661368598137132
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.18970558216607375
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_00436",
+      "ranked": [
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.27475351278965837
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.27475351278965837
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.27475351278965837
+        },
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.17573946163102488
+        }
+      ]
+    },
+    {
+      "gold_option": "B",
+      "question_id": "train_00491",
+      "ranked": [
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.29932130760206693
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.29932130760206693
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#1672"
+          ],
+          "option_id": "B",
+          "p": 0.290135672446019
+        },
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.11122171234984704
+        }
+      ]
+    },
+    {
+      "gold_option": "A",
+      "question_id": "train_00524",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#783"
+          ],
+          "option_id": "C",
+          "p": 0.31440029062735825
+        },
+        {
+          "citations": [
+            "chunk::textbook::First_Aid_Step2#216"
+          ],
+          "option_id": "A",
+          "p": 0.304702328089433
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#13485"
+          ],
+          "option_id": "B",
+          "p": 0.19405956124271936
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#796"
+          ],
+          "option_id": "D",
+          "p": 0.18683782004048946
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_00529",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Biochemistry_Lippincott#1136",
+            "chunk::textbook::Pathology_Robbins#1891"
+          ],
+          "option_id": "A",
+          "p": 0.3345954990620384
+        },
+        {
+          "citations": [
+            "chunk::textbook::Biochemistry_Lippincott#1136",
+            "chunk::textbook::Obstentrics_Williams#5538"
+          ],
+          "option_id": "D",
+          "p": 0.33422510510092135
+        },
+        {
+          "citations": [
+            "chunk::textbook::Biochemistry_Lippincott#1136"
+          ],
+          "option_id": "B",
+          "p": 0.20826262938484075
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.12291676645219946
+        }
+      ]
+    },
+    {
+      "gold_option": "C",
+      "question_id": "train_00715",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Pathology_Robbins#1890"
+          ],
+          "option_id": "A",
+          "p": 0.2709036597175796
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pathology_Robbins#1890"
+          ],
+          "option_id": "B",
+          "p": 0.2709036597175796
+        },
+        {
+          "citations": [
+            "chunk::textbook::Biochemistry_Lippincott#1137"
+          ],
+          "option_id": "D",
+          "p": 0.23464646388522348
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.22354621667961724
+        }
+      ]
+    },
+    {
+      "gold_option": "A",
+      "question_id": "train_00754",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Psichiatry_DSM-5#1448"
+          ],
+          "option_id": "A",
+          "p": 0.2774015143198709
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pediatrics_Nelson#112",
+            "chunk::textbook::Pediatrics_Nelson#113"
+          ],
+          "option_id": "D",
+          "p": 0.2541655715971278
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pediatrics_Nelson#112",
+            "chunk::textbook::Psichiatry_DSM-5#1448"
+          ],
+          "option_id": "C",
+          "p": 0.24119482702994682
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.2272380870530544
+        }
+      ]
+    },
+    {
+      "gold_option": "B",
+      "question_id": "train_00775",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#14094",
+            "chunk::textbook::Pathology_Robbins#2645"
+          ],
+          "option_id": "D",
+          "p": 0.2558498695783301
+        },
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.24805004347388993
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.24805004347388993
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.24805004347388993
+        }
+      ]
+    },
+    {
+      "gold_option": "C",
+      "question_id": "train_00920",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Neurology_Adams#432",
+            "chunk::textbook::Pharmacology_Katzung#1861"
+          ],
+          "option_id": "B",
+          "p": 0.35445991715248937
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.32501346738130743
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#1780"
+          ],
+          "option_id": "D",
+          "p": 0.21054533836912362
+        },
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.1099812770970796
+        }
+      ]
+    },
+    {
+      "gold_option": "A",
+      "question_id": "train_01088",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Anatomy_Gray#384"
+          ],
+          "option_id": "A",
+          "p": 0.33163724496112224
+        },
+        {
+          "citations": [
+            "chunk::textbook::Anatomy_Gray#384",
+            "chunk::textbook::First_Aid_Step2#30"
+          ],
+          "option_id": "C",
+          "p": 0.29142470997439096
+        },
+        {
+          "citations": [
+            "chunk::textbook::Anatomy_Gray#393"
+          ],
+          "option_id": "B",
+          "p": 0.19454195566048332
+        },
+        {
+          "citations": [
+            "chunk::textbook::First_Aid_Step2#30"
+          ],
+          "option_id": "D",
+          "p": 0.18239608940400354
+        }
+      ]
+    },
+    {
+      "gold_option": "B",
+      "question_id": "train_01143",
+      "ranked": [
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.25
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.25
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.25
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.25
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_01173",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::First_Aid_Step2#603"
+          ],
+          "option_id": "A",
+          "p": 0.31046579143150194
+        },
+        {
+          "citations": [
+            "chunk::textbook::First_Aid_Step2#603",
+            "chunk::textbook::InternalMed_Harrison#2293"
+          ],
+          "option_id": "C",
+          "p": 0.29946352140082394
+        },
+        {
+          "citations": [
+            "chunk::textbook::First_Aid_Step2#603"
+          ],
+          "option_id": "D",
+          "p": 0.19855350785384213
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#2293"
+          ],
+          "option_id": "B",
+          "p": 0.191517179313832
+        }
+      ]
+    },
+    {
+      "gold_option": "A",
+      "question_id": "train_01295",
+      "ranked": [
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.25
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.25
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.25
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.25
+        }
+      ]
+    },
+    {
+      "gold_option": "C",
+      "question_id": "train_01311",
+      "ranked": [
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.2735631511517395
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.2735631511517395
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.2735631511517395
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.17931054654478146
+        }
+      ]
+    },
+    {
+      "gold_option": "B",
+      "question_id": "train_01429",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Gynecology_Novak#56",
+            "chunk::textbook::Gynecology_Novak#854"
+          ],
+          "option_id": "D",
+          "p": 0.2682585144746495
+        },
+        {
+          "citations": [
+            "chunk::textbook::Gynecology_Novak#56"
+          ],
+          "option_id": "A",
+          "p": 0.24912370181019905
+        },
+        {
+          "citations": [
+            "chunk::textbook::Gynecology_Novak#56"
+          ],
+          "option_id": "C",
+          "p": 0.24912370181019905
+        },
+        {
+          "citations": [
+            "chunk::textbook::Gynecology_Novak#56"
+          ],
+          "option_id": "B",
+          "p": 0.23349408190495252
+        }
+      ]
+    },
+    {
+      "gold_option": "B",
+      "question_id": "train_01494",
+      "ranked": [
+        {
+          "citations": [
+            "kg::Insulin lispro|drug_effect|Loss of consciousness"
+          ],
+          "option_id": "B",
+          "p": 0.3846958797853035
+        },
+        {
+          "citations": [
+            "kg::Insulin lispro|drug_effect|Loss of consciousness"
+          ],
+          "option_id": "A",
+          "p": 0.2300416883868309
+        },
+        {
+          "citations": [
+            "kg::Insulin lispro|drug_effect|Loss of consciousness"
+          ],
+          "option_id": "C",
+          "p": 0.2281206191744774
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#1419"
+          ],
+          "option_id": "D",
+          "p": 0.15714181265338814
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_01524",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#602"
+          ],
+          "option_id": "B",
+          "p": 0.27866338077079844
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#602"
+          ],
+          "option_id": "C",
+          "p": 0.27866338077079844
+        },
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.22133661922920161
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.22133661922920161
+        }
+      ]
+    },
+    {
+      "gold_option": "B",
+      "question_id": "train_01541",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#602"
+          ],
+          "option_id": "A",
+          "p": 0.4041635103941484
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#602"
+          ],
+          "option_id": "B",
+          "p": 0.22771792790844972
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#602"
+          ],
+          "option_id": "C",
+          "p": 0.18405928084870105
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#602"
+          ],
+          "option_id": "D",
+          "p": 0.18405928084870105
+        }
+      ]
+    },
+    {
+      "gold_option": "C",
+      "question_id": "train_01590",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::First_Aid_Step1#543",
+            "chunk::textbook::InternalMed_Harrison#1937"
+          ],
+          "option_id": "A",
+          "p": 0.25360345253627614
+        },
+        {
+          "citations": [
+            "chunk::textbook::First_Aid_Step1#543",
+            "chunk::textbook::InternalMed_Harrison#1937"
+          ],
+          "option_id": "C",
+          "p": 0.25360345253627614
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.24639654746372386
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.24639654746372386
+        }
+      ]
+    },
+    {
+      "gold_option": "A",
+      "question_id": "train_01660",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#681"
+          ],
+          "option_id": "A",
+          "p": 0.25547232457639313
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#681"
+          ],
+          "option_id": "B",
+          "p": 0.25547232457639313
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#681"
+          ],
+          "option_id": "D",
+          "p": 0.25547232457639313
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#21",
+            "chunk::textbook::InternalMed_Harrison#681"
+          ],
+          "option_id": "C",
+          "p": 0.23358302627082056
+        }
+      ]
+    },
+    {
+      "gold_option": "C",
+      "question_id": "train_01681",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#4243"
+          ],
+          "option_id": "B",
+          "p": 0.2747604310385784
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#4243"
+          ],
+          "option_id": "C",
+          "p": 0.2747604310385784
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#4243"
+          ],
+          "option_id": "D",
+          "p": 0.2747604310385784
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#4243"
+          ],
+          "option_id": "A",
+          "p": 0.17571870688426494
+        }
+      ]
+    },
+    {
+      "gold_option": "B",
+      "question_id": "train_01686",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#3112"
+          ],
+          "option_id": "C",
+          "p": 0.2871507703276456
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#3112"
+          ],
+          "option_id": "D",
+          "p": 0.2871507703276456
+        },
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.2613243470959678
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#1937"
+          ],
+          "option_id": "B",
+          "p": 0.1643741122487411
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_01803",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Histology_Ross#1324"
+          ],
+          "option_id": "A",
+          "p": 0.28568286630519735
+        },
+        {
+          "citations": [
+            "chunk::textbook::Histology_Ross#1324",
+            "chunk::textbook::Immunology_Janeway#67"
+          ],
+          "option_id": "D",
+          "p": 0.26372428258119535
+        },
+        {
+          "citations": [
+            "chunk::textbook::Histology_Ross#1313"
+          ],
+          "option_id": "C",
+          "p": 0.25565903928983336
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.19493381182377392
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_01832",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::First_Aid_Step2#290"
+          ],
+          "option_id": "B",
+          "p": 0.329762898977062
+        },
+        {
+          "citations": [
+            "chunk::textbook::First_Aid_Step2#290",
+            "chunk::textbook::InternalMed_Harrison#4990"
+          ],
+          "option_id": "D",
+          "p": 0.326005044921395
+        },
+        {
+          "citations": [
+            "chunk::textbook::First_Aid_Step2#290"
+          ],
+          "option_id": "C",
+          "p": 0.2108946691036449
+        },
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.1333373869978981
+        }
+      ]
+    },
+    {
+      "gold_option": "C",
+      "question_id": "train_02053",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::First_Aid_Step2#210"
+          ],
+          "option_id": "A",
+          "p": 0.3520817900455672
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.24024067769608298
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#4222"
+          ],
+          "option_id": "C",
+          "p": 0.22229069058819773
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.185386841670152
+        }
+      ]
+    },
+    {
+      "gold_option": "A",
+      "question_id": "train_02274",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#1687",
+            "kg::Adenosine|contraindication|hypotensive disorder"
+          ],
+          "option_id": "B",
+          "p": 0.5351829876522999
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#1686"
+          ],
+          "option_id": "A",
+          "p": 0.16511354882600593
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#1686"
+          ],
+          "option_id": "D",
+          "p": 0.16511354882600593
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.13458991469568812
+        }
+      ]
+    },
+    {
+      "gold_option": "A",
+      "question_id": "train_02295",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#13098"
+          ],
+          "option_id": "A",
+          "p": 0.2567239917140797
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#13098"
+          ],
+          "option_id": "B",
+          "p": 0.2567239917140797
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.2432760082859203
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.2432760082859203
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_02296",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#10245"
+          ],
+          "option_id": "B",
+          "p": 0.26494474380604993
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#10245"
+          ],
+          "option_id": "D",
+          "p": 0.2633255933801679
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#6768"
+          ],
+          "option_id": "A",
+          "p": 0.24304978173813327
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#1720",
+            "chunk::textbook::InternalMed_Harrison#896"
+          ],
+          "option_id": "C",
+          "p": 0.2286798810756488
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_02349",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Neurology_Adams#1466"
+          ],
+          "option_id": "C",
+          "p": 0.26970980819078577
+        },
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.2481304659637874
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#372"
+          ],
+          "option_id": "D",
+          "p": 0.24312788978786154
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#18767",
+            "chunk::textbook::Pharmacology_Katzung#372"
+          ],
+          "option_id": "B",
+          "p": 0.2390318360575654
+        }
+      ]
+    },
+    {
+      "gold_option": "C",
+      "question_id": "train_02513",
+      "ranked": [
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.27782324020892096
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.27782324020892096
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.27782324020892096
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.16653027937323697
+        }
+      ]
+    },
+    {
+      "gold_option": "A",
+      "question_id": "train_02556",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Pathology_Robbins#1890"
+          ],
+          "option_id": "B",
+          "p": 0.33295564029541136
+        },
+        {
+          "citations": [
+            "chunk::textbook::Biochemistry_Lippincott#1196"
+          ],
+          "option_id": "A",
+          "p": 0.2833547147719806
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pathology_Robbins#1890"
+          ],
+          "option_id": "D",
+          "p": 0.1995772411105492
+        },
+        {
+          "citations": [
+            "chunk::textbook::Biochemistry_Lippincott#1196"
+          ],
+          "option_id": "C",
+          "p": 0.18411240382205893
+        }
+      ]
+    },
+    {
+      "gold_option": "A",
+      "question_id": "train_02624",
+      "ranked": [
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.25122741588985265
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.25122741588985265
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.25122741588985265
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#332"
+          ],
+          "option_id": "D",
+          "p": 0.2463177523304421
+        }
+      ]
+    },
+    {
+      "gold_option": "A",
+      "question_id": "train_02630",
+      "ranked": [
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.271931537354798
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.271931537354798
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#5895"
+          ],
+          "option_id": "D",
+          "p": 0.22914640253851054
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#5895"
+          ],
+          "option_id": "A",
+          "p": 0.22699052275189338
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_02673",
+      "ranked": [
+        {
+          "citations": [
+            "kg::cerebral amyloid angiopathy|disease_phenotype_positive|Cerebellar hemorrhage",
+            "kg::cerebral amyloid angiopathy|disease_phenotype_positive|Recurrent cerebral hemorrhage"
+          ],
+          "option_id": "D",
+          "p": 0.7824783803780951
+        },
+        {
+          "citations": [
+            "chunk::textbook::Neurology_Adams#4212"
+          ],
+          "option_id": "A",
+          "p": 0.07451939957535292
+        },
+        {
+          "citations": [
+            "chunk::textbook::Neurology_Adams#4212"
+          ],
+          "option_id": "C",
+          "p": 0.07451939957535292
+        },
+        {
+          "citations": [
+            "chunk::textbook::Neurology_Adams#4093",
+            "chunk::textbook::Neurology_Adams#4212"
+          ],
+          "option_id": "B",
+          "p": 0.06848282047119895
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_02686",
+      "ranked": [
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.31998219404588235
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pediatrics_Nelson#1166",
+            "chunk::textbook::Pediatrics_Nelson#1172"
+          ],
+          "option_id": "B",
+          "p": 0.2818348162775326
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pediatrics_Nelson#1166"
+          ],
+          "option_id": "A",
+          "p": 0.20430949245041163
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pediatrics_Nelson#1166"
+          ],
+          "option_id": "D",
+          "p": 0.19387349722617345
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_02812",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#7587"
+          ],
+          "option_id": "B",
+          "p": 0.3685644780027843
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.24452726724188226
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.24452726724188226
+        },
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.1423809875134512
+        }
+      ]
+    },
+    {
+      "gold_option": "B",
+      "question_id": "train_03159",
+      "ranked": [
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.25
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.25
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.25
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.25
+        }
+      ]
+    },
+    {
+      "gold_option": "B",
+      "question_id": "train_03266",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#6768"
+          ],
+          "option_id": "B",
+          "p": 0.33286499150706644
+        },
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.22712822248094386
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.22712822248094386
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#6768"
+          ],
+          "option_id": "D",
+          "p": 0.21287856353104587
+        }
+      ]
+    },
+    {
+      "gold_option": "B",
+      "question_id": "train_03441",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Biochemistry_Lippincott#1196"
+          ],
+          "option_id": "C",
+          "p": 0.3386857394832171
+        },
+        {
+          "citations": [
+            "chunk::textbook::Biochemistry_Lippincott#1196"
+          ],
+          "option_id": "D",
+          "p": 0.3386857394832171
+        },
+        {
+          "citations": [
+            "chunk::textbook::Biochemistry_Lippincott#1196"
+          ],
+          "option_id": "A",
+          "p": 0.20301192504074914
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.11961659599281661
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_03465",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#1710",
+            "chunk::textbook::Pharmacology_Katzung#1150"
+          ],
+          "option_id": "A",
+          "p": 0.37211999330976003
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#1720"
+          ],
+          "option_id": "D",
+          "p": 0.25050372771933965
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#1710"
+          ],
+          "option_id": "C",
+          "p": 0.23017285451194136
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.14720342445895898
+        }
+      ]
+    },
+    {
+      "gold_option": "C",
+      "question_id": "train_03492",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#2969"
+          ],
+          "option_id": "B",
+          "p": 0.26333209110641365
+        },
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.24555596963119547
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.24555596963119547
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.24555596963119547
+        }
+      ]
+    },
+    {
+      "gold_option": "A",
+      "question_id": "train_03536",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::First_Aid_Step2#94",
+            "chunk::textbook::Pediatrics_Nelson#2440"
+          ],
+          "option_id": "D",
+          "p": 0.3341747656714932
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.24038711497893722
+        },
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.21362143920672352
+        },
+        {
+          "citations": [
+            "chunk::textbook::First_Aid_Step2#94"
+          ],
+          "option_id": "B",
+          "p": 0.21181668014284605
+        }
+      ]
+    },
+    {
+      "gold_option": "C",
+      "question_id": "train_03592",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Anatomy_Gray#179",
+            "chunk::textbook::Surgery_Schwartz#9639"
+          ],
+          "option_id": "C",
+          "p": 0.3494581021181367
+        },
+        {
+          "citations": [
+            "chunk::textbook::Anatomy_Gray#179"
+          ],
+          "option_id": "A",
+          "p": 0.2378422780253166
+        },
+        {
+          "citations": [
+            "chunk::textbook::Surgery_Schwartz#9639"
+          ],
+          "option_id": "B",
+          "p": 0.2100045920478612
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#18235"
+          ],
+          "option_id": "D",
+          "p": 0.20269502780868545
+        }
+      ]
+    },
+    {
+      "gold_option": "B",
+      "question_id": "train_03603",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Obstentrics_Williams#1089"
+          ],
+          "option_id": "B",
+          "p": 0.37356082138689495
+        },
+        {
+          "citations": [
+            "chunk::textbook::Obstentrics_Williams#1089"
+          ],
+          "option_id": "C",
+          "p": 0.23682564297893202
+        },
+        {
+          "citations": [
+            "chunk::textbook::Obstentrics_Williams#1089"
+          ],
+          "option_id": "D",
+          "p": 0.23682564297893202
+        },
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.15278789265524095
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_03608",
+      "ranked": [
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.25
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.25
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.25
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.25
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_03621",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#1586"
+          ],
+          "option_id": "B",
+          "p": 0.2889634284274664
+        },
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.26311728068486473
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.26311728068486473
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#1586"
+          ],
+          "option_id": "C",
+          "p": 0.1848020102028042
+        }
+      ]
+    },
+    {
+      "gold_option": "A",
+      "question_id": "train_03668",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::16157399#0"
+          ],
+          "option_id": "A",
+          "p": 0.2747604310385784
+        },
+        {
+          "citations": [
+            "chunk::16157399#0"
+          ],
+          "option_id": "C",
+          "p": 0.2747604310385784
+        },
+        {
+          "citations": [
+            "chunk::16157399#0"
+          ],
+          "option_id": "D",
+          "p": 0.2747604310385784
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.17571870688426494
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_03744",
+      "ranked": [
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.25
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.25
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.25
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.25
+        }
+      ]
+    },
+    {
+      "gold_option": "A",
+      "question_id": "train_03763",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#11535",
+            "chunk::textbook::Pharmacology_Katzung#747"
+          ],
+          "option_id": "C",
+          "p": 0.2715256245849798
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#602",
+            "chunk::textbook::Pharmacology_Katzung#747"
+          ],
+          "option_id": "A",
+          "p": 0.2648385110923681
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#11535"
+          ],
+          "option_id": "B",
+          "p": 0.2555311990874431
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.20810466523520887
+        }
+      ]
+    },
+    {
+      "gold_option": "A",
+      "question_id": "train_03823",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#1940"
+          ],
+          "option_id": "A",
+          "p": 0.4107062691518292
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#1941"
+          ],
+          "option_id": "B",
+          "p": 0.19741377130437787
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#1941"
+          ],
+          "option_id": "C",
+          "p": 0.19710549896030746
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#1941"
+          ],
+          "option_id": "D",
+          "p": 0.1947744605834854
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_03826",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Gynecology_Novak#3490"
+          ],
+          "option_id": "C",
+          "p": 0.39931492893478426
+        },
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.3019746207669661
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.15307490384949934
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.14563554644875032
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_04023",
+      "ranked": [
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.2768770790701981
+        },
+        {
+          "citations": [
+            "chunk::textbook::Gynecology_Novak#3809",
+            "chunk::textbook::Obstentrics_Williams#5013"
+          ],
+          "option_id": "B",
+          "p": 0.25421350888638256
+        },
+        {
+          "citations": [
+            "chunk::textbook::Gynecology_Novak#3809",
+            "chunk::textbook::InternalMed_Harrison#16072"
+          ],
+          "option_id": "C",
+          "p": 0.241017374544747
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#16072",
+            "chunk::textbook::Obstentrics_Williams#5013",
+            "chunk::textbook::Pathoma_Husain#169"
+          ],
+          "option_id": "D",
+          "p": 0.2278920374986723
+        }
+      ]
+    },
+    {
+      "gold_option": "C",
+      "question_id": "train_04025",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Pediatrics_Nelson#861"
+          ],
+          "option_id": "D",
+          "p": 0.3412811066636614
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pediatrics_Nelson#850"
+          ],
+          "option_id": "C",
+          "p": 0.3380778448700854
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.19042847357993303
+        },
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.13021257488632015
+        }
+      ]
+    },
+    {
+      "gold_option": "C",
+      "question_id": "train_04053",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#1939",
+            "chunk::textbook::InternalMed_Harrison#2242"
+          ],
+          "option_id": "B",
+          "p": 0.33544668010487555
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#2242"
+          ],
+          "option_id": "A",
+          "p": 0.32440365688631884
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#2242"
+          ],
+          "option_id": "D",
+          "p": 0.20746725021910803
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.13268241278969758
+        }
+      ]
+    },
+    {
+      "gold_option": "A",
+      "question_id": "train_04317",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#4243"
+          ],
+          "option_id": "B",
+          "p": 0.3472733464393259
+        },
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.21871176752149757
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.21871176752149757
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#1941"
+          ],
+          "option_id": "D",
+          "p": 0.21530311851767892
+        }
+      ]
+    },
+    {
+      "gold_option": "A",
+      "question_id": "train_04346",
+      "ranked": [
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.3517677311879545
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#1436"
+          ],
+          "option_id": "D",
+          "p": 0.284428602028768
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#1436"
+          ],
+          "option_id": "B",
+          "p": 0.18190183339163873
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#1436"
+          ],
+          "option_id": "C",
+          "p": 0.18190183339163873
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_04352",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Pediatrics_Nelson#1844"
+          ],
+          "option_id": "D",
+          "p": 0.3779323897952326
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.27913154622861747
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pediatrics_Nelson#1844"
+          ],
+          "option_id": "B",
+          "p": 0.21506046388818445
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pediatrics_Nelson#1844"
+          ],
+          "option_id": "A",
+          "p": 0.1278756000879654
+        }
+      ]
+    },
+    {
+      "gold_option": "B",
+      "question_id": "train_04387",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#11358"
+          ],
+          "option_id": "C",
+          "p": 0.33589854145578174
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#3915"
+          ],
+          "option_id": "D",
+          "p": 0.23192033779308915
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#11358"
+          ],
+          "option_id": "A",
+          "p": 0.21609056037556457
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#3915"
+          ],
+          "option_id": "B",
+          "p": 0.21609056037556457
+        }
+      ]
+    },
+    {
+      "gold_option": "B",
+      "question_id": "train_04399",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#2363"
+          ],
+          "option_id": "C",
+          "p": 0.2891160060964169
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#2363"
+          ],
+          "option_id": "D",
+          "p": 0.2891160060964169
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#2363"
+          ],
+          "option_id": "B",
+          "p": 0.27097733341703983
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#5526"
+          ],
+          "option_id": "A",
+          "p": 0.15079065439012632
+        }
+      ]
+    }
+  ],
+  "ranked_output_held_out": [
+    {
+      "gold_option": "B",
+      "question_id": "train_04435",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#9040"
+          ],
+          "option_id": "A",
+          "p": 0.2613222459079689
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#9040"
+          ],
+          "option_id": "C",
+          "p": 0.2613222459079689
+        },
+        {
+          "citations": [
+            "chunk::textbook::Cell_Biology_Alberts#3893"
+          ],
+          "option_id": "D",
+          "p": 0.24124991627243597
+        },
+        {
+          "citations": [
+            "chunk::textbook::Immunology_Janeway#2636"
+          ],
+          "option_id": "B",
+          "p": 0.2361055919116263
+        }
+      ]
+    },
+    {
+      "gold_option": "B",
+      "question_id": "train_04520",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#5695"
+          ],
+          "option_id": "B",
+          "p": 0.2770653449763834
+        },
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.24693914033032896
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.24693914033032896
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#8069",
+            "chunk::textbook::InternalMed_Harrison#8594"
+          ],
+          "option_id": "D",
+          "p": 0.2290563743629587
+        }
+      ]
+    },
+    {
+      "gold_option": "C",
+      "question_id": "train_04566",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::First_Aid_Step1#497"
+          ],
+          "option_id": "A",
+          "p": 0.2934761893623618
+        },
+        {
+          "citations": [
+            "chunk::textbook::First_Aid_Step1#497",
+            "chunk::textbook::First_Aid_Step2#871"
+          ],
+          "option_id": "C",
+          "p": 0.2659442938096185
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.25289144143394965
+        },
+        {
+          "citations": [
+            "chunk::textbook::First_Aid_Step1#497"
+          ],
+          "option_id": "D",
+          "p": 0.18768807539407006
+        }
+      ]
+    },
+    {
+      "gold_option": "A",
+      "question_id": "train_04568",
+      "ranked": [
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.2730203825799672
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.2730203825799672
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.2730203825799672
+        },
+        {
+          "citations": [
+            "chunk::textbook::Biochemistry_Lippincott#371"
+          ],
+          "option_id": "B",
+          "p": 0.1809388522600984
+        }
+      ]
+    },
+    {
+      "gold_option": "C",
+      "question_id": "train_04571",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Obstentrics_Williams#2065",
+            "chunk::textbook::Obstentrics_Williams#2268"
+          ],
+          "option_id": "B",
+          "p": 0.27367591942497266
+        },
+        {
+          "citations": [
+            "chunk::textbook::Obstentrics_Williams#2268"
+          ],
+          "option_id": "A",
+          "p": 0.2705555545113683
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.2668738586098717
+        },
+        {
+          "citations": [
+            "chunk::textbook::Obstentrics_Williams#2065"
+          ],
+          "option_id": "D",
+          "p": 0.18889466745378738
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_04755",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#18681",
+            "chunk::textbook::Pharmacology_Katzung#1780"
+          ],
+          "option_id": "B",
+          "p": 0.2886366133434961
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.288483355069333
+        },
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.2342018586232869
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#1780"
+          ],
+          "option_id": "D",
+          "p": 0.18867817296388412
+        }
+      ]
+    },
+    {
+      "gold_option": "A",
+      "question_id": "train_04817",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Psichiatry_DSM-5#412"
+          ],
+          "option_id": "A",
+          "p": 0.39371372843598873
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#1861"
+          ],
+          "option_id": "D",
+          "p": 0.2540969959876809
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.17609463778816523
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.17609463778816523
+        }
+      ]
+    },
+    {
+      "gold_option": "A",
+      "question_id": "train_05169",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#1246",
+            "chunk::textbook::Pharmacology_Katzung#1941"
+          ],
+          "option_id": "A",
+          "p": 0.3435574610467849
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#1941"
+          ],
+          "option_id": "B",
+          "p": 0.24114467233506243
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#1363"
+          ],
+          "option_id": "D",
+          "p": 0.21510494535132363
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#1246"
+          ],
+          "option_id": "C",
+          "p": 0.20019292126682897
+        }
+      ]
+    },
+    {
+      "gold_option": "C",
+      "question_id": "train_05182",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#13732"
+          ],
+          "option_id": "A",
+          "p": 0.28418530487638805
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#213",
+            "chunk::textbook::Pharmacology_Katzung#3932",
+            "chunk::textbook::Pharmacology_Katzung#4243"
+          ],
+          "option_id": "D",
+          "p": 0.24774603635551673
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#213",
+            "chunk::textbook::Pharmacology_Katzung#3932"
+          ],
+          "option_id": "B",
+          "p": 0.2340343293840476
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#213",
+            "chunk::textbook::Pharmacology_Katzung#3932"
+          ],
+          "option_id": "C",
+          "p": 0.2340343293840476
+        }
+      ]
+    },
+    {
+      "gold_option": "A",
+      "question_id": "train_05327",
+      "ranked": [
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.25636308168682503
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.25636308168682503
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.24999676824133654
+        },
+        {
+          "citations": [
+            "chunk::textbook::Immunology_Janeway#2031"
+          ],
+          "option_id": "A",
+          "p": 0.23727706838501333
+        }
+      ]
+    },
+    {
+      "gold_option": "C",
+      "question_id": "train_05528",
+      "ranked": [
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.2850443719996933
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.2850443719996933
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.2850443719996933
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.14486688400092018
+        }
+      ]
+    },
+    {
+      "gold_option": "B",
+      "question_id": "train_05588",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#17575",
+            "chunk::textbook::Neurology_Adams#848"
+          ],
+          "option_id": "D",
+          "p": 0.30871682230142167
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.24692409775500468
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.24692409775500468
+        },
+        {
+          "citations": [
+            "chunk::textbook::Neurology_Adams#848"
+          ],
+          "option_id": "A",
+          "p": 0.19743498218856886
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_05649",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Gynecology_Novak#163"
+          ],
+          "option_id": "C",
+          "p": 0.32361754549608246
+        },
+        {
+          "citations": [
+            "chunk::textbook::Gynecology_Novak#163",
+            "chunk::textbook::Surgery_Schwartz#1905"
+          ],
+          "option_id": "A",
+          "p": 0.2884226839604787
+        },
+        {
+          "citations": [
+            "chunk::textbook::Gynecology_Novak#163"
+          ],
+          "option_id": "B",
+          "p": 0.19397988527171942
+        },
+        {
+          "citations": [
+            "chunk::textbook::Gynecology_Novak#163"
+          ],
+          "option_id": "D",
+          "p": 0.19397988527171942
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_05834",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#1940"
+          ],
+          "option_id": "A",
+          "p": 0.28190264679366145
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#1940"
+          ],
+          "option_id": "D",
+          "p": 0.28190264679366145
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.2559083079142022
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.18028639849847491
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_05895",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#8424"
+          ],
+          "option_id": "A",
+          "p": 0.25581711901438203
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.254376142941572
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.254376142941572
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#6028"
+          ],
+          "option_id": "B",
+          "p": 0.2354305951024739
+        }
+      ]
+    },
+    {
+      "gold_option": "C",
+      "question_id": "train_05939",
+      "ranked": [
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.25
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.25
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.25
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.25
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_05944",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#11614"
+          ],
+          "option_id": "A",
+          "p": 0.3681550368312479
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#11614"
+          ],
+          "option_id": "C",
+          "p": 0.2206761431839474
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#11614"
+          ],
+          "option_id": "D",
+          "p": 0.2206761431839474
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#10685"
+          ],
+          "option_id": "B",
+          "p": 0.19049267680085732
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_05991",
+      "ranked": [
+        {
+          "citations": [
+            "kg::Acalabrutinib|indication|mantle cell lymphoma"
+          ],
+          "option_id": "A",
+          "p": 0.5229682111127647
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#4900"
+          ],
+          "option_id": "B",
+          "p": 0.1721102535543282
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#4900",
+            "chunk::textbook::InternalMed_Harrison#4901"
+          ],
+          "option_id": "D",
+          "p": 0.15466105414825795
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.15026048118464916
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_06079",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Neurology_Adams#1792"
+          ],
+          "option_id": "C",
+          "p": 0.31209498235342
+        },
+        {
+          "citations": [
+            "chunk::textbook::Neurology_Adams#1826"
+          ],
+          "option_id": "D",
+          "p": 0.2680436708783155
+        },
+        {
+          "citations": [
+            "chunk::textbook::Neurology_Adams#1826",
+            "chunk::textbook::Pharmacology_Katzung#1586",
+            "chunk::textbook::Pharmacology_Katzung#3182"
+          ],
+          "option_id": "A",
+          "p": 0.24369297099794282
+        },
+        {
+          "citations": [
+            "chunk::textbook::Neurology_Adams#1792"
+          ],
+          "option_id": "B",
+          "p": 0.17616837577032154
+        }
+      ]
+    },
+    {
+      "gold_option": "C",
+      "question_id": "train_06215",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Neurology_Adams#3937"
+          ],
+          "option_id": "A",
+          "p": 0.32613921832495746
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.2326417902342926
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.2326417902342926
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.20857720120645726
+        }
+      ]
+    },
+    {
+      "gold_option": "B",
+      "question_id": "train_06230",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::First_Aid_Step2#112",
+            "chunk::textbook::First_Aid_Step2#113"
+          ],
+          "option_id": "B",
+          "p": 0.3014112927666231
+        },
+        {
+          "citations": [
+            "chunk::textbook::First_Aid_Step2#113",
+            "chunk::textbook::InternalMed_Harrison#2307"
+          ],
+          "option_id": "A",
+          "p": 0.2985688249748367
+        },
+        {
+          "citations": [
+            "chunk::textbook::First_Aid_Step2#113"
+          ],
+          "option_id": "C",
+          "p": 0.20000994112927006
+        },
+        {
+          "citations": [
+            "chunk::textbook::First_Aid_Step2#113"
+          ],
+          "option_id": "D",
+          "p": 0.20000994112927006
+        }
+      ]
+    },
+    {
+      "gold_option": "A",
+      "question_id": "train_06238",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#892"
+          ],
+          "option_id": "B",
+          "p": 0.30711205547009646
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#10199"
+          ],
+          "option_id": "C",
+          "p": 0.27428010293984606
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#1907",
+            "chunk::textbook::InternalMed_Harrison#8070"
+          ],
+          "option_id": "A",
+          "p": 0.25545992260712774
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#10199"
+          ],
+          "option_id": "D",
+          "p": 0.16314791898292977
+        }
+      ]
+    },
+    {
+      "gold_option": "C",
+      "question_id": "train_06241",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#2969"
+          ],
+          "option_id": "C",
+          "p": 0.31242071220442186
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#892"
+          ],
+          "option_id": "B",
+          "p": 0.2651902351021767
+        },
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.23512067137921147
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#2969"
+          ],
+          "option_id": "D",
+          "p": 0.18726838131419007
+        }
+      ]
+    },
+    {
+      "gold_option": "C",
+      "question_id": "train_06496",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#13013",
+            "chunk::textbook::Surgery_Schwartz#5280"
+          ],
+          "option_id": "A",
+          "p": 0.3312962862477961
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#4243"
+          ],
+          "option_id": "B",
+          "p": 0.23599103434953123
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#13013",
+            "chunk::textbook::Pharmacology_Katzung#4243"
+          ],
+          "option_id": "D",
+          "p": 0.22028670923893182
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#13014",
+            "chunk::textbook::Pharmacology_Katzung#4243"
+          ],
+          "option_id": "C",
+          "p": 0.21242597016374087
+        }
+      ]
+    },
+    {
+      "gold_option": "C",
+      "question_id": "train_06557",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#8424"
+          ],
+          "option_id": "D",
+          "p": 0.3186794750374043
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#1534"
+          ],
+          "option_id": "B",
+          "p": 0.2684293363742972
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.262693575503232
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#9085"
+          ],
+          "option_id": "A",
+          "p": 0.1501976130850664
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_06586",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Biochemistry_Lippincott#433",
+            "chunk::textbook::Pediatrics_Nelson#2179"
+          ],
+          "option_id": "B",
+          "p": 0.2857364958967944
+        },
+        {
+          "citations": [
+            "chunk::textbook::Biochemistry_Lippincott#433",
+            "chunk::textbook::InternalMed_Harrison#17049"
+          ],
+          "option_id": "D",
+          "p": 0.268645941590485
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#18359"
+          ],
+          "option_id": "A",
+          "p": 0.2673872672725572
+        },
+        {
+          "citations": [
+            "chunk::textbook::Biochemistry_Lippincott#433"
+          ],
+          "option_id": "C",
+          "p": 0.17823029524016348
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_06887",
+      "ranked": [
+        {
+          "citations": [
+            "kg::Amiodarone|drug_effect|Abnormal lung morphology"
+          ],
+          "option_id": "D",
+          "p": 0.5923966204356373
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#11960"
+          ],
+          "option_id": "C",
+          "p": 0.18075047533960592
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.11647154399715623
+        },
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.11038136022760052
+        }
+      ]
+    },
+    {
+      "gold_option": "B",
+      "question_id": "train_06927",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Obstentrics_Williams#4900"
+          ],
+          "option_id": "D",
+          "p": 0.2818151286011308
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.27630894364173214
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#16499"
+          ],
+          "option_id": "A",
+          "p": 0.2747392674026035
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#4271"
+          ],
+          "option_id": "B",
+          "p": 0.16713666035453353
+        }
+      ]
+    },
+    {
+      "gold_option": "A",
+      "question_id": "train_06931",
+      "ranked": [
+        {
+          "citations": [
+            "kg::AL amyloidosis|disease_phenotype_positive|Abnormality of the kidney",
+            "kg::AL amyloidosis|disease_phenotype_positive|Abnormality of the liver",
+            "kg::AL amyloidosis|disease_phenotype_positive|Hepatomegaly"
+          ],
+          "option_id": "A",
+          "p": 0.9524415839704872
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#1672"
+          ],
+          "option_id": "C",
+          "p": 0.018801951044858406
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#10936",
+            "chunk::textbook::InternalMed_Harrison#1672"
+          ],
+          "option_id": "B",
+          "p": 0.017358396665031507
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#602"
+          ],
+          "option_id": "D",
+          "p": 0.011398068319623157
+        }
+      ]
+    },
+    {
+      "gold_option": "A",
+      "question_id": "train_06939",
+      "ranked": [
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.2844004753838921
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.2844004753838921
+        },
+        {
+          "citations": [
+            "chunk::textbook::First_Aid_Step2#674"
+          ],
+          "option_id": "C",
+          "p": 0.26300093979215755
+        },
+        {
+          "citations": [
+            "chunk::textbook::First_Aid_Step2#674"
+          ],
+          "option_id": "B",
+          "p": 0.1681981094400581
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_07034",
+      "ranked": [
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.25422627665109004
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.25422627665109004
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#5685"
+          ],
+          "option_id": "B",
+          "p": 0.25208205439441483
+        },
+        {
+          "citations": [
+            "chunk::textbook::Immunology_Janeway#2501"
+          ],
+          "option_id": "C",
+          "p": 0.2394653923034051
+        }
+      ]
+    },
+    {
+      "gold_option": "A",
+      "question_id": "train_07374",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Surgery_Schwartz#10169"
+          ],
+          "option_id": "D",
+          "p": 0.3802259823577877
+        },
+        {
+          "citations": [
+            "chunk::textbook::Surgery_Schwartz#10169"
+          ],
+          "option_id": "B",
+          "p": 0.24316753941301245
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#1605",
+            "chunk::textbook::Surgery_Schwartz#10162"
+          ],
+          "option_id": "C",
+          "p": 0.22109250767539915
+        },
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.15551397055380073
+        }
+      ]
+    },
+    {
+      "gold_option": "A",
+      "question_id": "train_07443",
+      "ranked": [
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.3669036835878881
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.21968624926154554
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#3"
+          ],
+          "option_id": "A",
+          "p": 0.20670503357528314
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#3"
+          ],
+          "option_id": "D",
+          "p": 0.20670503357528314
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_07532",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#18501",
+            "chunk::textbook::InternalMed_Harrison#18680"
+          ],
+          "option_id": "A",
+          "p": 0.2530277199373985
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#18501",
+            "chunk::textbook::InternalMed_Harrison#18680"
+          ],
+          "option_id": "C",
+          "p": 0.2530277199373985
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#18683"
+          ],
+          "option_id": "B",
+          "p": 0.2502688862375719
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#18680",
+            "chunk::textbook::InternalMed_Harrison#18683"
+          ],
+          "option_id": "D",
+          "p": 0.24367567388763103
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_07542",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Gynecology_Novak#1268",
+            "chunk::textbook::InternalMed_Harrison#2667",
+            "chunk::textbook::InternalMed_Harrison#4650"
+          ],
+          "option_id": "A",
+          "p": 0.32684342963009416
+        },
+        {
+          "citations": [
+            "chunk::textbook::Gynecology_Novak#1268",
+            "chunk::textbook::InternalMed_Harrison#2667"
+          ],
+          "option_id": "D",
+          "p": 0.32367953856796916
+        },
+        {
+          "citations": [
+            "chunk::textbook::Gynecology_Novak#1268",
+            "chunk::textbook::InternalMed_Harrison#2677"
+          ],
+          "option_id": "B",
+          "p": 0.20918633217549062
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.140290699626446
+        }
+      ]
+    },
+    {
+      "gold_option": "B",
+      "question_id": "train_07588",
+      "ranked": [
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.25
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.25
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.25
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.25
+        }
+      ]
+    },
+    {
+      "gold_option": "C",
+      "question_id": "train_08100",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Biochemistry_Lippincott#492"
+          ],
+          "option_id": "D",
+          "p": 0.32901791416323334
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#16395",
+            "chunk::textbook::InternalMed_Harrison#16401"
+          ],
+          "option_id": "A",
+          "p": 0.2908119970094839
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#16397"
+          ],
+          "option_id": "B",
+          "p": 0.19298825145715676
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#16395"
+          ],
+          "option_id": "C",
+          "p": 0.187181837370126
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_08194",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Pathology_Robbins#850"
+          ],
+          "option_id": "A",
+          "p": 0.30455906217837153
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#3655",
+            "chunk::textbook::Pathology_Robbins#850"
+          ],
+          "option_id": "C",
+          "p": 0.29983636890938886
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#3655"
+          ],
+          "option_id": "D",
+          "p": 0.20384894084571648
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pathology_Robbins#850"
+          ],
+          "option_id": "B",
+          "p": 0.19175562806652321
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_08295",
+      "ranked": [
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.25
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.25
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.25
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.25
+        }
+      ]
+    },
+    {
+      "gold_option": "C",
+      "question_id": "train_08364",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Anatomy_Gray#396"
+          ],
+          "option_id": "A",
+          "p": 0.2803675497557526
+        },
+        {
+          "citations": [
+            "chunk::textbook::Anatomy_Gray#396",
+            "chunk::textbook::InternalMed_Harrison#5895"
+          ],
+          "option_id": "C",
+          "p": 0.26631638721108836
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.22665803151657948
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.22665803151657948
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_08767",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#4243",
+            "kg::Alprazolam|contraindication|obesity disorder"
+          ],
+          "option_id": "D",
+          "p": 0.6010684230058959
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#4243"
+          ],
+          "option_id": "A",
+          "p": 0.16795837272284733
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#1315",
+            "chunk::textbook::Pharmacology_Katzung#1941"
+          ],
+          "option_id": "B",
+          "p": 0.13029712435952331
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#4243"
+          ],
+          "option_id": "C",
+          "p": 0.10067607991173341
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_08801",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#8842",
+            "chunk::textbook::Pharmacology_Katzung#3182"
+          ],
+          "option_id": "A",
+          "p": 0.2999596633626124
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.23887881741498518
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.23887881741498518
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.22228270180741727
+        }
+      ]
+    },
+    {
+      "gold_option": "B",
+      "question_id": "train_08846",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Obstentrics_Williams#8"
+          ],
+          "option_id": "B",
+          "p": 0.33782189781019
+        },
+        {
+          "citations": [
+            "chunk::textbook::Obstentrics_Williams#8"
+          ],
+          "option_id": "C",
+          "p": 0.3166274959123528
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.21604867489838836
+        },
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.12950193137906896
+        }
+      ]
+    },
+    {
+      "gold_option": "B",
+      "question_id": "train_08945",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#11563"
+          ],
+          "option_id": "C",
+          "p": 0.25378625978841785
+        },
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.2487379134038607
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.2487379134038607
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.2487379134038607
+        }
+      ]
+    },
+    {
+      "gold_option": "B",
+      "question_id": "train_08952",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#9311"
+          ],
+          "option_id": "D",
+          "p": 0.3446913147531481
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#2236"
+          ],
+          "option_id": "B",
+          "p": 0.2268857439446102
+        },
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.2204419023281997
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#3037"
+          ],
+          "option_id": "C",
+          "p": 0.20798103897404194
+        }
+      ]
+    },
+    {
+      "gold_option": "B",
+      "question_id": "train_09061",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Neurology_Adams#4845"
+          ],
+          "option_id": "C",
+          "p": 0.29037196386157244
+        },
+        {
+          "citations": [
+            "chunk::textbook::Neurology_Adams#4845",
+            "chunk::textbook::Obstentrics_Williams#1247"
+          ],
+          "option_id": "B",
+          "p": 0.2852757848535372
+        },
+        {
+          "citations": [
+            "chunk::textbook::Neurology_Adams#5298",
+            "chunk::textbook::Pathology_Robbins#1015"
+          ],
+          "option_id": "D",
+          "p": 0.23864943442609787
+        },
+        {
+          "citations": [
+            "chunk::textbook::Neurology_Adams#4845"
+          ],
+          "option_id": "A",
+          "p": 0.18570281685879256
+        }
+      ]
+    },
+    {
+      "gold_option": "C",
+      "question_id": "train_09142",
+      "ranked": [
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.2807701761553128
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.2807701761553128
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#2969"
+          ],
+          "option_id": "C",
+          "p": 0.2665909648117008
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#5526"
+          ],
+          "option_id": "A",
+          "p": 0.1718686828776736
+        }
+      ]
+    },
+    {
+      "gold_option": "A",
+      "question_id": "train_09213",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::First_Aid_Step2#627"
+          ],
+          "option_id": "A",
+          "p": 0.30676726336526666
+        },
+        {
+          "citations": [
+            "chunk::textbook::First_Aid_Step2#627",
+            "chunk::textbook::First_Aid_Step2#629"
+          ],
+          "option_id": "B",
+          "p": 0.29279188886448976
+        },
+        {
+          "citations": [
+            "chunk::textbook::Gynecology_Novak#2198"
+          ],
+          "option_id": "C",
+          "p": 0.2099543999194421
+        },
+        {
+          "citations": [
+            "chunk::textbook::Gynecology_Novak#2193"
+          ],
+          "option_id": "D",
+          "p": 0.19048644785080146
+        }
+      ]
+    },
+    {
+      "gold_option": "A",
+      "question_id": "train_09215",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Neurology_Adams#5995"
+          ],
+          "option_id": "A",
+          "p": 0.287858078009844
+        },
+        {
+          "citations": [
+            "chunk::textbook::Neurology_Adams#5995"
+          ],
+          "option_id": "C",
+          "p": 0.2697983257130656
+        },
+        {
+          "citations": [
+            "chunk::textbook::Neurology_Adams#5995"
+          ],
+          "option_id": "D",
+          "p": 0.2697983257130656
+        },
+        {
+          "citations": [
+            "chunk::textbook::Neurology_Adams#5995"
+          ],
+          "option_id": "B",
+          "p": 0.1725452705640249
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_09310",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#12891"
+          ],
+          "option_id": "D",
+          "p": 0.31107153098679613
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#12891",
+            "chunk::textbook::InternalMed_Harrison#6225"
+          ],
+          "option_id": "A",
+          "p": 0.29104667091809494
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.19894089904755444
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.19894089904755444
+        }
+      ]
+    },
+    {
+      "gold_option": "C",
+      "question_id": "train_09477",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#1542"
+          ],
+          "option_id": "D",
+          "p": 0.3039023189960554
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#1542"
+          ],
+          "option_id": "B",
+          "p": 0.25569279415607665
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#1488"
+          ],
+          "option_id": "C",
+          "p": 0.24604894443191538
+        },
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.19435594241595255
+        }
+      ]
+    },
+    {
+      "gold_option": "A",
+      "question_id": "train_09578",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#9024"
+          ],
+          "option_id": "B",
+          "p": 0.3451601240090932
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#5526"
+          ],
+          "option_id": "C",
+          "p": 0.22720541236787564
+        },
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.22074172190527144
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#9024"
+          ],
+          "option_id": "D",
+          "p": 0.20689274171775973
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_09595",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#1966"
+          ],
+          "option_id": "C",
+          "p": 0.2818411669916737
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#16330",
+            "chunk::textbook::InternalMed_Harrison#1965"
+          ],
+          "option_id": "B",
+          "p": 0.2766732175916319
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#1965"
+          ],
+          "option_id": "D",
+          "p": 0.2645436160140065
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#16330"
+          ],
+          "option_id": "A",
+          "p": 0.17694199940268798
+        }
+      ]
+    },
+    {
+      "gold_option": "C",
+      "question_id": "train_09672",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Gynecology_Novak#183"
+          ],
+          "option_id": "B",
+          "p": 0.29693346697446027
+        },
+        {
+          "citations": [
+            "chunk::textbook::First_Aid_Step1#190",
+            "chunk::textbook::Gynecology_Novak#183"
+          ],
+          "option_id": "A",
+          "p": 0.25444276249296055
+        },
+        {
+          "citations": [
+            "chunk::textbook::First_Aid_Step1#190",
+            "chunk::textbook::Gynecology_Novak#183"
+          ],
+          "option_id": "C",
+          "p": 0.23145912429332832
+        },
+        {
+          "citations": [
+            "chunk::textbook::First_Aid_Step1#190",
+            "chunk::textbook::Gynecology_Novak#182",
+            "chunk::textbook::Gynecology_Novak#183"
+          ],
+          "option_id": "D",
+          "p": 0.21716464623925094
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_09693",
+      "ranked": [
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.2518949396431671
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.2518949396431671
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.2518949396431671
+        },
+        {
+          "citations": [
+            "chunk::textbook::Pharmacology_Katzung#1314"
+          ],
+          "option_id": "C",
+          "p": 0.24431518107049865
+        }
+      ]
+    },
+    {
+      "gold_option": "A",
+      "question_id": "train_09790",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Pathology_Robbins#496"
+          ],
+          "option_id": "A",
+          "p": 0.3198455074706749
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.2710501774498572
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.20455215753973396
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.20455215753973396
+        }
+      ]
+    },
+    {
+      "gold_option": "B",
+      "question_id": "train_09883",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::First_Aid_Step2#30"
+          ],
+          "option_id": "D",
+          "p": 0.3086314545131535
+        },
+        {
+          "citations": [
+            "chunk::textbook::First_Aid_Step2#30",
+            "chunk::textbook::InternalMed_Harrison#11241"
+          ],
+          "option_id": "C",
+          "p": 0.2814804021425568
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.2433845442329508
+        },
+        {
+          "citations": [
+            "chunk::textbook::First_Aid_Step2#30"
+          ],
+          "option_id": "A",
+          "p": 0.16650359911133886
+        }
+      ]
+    },
+    {
+      "gold_option": "A",
+      "question_id": "train_09911",
+      "ranked": [
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.27631110677802945
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.27631110677802945
+        },
+        {
+          "citations": [],
+          "option_id": "C",
+          "p": 0.27631110677802945
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#1364"
+          ],
+          "option_id": "D",
+          "p": 0.17106667966591171
+        }
+      ]
+    },
+    {
+      "gold_option": "D",
+      "question_id": "train_10000",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::Pediatrics_Nelson#1977"
+          ],
+          "option_id": "A",
+          "p": 0.31420852555006457
+        },
+        {
+          "citations": [],
+          "option_id": "D",
+          "p": 0.2902978316651584
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#4825",
+            "chunk::textbook::Pediatrics_Nelson#1711"
+          ],
+          "option_id": "C",
+          "p": 0.27883497104836347
+        },
+        {
+          "citations": [],
+          "option_id": "B",
+          "p": 0.11665867173641367
+        }
+      ]
+    },
+    {
+      "gold_option": "C",
+      "question_id": "train_10153",
+      "ranked": [
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#2293",
+            "chunk::textbook::Pharmacology_Katzung#3038"
+          ],
+          "option_id": "D",
+          "p": 0.2870130514839898
+        },
+        {
+          "citations": [
+            "chunk::textbook::InternalMed_Harrison#2293",
+            "chunk::textbook::Obstentrics_Williams#1792"
+          ],
+          "option_id": "C",
+          "p": 0.2635568687560056
+        },
+        {
+          "citations": [
+            "chunk::textbook::Gynecology_Novak#1287",
+            "chunk::textbook::InternalMed_Harrison#2293"
+          ],
+          "option_id": "B",
+          "p": 0.2564017873841049
+        },
+        {
+          "citations": [],
+          "option_id": "A",
+          "p": 0.19302829237589963
+        }
+      ]
+    }
+  ],
+  "run_dir": "results\\medqa_V4_a714fe0-dirty_20260907T121703Z",
+  "weight_bootstrap": {
+    "alpha": {
+      "max": 0.1933794947405218,
+      "mean": -0.01687780884336218,
+      "min": -0.27773163151658076,
+      "std": 0.07178075194317483
+    },
+    "beta": {
+      "max": 0.33040692359202095,
+      "mean": 0.11392816613106342,
+      "min": -0.28357544000409995,
+      "std": 0.08669891127739801
+    },
+    "delta": {
+      "max": 0.13336627809533874,
+      "mean": 0.007111276279066103,
+      "min": -0.043837482123330905,
+      "std": 0.02045603023680781
+    },
+    "gamma": {
+      "max": 0.6641803789022308,
+      "mean": 0.23146801825062255,
+      "min": -0.40313289638509203,
+      "std": 0.2340481174517894
+    },
+    "temperature": {
+      "max": 2.0405656536890495,
+      "mean": 0.2838682557460832,
+      "min": 0.0889122008974241,
+      "std": 0.27012975743503315
+    }
+  },
+  "weights": {
+    "alpha": -0.013896237159311542,
+    "beta": 0.10976837687736825,
+    "delta": 0.007722670183812638,
+    "gamma": 0.2948559455824592,
+    "temperature": 0.21447181570951504
+  }
+}

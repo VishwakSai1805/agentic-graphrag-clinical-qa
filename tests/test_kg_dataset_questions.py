@@ -122,6 +122,50 @@ def test_load_question_sample_limit_is_deterministic(tmp_path, monkeypatch):
     assert len(sample1) == 5
 
 
+def test_load_question_sample_excluding_is_disjoint_from_the_excluded_set(tmp_path, monkeypatch):
+    path = tmp_path / "medqa_train.jsonl"
+    rows = [{"question": f"Q{i}", "answer": "A", "options": {"A": "x"}} for i in range(100)]
+    write_jsonl(path, rows)
+    monkeypatch.setitem(dq._SPLIT_PATHS, ("medqa", "train"), path)
+
+    excluded = dq.load_question_sample("medqa", "train", limit=20, seed=42)
+    excluded_ids = {q.question_id for q in excluded}
+
+    sampled = dq.load_question_sample_excluding(
+        "medqa", "train", limit=30, seed=42, exclude_ids=excluded_ids
+    )
+    sampled_ids = {q.question_id for q in sampled}
+    assert len(sampled) == 30
+    assert sampled_ids.isdisjoint(excluded_ids)
+
+
+def test_load_question_sample_excluding_is_deterministic(tmp_path, monkeypatch):
+    path = tmp_path / "medqa_train.jsonl"
+    rows = [{"question": f"Q{i}", "answer": "A", "options": {"A": "x"}} for i in range(50)]
+    write_jsonl(path, rows)
+    monkeypatch.setitem(dq._SPLIT_PATHS, ("medqa", "train"), path)
+
+    a = dq.load_question_sample_excluding("medqa", "train", limit=10, seed=7, exclude_ids=set())
+    b = dq.load_question_sample_excluding("medqa", "train", limit=10, seed=7, exclude_ids=set())
+    assert [q.question_id for q in a] == [q.question_id for q in b]
+
+
+def test_load_question_sample_excluding_all_remaining_when_limit_exceeds_pool(
+    tmp_path, monkeypatch
+):
+    path = tmp_path / "medqa_train.jsonl"
+    rows = [{"question": f"Q{i}", "answer": "A", "options": {"A": "x"}} for i in range(10)]
+    write_jsonl(path, rows)
+    monkeypatch.setitem(dq._SPLIT_PATHS, ("medqa", "train"), path)
+
+    exclude_ids = {q.question_id for q in dq.load_question_sample("medqa", "train", 3, seed=1)}
+    sampled = dq.load_question_sample_excluding(
+        "medqa", "train", limit=100, seed=1, exclude_ids=exclude_ids
+    )
+    assert len(sampled) == 7
+    assert {q.question_id for q in sampled}.isdisjoint(exclude_ids)
+
+
 def test_load_question_sample_missing_split_raises_clear_error(tmp_path, monkeypatch):
     import pytest
 

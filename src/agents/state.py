@@ -72,6 +72,13 @@ class SupportCell(BaseModel):
     label: Label
     rationale: str = ""  # <=2 sentences; "" is allowed only for NEUTRAL
     source_rank: int = _UNRANKED
+    # Phase 5 (src/calibration/scoring.py): the cited evidence's modality and
+    # MedCPT rerank score, captured at audit time (the Evidence object is
+    # already in hand there -- no extra lookup, no extra LLM call). Feeds
+    # z_i = alpha*s+ - beta*s- + gamma*kg_i + delta*rerank_i's kg_i/rerank_i
+    # terms without needing to reconstruct the EvidenceBundle downstream.
+    modality: str = ""
+    rerank_score: float = 0.0
 
 
 class ConflictLogEntry(BaseModel):

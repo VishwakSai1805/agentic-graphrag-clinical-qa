@@ -72,6 +72,11 @@ class ChatResponse(BaseModel):
     cached: bool
     prompt_hash: str
     latency_ms: float
+    # Phase 5 (src/calibration): populated only when chat(logprobs=True) was
+    # requested. One entry (the first generated token) with its logprob and
+    # `top_logprobs` alternatives -- see `_extract_first_token_logprobs`.
+    # None when logprobs weren't requested, or a provider returned none.
+    logprobs: list[dict] | None = None
 
 
 class CallStats(BaseModel):
@@ -166,6 +171,56 @@ def _provider_available(provider: ProviderConfig) -> bool:
     return bool(os.environ.get(provider.api_key_env))
 
 
+def _logprobs_kwargs_and_routing(
+    provider: ProviderConfig, top_logprobs: int
+) -> tuple[dict, str, str | None]:
+    """Returns (extra_kwargs, model, api_base_override) for a logprobs=True call.
+
+    Phase 5 (src/calibration): LiteLLM's native `ollama/` provider path
+    rejects `logprobs`/`top_logprobs` outright
+    (`litellm.UnsupportedParamsError`) -- confirmed empirically against this
+    project's own Ollama server, not assumed. Ollama's OpenAI-compatible
+    endpoint (`/v1/chat/completions`) DOES return real per-token logprobs
+    (also confirmed empirically), so a logprobs request against the ollama
+    provider is routed through LiteLLM's `openai/` provider type pointed at
+    that same server's `/v1` path instead of the native `ollama/` type. This
+    still goes through LiteLLM (CLAUDE.md: "never call a provider SDK
+    directly") -- it changes which LiteLLM provider *type* serves the call,
+    not who serves it. Non-Ollama providers get `logprobs`/`top_logprobs`
+    passed through as-is; if a fallback provider doesn't support them,
+    LiteLLM raises and the existing per-provider fallback loop in `chat()`
+    moves to the next provider, same as any other unsupported-param failure.
+    """
+    extra = {"logprobs": True, "top_logprobs": top_logprobs}
+    if provider.provider == "ollama":
+        bare_model = provider.model.removeprefix("ollama/").removeprefix("ollama_chat/")
+        api_base = (provider.api_base or "http://localhost:11434").rstrip("/") + "/v1"
+        return extra, f"openai/{bare_model}", api_base
+    return extra, provider.model, provider.api_base
+
+
+def _extract_first_token_logprobs(response) -> list[dict] | None:
+    """Pulls the first generated token's `{token, logprob, top_logprobs}` out
+    of a LiteLLM completion response, or None if the response carries no
+    logprobs (a provider that silently ignored the request, or a
+    zero-token completion). Only the first token matters here: every caller
+    that requests logprobs uses a single-letter-answer prompt, so the option
+    letter IS the first generated token."""
+    lp = getattr(response.choices[0], "logprobs", None)
+    if not lp or not getattr(lp, "content", None):
+        return None
+    first = lp.content[0]
+    return [
+        {
+            "token": first.token,
+            "logprob": first.logprob,
+            "top_logprobs": [
+                {"token": t.token, "logprob": t.logprob} for t in (first.top_logprobs or [])
+            ],
+        }
+    ]
+
+
 def _call_provider(
     provider: ProviderConfig,
     prompt: str,
@@ -176,7 +231,9 @@ def _call_provider(
     max_retries: int,
     backoff_base_s: float,
     num_ctx: int | None = None,
-) -> tuple[str, dict]:
+    logprobs: bool = False,
+    top_logprobs: int = 10,
+) -> tuple[str, dict, list[dict] | None]:
     """Call one provider with retry/backoff. Raises on exhausted retries."""
     messages = []
     if system:
@@ -199,6 +256,18 @@ def _call_provider(
         kwargs["seed"] = seed
     if max_tokens is not None:
         kwargs["max_tokens"] = max_tokens
+    if logprobs:
+        extra, routed_model, routed_api_base = _logprobs_kwargs_and_routing(
+            provider, top_logprobs
+        )
+        kwargs.update(extra)
+        kwargs["model"] = routed_model
+        if routed_api_base:
+            kwargs["api_base"] = routed_api_base
+        if provider.provider == "ollama":
+            # LiteLLM's openai provider type requires a non-empty api_key even
+            # against a local server that ignores it.
+            kwargs["api_key"] = "ollama"
 
     last_exc: Exception | None = None
     for attempt in range(max_retries + 1):
@@ -210,12 +279,17 @@ def _call_provider(
                 cost = litellm.completion_cost(completion_response=response)
             except Exception:
                 cost = 0.0
-            return text, {
-                "prompt_tokens": usage.get("prompt_tokens", 0) or 0,
-                "completion_tokens": usage.get("completion_tokens", 0) or 0,
-                "total_tokens": usage.get("total_tokens", 0) or 0,
-                "cost_usd": cost or 0.0,
-            }
+            lp_out = _extract_first_token_logprobs(response) if logprobs else None
+            return (
+                text,
+                {
+                    "prompt_tokens": usage.get("prompt_tokens", 0) or 0,
+                    "completion_tokens": usage.get("completion_tokens", 0) or 0,
+                    "total_tokens": usage.get("total_tokens", 0) or 0,
+                    "cost_usd": cost or 0.0,
+                },
+                lp_out,
+            )
         except _RETRYABLE_EXC as exc:
             last_exc = exc
             if attempt < max_retries:
@@ -243,6 +317,8 @@ def chat(
     use_cache: bool = True,
     tracker: StatsTracker | None = None,
     config: AppConfig | None = None,
+    logprobs: bool = False,
+    top_logprobs: int = 10,
 ) -> ChatResponse:
     """Chat through the configured provider fallback chain.
 
@@ -250,6 +326,13 @@ def chat(
     api key env var is unset/empty. Every attempted (provider, prompt,
     params) combination is cached independently, keyed on the model that
     would actually serve it.
+
+    `logprobs=True` (Phase 5, src/calibration): requests real per-token
+    logprobs on the completion (see `_logprobs_kwargs_and_routing` for how
+    this is served against Ollama). Only affects the cache key when actually
+    set -- a plain `chat(...)` call with `logprobs` left at its default
+    computes the exact same cache key as before this parameter existed, so no
+    existing `.cache/llm/` entry is invalidated by this feature.
     """
     cfg = config or _get_config()
     llm_cfg = cfg.llm
@@ -268,6 +351,9 @@ def chat(
         "max_tokens": resolved_max_tokens,
         "num_ctx": llm_cfg.num_ctx,
     }
+    if logprobs:
+        params["logprobs"] = True
+        params["top_logprobs"] = top_logprobs
 
     # Hard context guard (CLAUDE.md budget-guard rule). Counted against the
     # first chain entry's tokenizer -- the local Ollama model is the binding
@@ -304,13 +390,14 @@ def chat(
                     cached=True,
                     prompt_hash=key,
                     latency_ms=0.0,
+                    logprobs=cached.get("logprobs"),
                 )
                 active_tracker.record(response)
                 return response
 
         start = time.monotonic()
         try:
-            text, usage_dict = _call_provider(
+            text, usage_dict, logprobs_out = _call_provider(
                 provider,
                 prompt,
                 system,
@@ -320,6 +407,8 @@ def chat(
                 llm_cfg.max_retries,
                 llm_cfg.backoff_base_s,
                 llm_cfg.num_ctx,
+                logprobs,
+                top_logprobs,
             )
         except Exception as exc:  # noqa: BLE001 - deliberately broad, we fall back
             errors.append(f"{provider.provider} ({provider.model}): {exc}")
@@ -328,7 +417,7 @@ def chat(
         latency_ms = (time.monotonic() - start) * 1000
 
         if use_cache:
-            _write_cache(cfg.cache_dir, key, {"text": text})
+            _write_cache(cfg.cache_dir, key, {"text": text, "logprobs": logprobs_out})
 
         response = ChatResponse(
             text=text,
@@ -337,6 +426,7 @@ def chat(
             cached=False,
             prompt_hash=key,
             latency_ms=latency_ms,
+            logprobs=logprobs_out,
         )
         active_tracker.record(response)
         return response

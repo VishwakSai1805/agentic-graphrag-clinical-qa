@@ -136,6 +136,8 @@ def run_audit(
                 label=cell.label,
                 rationale=(cell.rationale or "")[:_MAX_RATIONALE_CHARS],
                 source_rank=source_rank(ev, cfg.source_precedence),
+                modality=ev.modality,
+                rerank_score=ev.scores.get("rerank", 0.0),
             )
         )
 

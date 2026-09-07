@@ -161,3 +161,150 @@ def test_chat_raises_when_all_providers_fail(monkeypatch, tmp_path):
 
     with pytest.raises(LLMGatewayError):
         chat("ping", config=cfg)
+
+
+# --------------------------------------------------------------------------
+# logprobs (Phase 5, src/calibration): chat(logprobs=True) routing, extraction,
+# cache-key isolation, and cache round-trip.
+# --------------------------------------------------------------------------
+
+
+def fake_response_with_logprobs(content, top_logprobs=None, prompt_tokens=5, completion_tokens=1):
+    usage = {
+        "prompt_tokens": prompt_tokens,
+        "completion_tokens": completion_tokens,
+        "total_tokens": prompt_tokens + completion_tokens,
+    }
+    lp_content = SimpleNamespace(
+        token=content,
+        logprob=-0.001,
+        top_logprobs=[
+            SimpleNamespace(token=t, logprob=lp) for t, lp in (top_logprobs or [(content, -0.001)])
+        ],
+    )
+    return SimpleNamespace(
+        choices=[
+            SimpleNamespace(
+                message=SimpleNamespace(content=content),
+                logprobs=SimpleNamespace(content=[lp_content]),
+            )
+        ],
+        get=lambda key, default=None: usage if key == "usage" else default,
+    )
+
+
+def test_chat_logprobs_false_by_default_leaves_logprobs_field_none(monkeypatch, tmp_path):
+    monkeypatch.setattr(litellm, "completion", lambda **kw: fake_response("hi"))
+    provider = ProviderConfig(provider="ollama", model="ollama/test-model")
+    cfg = make_config(tmp_path, [provider])
+
+    resp = chat("ping", config=cfg)
+    assert resp.logprobs is None
+
+
+def test_chat_logprobs_true_extracts_first_token_and_alternatives(monkeypatch, tmp_path):
+    captured_kwargs = {}
+
+    def fake_completion(**kwargs):
+        captured_kwargs.update(kwargs)
+        return fake_response_with_logprobs("B", top_logprobs=[("B", -0.001), ("A", -5.0)])
+
+    monkeypatch.setattr(litellm, "completion", fake_completion)
+    provider = ProviderConfig(provider="ollama", model="ollama/test-model")
+    cfg = make_config(tmp_path, [provider])
+
+    resp = chat("pick one", config=cfg, logprobs=True, top_logprobs=6)
+
+    assert resp.logprobs == [
+        {
+            "token": "B",
+            "logprob": -0.001,
+            "top_logprobs": [{"token": "B", "logprob": -0.001}, {"token": "A", "logprob": -5.0}],
+        }
+    ]
+
+
+def test_chat_logprobs_true_on_ollama_routes_through_openai_passthrough(monkeypatch, tmp_path):
+    """AUDIT-adjacent fix: LiteLLM's native ollama/ provider path rejects
+    logprobs. A logprobs=True call against an ollama provider must be routed
+    through the openai/ provider type at <api_base>/v1 instead."""
+    captured_kwargs = {}
+
+    def fake_completion(**kwargs):
+        captured_kwargs.update(kwargs)
+        return fake_response_with_logprobs("A")
+
+    monkeypatch.setattr(litellm, "completion", fake_completion)
+    provider = ProviderConfig(
+        provider="ollama", model="ollama/qwen2.5:7b-instruct", api_base="http://localhost:11434"
+    )
+    cfg = make_config(tmp_path, [provider])
+
+    chat("pick one", config=cfg, logprobs=True, top_logprobs=5)
+
+    assert captured_kwargs["model"] == "openai/qwen2.5:7b-instruct"
+    assert captured_kwargs["api_base"] == "http://localhost:11434/v1"
+    assert captured_kwargs["api_key"] == "ollama"
+    assert captured_kwargs["logprobs"] is True
+    assert captured_kwargs["top_logprobs"] == 5
+
+
+def test_chat_logprobs_true_on_non_ollama_provider_passes_through_unrouted(monkeypatch, tmp_path):
+    captured_kwargs = {}
+
+    def fake_completion(**kwargs):
+        captured_kwargs.update(kwargs)
+        return fake_response_with_logprobs("A")
+
+    monkeypatch.setattr(litellm, "completion", fake_completion)
+    provider = ProviderConfig(provider="groq", model="groq/llama-3.1-8b-instant")
+    cfg = make_config(tmp_path, [provider])
+
+    chat("pick one", config=cfg, logprobs=True, top_logprobs=4)
+
+    assert captured_kwargs["model"] == "groq/llama-3.1-8b-instant"
+    assert "api_key" not in captured_kwargs  # only the ollama passthrough forces one
+    assert captured_kwargs["logprobs"] is True
+
+
+def test_chat_logprobs_true_and_false_get_different_cache_keys(monkeypatch, tmp_path):
+    """A plain (logprobs=False, the default) call must compute the SAME cache
+    key it always has -- adding this feature must not invalidate any existing
+    .cache/llm/ entry."""
+    monkeypatch.setattr(litellm, "completion", lambda **kw: fake_response_with_logprobs("A"))
+    provider = ProviderConfig(provider="ollama", model="ollama/test-model")
+    cfg = make_config(tmp_path, [provider])
+
+    r_plain = chat("pick one", config=cfg, use_cache=False)
+    r_lp = chat("pick one", config=cfg, use_cache=False, logprobs=True)
+    assert r_plain.prompt_hash != r_lp.prompt_hash
+
+
+def test_chat_logprobs_cache_hit_replays_logprobs_field(monkeypatch, tmp_path):
+    calls = {"n": 0}
+
+    def fake_completion(**kwargs):
+        calls["n"] += 1
+        return fake_response_with_logprobs("B", top_logprobs=[("B", -0.01), ("A", -6.0)])
+
+    monkeypatch.setattr(litellm, "completion", fake_completion)
+    provider = ProviderConfig(provider="ollama", model="ollama/test-model")
+    cfg = make_config(tmp_path, [provider])
+
+    r1 = chat("pick one", config=cfg, logprobs=True)
+    r2 = chat("pick one", config=cfg, logprobs=True)
+
+    assert calls["n"] == 1  # second call was a cache hit, no real call made
+    assert r2.cached is True
+    assert r2.logprobs == r1.logprobs
+
+
+def test_chat_logprobs_missing_from_response_is_none_not_an_error(monkeypatch, tmp_path):
+    """A provider that silently ignores the logprobs request (returns no
+    logprobs on the choice) must not crash -- just report None."""
+    monkeypatch.setattr(litellm, "completion", lambda **kw: fake_response("A"))
+    provider = ProviderConfig(provider="ollama", model="ollama/test-model")
+    cfg = make_config(tmp_path, [provider])
+
+    resp = chat("pick one", config=cfg, logprobs=True)
+    assert resp.logprobs is None

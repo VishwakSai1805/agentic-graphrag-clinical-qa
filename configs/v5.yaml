@@ -1,0 +1,23 @@
+# Phase 7 V5 variant: agents + calibration (Phase 5). Inherits everything
+# from configs/agents.yaml (which itself extends base.yaml) via `_extends` --
+# only the calibration block differs. See docs/05_DECISIONS.md's Phase 5 ADR
+# for the fit procedure and docs/04_EVALUATION.md for the reported numbers.
+_extends: agents.yaml
+
+calibration:
+  enabled: true
+  alpha: -0.013896237159311542
+  beta: 0.10976837687736825
+  gamma: 0.2948559455824592
+  delta: 0.007722670183812638
+  temperature: 0.21447181570951504
+  abstention_tau: 0.5457648774612578
+  n_ece_bins: 15
+  ece_binning: equal_width
+  fit_dataset: medqa
+  fit_split: train
+  fit_limit: 60
+  fit_seed: 42
+  # Fitted from results\medqa_V4_a714fe0-dirty_20260907T121703Z (predictions.jsonl), a 120-question MedQA train
+  # slice disjoint from Phase 3/4's dev-20 (--exclude-limit 20, seed 42).
+  # See scripts/fit_calibration.py and results/phase5_calibration/medqa_dev_calibration.json.

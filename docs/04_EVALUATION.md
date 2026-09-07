@@ -408,6 +408,71 @@ B2 is precisely Phase 5's job (fit α,β,γ,δ,T on dev); a raw argmax
 underperforming a direct LLM answer is expected, but the gap is the number
 Phase 5 has to close and Phase 6 has to measure at scale.
 
+### 5.6 Phase 5 evidential calibration (disjoint fit/held-out, n=60/60 — NOT a grid result)
+
+`python -m src.pipeline --config configs/agents.yaml --dataset medqa --split
+train --limit 120 --exclude-limit 20 --seed 42` → `results/medqa_V4_a714fe0-dirty_20260907T121703Z/`
+(a fresh 120-question MedQA train slice, disjoint by construction from Phase
+3/4's dev-20 — `load_question_sample_excluding`, joined by `question_id`, not
+index arithmetic). Split by sorted `question_id` into fit (first 60) and
+held-out (second 60); weights fit on the fit half only, every ECE number below
+is measured on the held-out half. See ADR-028 for the full feature
+definitions, split rationale, and gamma-identifiability discussion.
+
+**The exit test** (`docs/02_ROADMAP.md`: "ECE on dev improves vs. raw LLM
+option log-probs; ranked output includes per-option citations for every
+question") **passes, with a paired-bootstrap CI, not a point estimate:**
+
+| | value |
+|---|---|
+| Calibrated ECE, held-out (5 equal-mass bins, n=60) | **0.0724** |
+| Raw-logprob ECE, held-out (same 60 questions, same bins) | 0.5418 |
+| Paired bootstrap mean diff (calibrated − raw), 10k resamples seed 42 | −0.4204 |
+| 95% CI | **[−0.5426, −0.2826]** |
+| Verdict | **calibrated significantly better** — CI entirely below 0 |
+
+The raw-logprob comparator is a real per-token-logprob readout
+(`scripts/raw_logprob_baseline.py`, `src.llm.client.chat(logprobs=True)` —
+Ollama's native provider rejects `logprobs`; routed through LiteLLM's
+`openai/` provider type at the same server instead, confirmed empirically),
+given the **same EvidenceBundle** the agent pipeline saw, so the comparison
+isolates the calibration mechanism rather than an information-access
+difference. The gap is wide (CI upper bound −0.28) — not a marginal result
+sitting near zero the way ADR-018's kg_rerank win was. Ranked output
+(`results/phase5_calibration/medqa_dev_calibration.json`) carries all 120
+questions × 4 options with per-option citations structurally present for every
+row (63.1% of option-rows carry ≥1 real citation; the rest are legitimately
+ungrounded per CLAUDE.md's carve-out, not missing data).
+
+**What this does NOT establish:** the calibrated rank-1 accuracy (0.267,
+both fit and held-out) is reported as a number, not a comparison — the §4.3
+budget asymmetry (V4/V5 get 12 evidence items; B2/B3 get up to ~52) is still
+unfixed, so no "beats B2" claim is made here. §5.5 Finding 3's "0.35 vs 0.65"
+gap is not closed by this result; that comparator needs the equal-budget B2
+first (AUDIT 2026-09-06 §4.3, deferred).
+
+**Gamma identifiability, checked from two independent directions and
+consistent.** On this 120-question slice, KG-modality SUPPORT cells are 12 of
+626 total cells (1.9%) — reproducing §5.5 Finding 2's 1/108 almost exactly at
+larger n. A 200-resample bootstrap of the fit gives:
+
+| param | mean | std | range |
+|---|---|---|---|
+| alpha | −0.0169 | 0.0718 | [−0.2777, +0.1934] |
+| beta | +0.1139 | 0.0867 | [−0.2836, +0.3304] |
+| **gamma** | **+0.2315** | **0.2340** | **[−0.4031, +0.6642]** |
+| delta | +0.0071 | 0.0205 | [−0.0438, +0.1334] |
+
+Gamma's std is >3× alpha's despite a comparable point estimate, and its
+interval straddles zero — the signature of an unidentifiable parameter, not a
+real moderate effect. This is independent confirmation of the KG-invisibility
+finding from a different measurement than the raw cell count: not only does
+the audit layer almost never cite KG evidence, but even a downstream optimizer
+handed the chance to weight it cannot find a stable weight, because there is
+almost no variance in the feature to constrain one. Report gamma's interval
+alongside its point estimate; the point estimate alone reads as a real effect
+it is not.
+
 ## 6. Run discipline
 - `results/<run_id>/config.yaml` — full resolved config incl. model ids + seed
 - `results/<run_id>/predictions.jsonl` — one row per question: options, p vector,

@@ -1575,3 +1575,173 @@ now also the open item that resolves this ADR's pre-registration deviation, not
 merely an ordinary ablation cell. The four test-split probe JSONs remain in
 `results/phase2_kg_probe/` carrying `superseded: true` and must never be cited
 as the basis of a decision.
+
+## ADR-028 — Phase 5 evidential calibration: feature definitions, disjoint fit/held-out split, and the KG-invisibility finding confirmed from a second direction
+Date: 2026-09-07 · Phase: 5 · Status: accepted
+
+**Context.** `docs/01_ARCHITECTURE.md`'s calibration stage (`z_i = alpha*s_pos_i
+- beta*s_neg_i + gamma*kg_i + delta*rerank_i`, `p = softmax(z/T)`) leaves the
+`kg_i`/`rerank_i` feature definitions, the fit procedure, and the ECE
+comparison protocol unspecified. The roadmap's exit test ("ECE on dev improves
+vs. raw LLM option log-probs; ranked output includes per-option citations for
+every question") also does not say how "raw LLM option log-probs" is obtained,
+nor whether the fitting set and the reported-ECE set may be the same
+questions. Each is decided here and recorded so a future reader does not
+re-derive them differently.
+
+**Decision 1 — feature definitions** (`src/calibration/scoring.py`):
+`kg_support_count` = count of an option's SUPPORT cells whose cited evidence
+is KG-modality (a signal independent of `s_pos`, which counts SUPPORT cells of
+every modality — this is what lets gamma weight KG-backed support
+differently from passage-backed support, per the architecture's separate
+`kg_i` term). `mean_rerank_score` = mean MedCPT rerank score over an option's
+non-neutral (SUPPORT **and** CONTRADICT) cells — both directions, because it
+is meant as a retrieval-quality prior on the evidence actually consulted for
+that option, independent of which way the audit read it.
+
+**Decision 2 — raw LLM option log-probs is a real logprob readout, not
+self-reported confidence.** Verified empirically before building on it:
+LiteLLM's native `ollama/` provider path rejects `logprobs` outright
+(`UnsupportedParamsError`); Ollama's OpenAI-compatible endpoint
+(`/v1/chat/completions`) returns real per-token logprobs. `src.llm.client.chat`
+now accepts `logprobs=True`, routing an Ollama call through LiteLLM's
+`openai/` provider type at the same server's `/v1` path when logprobs are
+requested — still through LiteLLM (CLAUDE.md: never call a provider SDK
+directly), just a different LiteLLM provider type. `scripts/raw_logprob_baseline.py`
+asks the model for a single-letter answer (so the option letter is the first
+generated token) given the **same EvidenceBundle** the V4 agent pipeline saw
+for that question — same information access, so the comparison isolates the
+calibration mechanism's contribution rather than confounding it with an
+evidence-access difference. Raw probability per option = softmax(1.0) over
+just that option letter's logprob among the real `top_logprobs` alternatives;
+a letter absent from `top_logprobs` gets a sentinel 5 nats below the worst
+observed alternative (never dropped, never a crash).
+
+**Decision 3 — disjoint fit/held-out split is mandatory, not deferred**
+(overriding the originally-approved plan, per the project owner's correction
+before implementation). Fitting a 5-parameter model and evaluating its ECE on
+the *same* 20-60 questions is circular — C3 (evidential calibration) is the
+contribution most likely to come out positive of the four in
+`docs/00_RESEARCH_SPEC.md` §3, so a circular result here is worse than no
+result. Ran V4 on a **120-question MedQA train slice** (seed 42), disjoint by
+construction from Phase 3/4's dev-20
+(`load_question_sample_excluding` — joins by resolved `question_id`, not index
+arithmetic, since `random.sample` with a different `k` does not nest a smaller
+sample inside a larger one at the same seed). Split by sorted `question_id`
+into the first 60 (fit) and second 60 (held-out) — deterministic, no extra
+randomness, and independently reproduced identically by
+`scripts/raw_logprob_baseline.py` over the same question set so both scripts'
+subsets align. `scripts/fit_calibration.py` asserts the two sets are disjoint
+before fitting.
+
+**Real numbers** (`results/phase5_calibration/medqa_dev_calibration.json`,
+`results/medqa_V4_a714fe0-dirty_20260907T121703Z/`):
+
+| | fit (n=60) | held-out (n=60) |
+|---|---|---|
+| ECE (5 equal-mass bins) | 0.0829 | **0.0724** |
+| rank-1 accuracy (fitted weights, sanity only) | 0.267 | 0.267 |
+
+Fitted weights: `alpha=-0.0139, beta=0.1098, gamma=0.2949, delta=0.0077,
+temperature=0.2145`. The fit-vs-held-out ECE gap is **-0.0105** — held-out
+ECE is *slightly better* than fit-set ECE, not worse. That is itself
+informative: it is not the signature of overfitting (which would show
+held-out ECE noticeably worse than fit-set ECE), and it is consistent with
+the strong L2 regularization (lambda=0.01) and the bounded, low-dimensional
+(5-parameter) fit keeping the model far from the fitting set's idiosyncrasies.
+It should not be read as "the model generalizes well" beyond that — n=60 is
+still small, and a gap this size is within plausible sampling noise either
+way.
+
+**Decision 4 — the ECE exit-test comparison gets a paired-bootstrap CI, not a
+point estimate** (per the project owner's explicit correction: every other
+A-vs-B claim in this project carries one, per ADR-012's precedent, and ECE at
+n=60/5 bins is a single noisy number otherwise). ECE is not decomposable into
+independent per-question differences the way `paired_bootstrap_ci` assumes (it
+is a population-level, re-binned statistic), so a dedicated
+`src.eval.metrics.paired_bootstrap_ece_diff` resamples question indices with
+replacement (paired — the same resampled indices for both the calibrated and
+raw-logprob sides on each draw) and recomputes the full `ece()` metric from
+scratch on each of 10,000 resamples, exactly mirroring ADR-012's decision rule
+(CI entirely below 0 → the calibrated side is significantly better; entirely
+above 0 → raw is significantly better; otherwise → tie, reported as a tie).
+The two sides are joined by `question_id` (`scripts/fit_calibration.py:
+paired_calibrated_vs_raw`), never by list position, since the two scripts that
+produce them run independently.
+
+**Exit-test result (real, held-out, n=60 paired):**
+
+| | value |
+|---|---|
+| Calibrated ECE (point) | 0.0724 |
+| Raw-logprob ECE (point) | 0.5418 |
+| Paired bootstrap mean diff (calibrated − raw) | -0.4204 |
+| 95% CI | **[-0.5426, -0.2826]** |
+| Verdict | **calibrated significantly better** (CI entirely below 0) |
+
+**The exit test passes, and passes by a wide margin — the CI's upper bound
+(-0.28) is itself larger in magnitude than most ECE values reported in the
+calibration literature as "well-calibrated."** This is not a marginal result
+sitting close to zero the way ADR-018's kg_rerank win was; the raw-logprob
+baseline is *badly* miscalibrated (ECE 0.54 — the model's raw next-token
+confidence on a single-shot 4-option pick bears little relationship to its
+actual accuracy), and even the crude, heavily-regularized, 60-question agent-
+derived fit does dramatically better. State this plainly rather than
+underselling it, but also plainly: this establishes that the calibration
+*mechanism* works and beats an appropriately real (not strawman)
+uncalibrated baseline — it does not establish that the mechanism beats B2 or
+any other system, which the still-unfixed §4.3 budget asymmetry (12 items for
+V4/V5 vs up to ~52 for B2/B3) continues to forbid claiming (AUDIT 2026-09-06,
+deferred to the pre-Phase-7 batch).
+
+**Decision 5 — report gamma's identifiability, not just its point estimate**
+(per the project owner's explicit request, predicted from §5.5 Finding 2: only
+1/108 audit cells on the dev-20 cite a KG triple). On this 120-question slice
+the pattern reproduces almost exactly: **12 of 626 total cells (1.9%) are
+KG-modality SUPPORT cells** — `kg_support_count` is 0 for the overwhelming
+majority of (question, option) pairs. `bootstrap_weight_uncertainty` (200
+resamples of the 60-question fit set) gives:
+
+| param | mean | std | range |
+|---|---|---|---|
+| alpha | -0.0169 | 0.0718 | [-0.2777, +0.1934] |
+| beta | +0.1139 | 0.0867 | [-0.2836, +0.3304] |
+| **gamma** | **+0.2315** | **0.2340** | **[-0.4031, +0.6642]** |
+| delta | +0.0071 | 0.0205 | [-0.0438, +0.1334] |
+
+**Gamma's bootstrap std (0.234) is more than 3x alpha's (0.072) despite a
+comparable point estimate, and its interval spans from negative to positive
+— it is consistent with zero, unlike alpha and delta's tighter, mean-
+dominated intervals.** This is exactly the signature of an unidentifiable
+parameter: with almost no variance in `kg_support_count` across the fitting
+set, the loss surface along the gamma axis is nearly flat, so different
+resamples pull the point estimate around widely with no consistent direction.
+**This is independent confirmation of the KG-invisibility finding from a
+completely different direction than §5.5's raw count** — §5.5 observed that
+the audit layer almost never cites KG evidence; this shows that even when a
+downstream optimizer is handed the chance to weight that evidence, it cannot
+find a stable weight to assign it, because the signal needed to constrain that
+weight barely exists in the data. Both readings point at the same underlying
+fact (the KG modality is nearly invisible to the agent pipeline as currently
+wired), reached by unrelated measurements. Report gamma's bootstrap interval
+alongside its point estimate wherever gamma is discussed; the point estimate
+alone would misleadingly suggest a real, moderate positive effect.
+
+**Consequences.** `configs/v5.yaml` records the fitted weights (Phase 7's V5
+variant: agents + calibration). The abstention threshold
+(`tau=0.5458` at a 10% target risk on the held-out coverage-risk curve) and
+the full per-question ranked output (all 120 questions, all options, with
+citations — 63.1% of option-rows carry at least one real citation, the rest
+legitimately ungrounded per CLAUDE.md's carve-out) are in
+`results/phase5_calibration/medqa_dev_calibration.json`. `rank1_accuracy`
+(0.267 both fit and held-out) is reported as a number, explicitly not a B2
+comparison (§4.3's budget asymmetry is unfixed) — it is low, and that is
+stated plainly rather than obscured by the exit test's headline pass. `src.eval.metrics`
+gains `paired_bootstrap_ece_diff`; `src.llm.client.chat` gains `logprobs`
+support; `src.retrieval` gains nothing (this ADR's bootstrap lives in
+`src/eval/metrics.py` alongside `ece()`, not `src/retrieval/metrics.py`,
+since it is ECE-specific, not a general per-item-diff bootstrap). Phase 7's
+V5 grid cell is the natural next place gamma's identifiability gets tested
+again, at n=500 — if it remains unidentifiable there too, gamma should be
+dropped from the model rather than carried as a free parameter with no
+signal to constrain it.

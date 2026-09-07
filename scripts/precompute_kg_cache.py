@@ -54,6 +54,7 @@ from src.kg.dataset_questions import (  # noqa: E402
     Question,
     link_text_for_question,
     load_question_sample,
+    load_question_sample_excluding,
 )
 from src.kg.linker import PrimeKGCrosswalk, link_entities  # noqa: E402
 from src.kg.rerank import select_triples_reranked  # noqa: E402
@@ -161,6 +162,21 @@ def main() -> None:
         "separate directory for --kg-rerank runs, e.g. data/processed/kg_cache_kg_rerank, "
         "so the canonical data/processed/kg_cache/ files are never touched.",
     )
+    parser.add_argument(
+        "--exclude-limit",
+        type=int,
+        default=None,
+        help="exclude the question_ids that load_question_sample(dataset, split, "
+        "exclude_limit, seed=exclude_seed) would draw before sampling --limit "
+        "questions -- matches src/pipeline.py's --exclude-limit so a precompute "
+        "run and an eval run over 'the same disjoint slice' actually agree.",
+    )
+    parser.add_argument(
+        "--exclude-seed",
+        type=int,
+        default=None,
+        help="seed for --exclude-limit's sample (default: cfg.seed)",
+    )
     args = parser.parse_args()
 
     cfg = load_config(CONFIG_PATH)
@@ -180,7 +196,22 @@ def main() -> None:
         PRIMEKG_NODES_PATH, PRIMEKG_CROSSWALK_DIR, download_if_missing=True
     )
 
-    questions = load_question_sample(args.dataset, args.split, args.limit, seed=cfg.seed)
+    if args.exclude_limit is not None:
+        excl_seed = args.exclude_seed if args.exclude_seed is not None else cfg.seed
+        excluded = load_question_sample(
+            args.dataset, args.split, args.exclude_limit, seed=excl_seed
+        )
+        exclude_ids = {q.question_id for q in excluded}
+        questions = load_question_sample_excluding(
+            args.dataset, args.split, args.limit, cfg.seed, exclude_ids
+        )
+        print(
+            f"[precompute_kg_cache] excluding {len(exclude_ids)} questions "
+            f"(load_question_sample({args.dataset!r}, {args.split!r}, {args.exclude_limit}, "
+            f"seed={excl_seed})) before sampling"
+        )
+    else:
+        questions = load_question_sample(args.dataset, args.split, args.limit, seed=cfg.seed)
     print(
         f"[precompute_kg_cache] dataset={args.dataset} split={args.split} "
         f"n_questions={len(questions)} seed={cfg.seed}"

@@ -1,119 +1,118 @@
 # Next session — start here
 
-**Done:** Phases 0–4, all committed to `master`. Phase 3 `b10c385`/`d445423`,
-Phase 4 `e75de9c`/`6f9690e`/`1388904`, ADR-025 conflict fix `30700f9`/`ccba531`.
-298 tests pass, ruff clean.
-
-**2026-09-07 audit remediation session (`docs/AUDIT_2026-09-06.md`) is done and
-committed.** Before this session, Phase 5 was unsound (calibration/corpus
-overlap, §3.3) and the Phase 2 KG decisions rested on the wrong split (§3.1).
-Both are fixed. Full detail lives in the ADRs below — this file is the entry
-point, not the record.
+**Done:** Phases 0–5, all committed to `master`. Phase 3 `b10c385`/`d445423`,
+Phase 4 `e75de9c`/`6f9690e`/`1388904`, ADR-025 conflict fix `30700f9`/`ccba531`,
+2026-09-07 audit remediation `a714fe0`, **Phase 5 evidential calibration —
+this commit.** 389 tests pass, ruff clean.
 
 ---
 
-## What changed today, in order
+## Phase 5 result (ADR-028) — the exit test passed, and passed clearly
 
-1. **Test-split leakage (§3.1) — fixed. ADR-027.** The Phase 2 KG probe
-   originally ran on MedQA *test* (`medqa_n200.json`, `medqa_n500.json`,
-   `medqa_n200_kg_rerank_*` — now stamped `superseded: true`, retained as
-   provenance, never cite them). Re-ran on a 500-question MedQA **train**
-   slice for both `kg_rerank` variants
-   (`results/phase2_kg_probe/medqa_train_n500*.json` — now authoritative).
-   ADR-015/016/017 upheld on the clean split. **ADR-018's verdict flipped**:
-   `novel_and_relevant_rate` was a tie at n=200 test, is a **significant win**
-   at n=500 train (+0.0367, 95% CI [+0.0044, +0.0681]) — and this was
-   Holm-Bonferroni corrected for the 2-metric family the same day (**both
-   metrics survive**, see `src.retrieval.metrics.paired_bootstrap_p` /
-   `holm_bonferroni`, AUDIT §6.8). `kg_rerank` stays off by default anyway —
-   **ADR-027 names this as a deviation from ADR-018's own pre-registered
-   rule** (which said adopt on a cleared verdict), states the reasons, and
-   points at the Phase 7 `kg_rerank` grid row as what actually settles it.
-2. **Four integrity blockers — fixed.**
-   - §2.1: `surviving_invalid_citation_count` is a real re-validation against
-     `SupportMatrix.bundle_evidence_ids` (persisted per question), not a
-     hardcoded `0`.
-   - §3.2: `contamination_assertion` executes a real 8-gram stem-vs-retrieved-
-     chunk overlap check (`src.eval.contamination.medqa_overlap_check`) — no
-     more literal `{"checked": True}` dict.
-   - §6.1: `git_sha7()` / `git_provenance()` append `-dirty` and record a
-     `git_diff_sha256` + changed-file list when the worktree is dirty.
-   - §6.2: the four canonical `medqa_B*` run ids are named explicitly in
-     `docs/04_EVALUATION.md` §5.4; the four pre-`num_ctx` runs carry
-     `superseded: true` (`scripts/mark_superseded.py`).
-3. **Calibration/corpus overlap (§3.3) — fixed. ADR-026.** Calibration now
-   fits on `pqa_labeled` **dev** (500 items), verified — not assumed — absent
-   from the 20k-doc retrieval corpus
-   (`src.eval.contamination.assert_calibration_fit_set_uncontaminated`,
-   which **Phase 5 must call before fitting**). `pqa_artificial` is a
-   corpus-source only now, never a fitting set.
-4. **`docs/00_RESEARCH_SPEC.md` §3 rewritten.** C1 → diagnostic/negative
-   pending the Phase 7 V2-vs-V3 cell; C2 → audit-discrimination, conflict
-   resolution flagged unverified; "guarantee" dropped from C3; C4 marked
-   pending; **C5 added** — the KG-hit-rate arithmetic artifact, the project's
-   best-supported, fully-traceable finding, was previously unlisted.
-5. **ADR-021 amended** with the no-op perturbation row: B0 (no retrieval,
-   unaffected by the num_ctx fix) still flips 1/20 answers between the two
-   batches, so the measured noise floor at n=20 is ±0.05 — the B1 accuracy
-   delta is retracted as an effect; the decision itself still stands on the
-   categorical B2/B3 evidence (parse_error 12/20→0/20).
-6. **§5.4's B3 framing corrected** (the auditor's reading was wrong): both
-   context conditions show `verifier_decision_rate = 0.05` with exactly one
-   SUPPORTED option on 1/20 questions — only the failure *direction* flips
-   (over-admit at 4096-ctx vs. over-reject at 8192-ctx). Reported as
-   invariance under a perturbation that inverts the failure mode, which is
-   stronger evidence for the binary-bottleneck claim than either run alone,
-   not weaker.
-7. **Five one-liner doc fixes** (§2.2–§2.6): ADR-024 status line now says
-   "partly superseded by ADR-025"; CLAUDE.md's dead NLI model id corrected to
-   the `-ling-wanli` variant; `configs/base.yaml`'s stale `kg_rerank` comment
-   corrected; README's "Phase 0 — scaffold" corrected to "Phases 0–4 complete";
-   ADR-020's "test-set hygiene held since Phase 1" corrected and scoped.
+Fit α,β,γ,δ,T on a 60-question MedQA train slice, measured ECE on a
+**disjoint** 60-question held-out slice (both disjoint from Phase 3/4's
+dev-20 — `load_question_sample_excluding`). Compared against a REAL
+per-token-logprob baseline (`src.llm.client.chat(logprobs=True)`, same
+EvidenceBundle as the agent pipeline), with a paired-bootstrap CI on the ECE
+difference (ADR-012 discipline, not a point estimate):
+
+- Calibrated ECE 0.0724 vs. raw-logprob ECE 0.5418 on the same 60 held-out
+  questions.
+- **95% CI on the difference: [−0.5426, −0.2826], entirely below 0 —
+  calibrated significantly better.** Not a marginal call.
+- Ranked output carries per-option citations for all 120 questions × 4
+  options (63.1% of option-rows carry a real citation; the rest legitimately
+  ungrounded).
+
+**What it does NOT show:** any comparison to B2/B3 (the §4.3 budget asymmetry
+— V4/V5 get 12 evidence items, B2/B3 up to ~52 — is still unfixed) or that
+calibration "solved" Phase 4's low rank-1-by-support (0.267 calibrated vs
+0.35 uncalibrated on different, disjoint question sets — reported as a
+number, not explained away).
+
+**Gamma (the KG-evidence weight) is unidentifiable — confirmed from a second
+direction, exactly as predicted.** Only 12/626 cells (1.9%) on this slice are
+KG-modality SUPPORT cells (reproducing §5.5 Finding 2's 1/108 at larger n). A
+200-resample bootstrap gives gamma std=0.234 (>3× alpha's 0.072), interval
+[−0.40, +0.66] — consistent with zero. The audit layer not citing KG evidence
+and a downstream optimizer failing to find a stable weight for it are two
+independent measurements pointing at the same fact: the KG modality is nearly
+invisible to the agent pipeline as currently wired. Full numbers, feature
+definitions, and the fit-vs-held-out ECE gap discussion are in ADR-028.
+
+Artifacts: `results/phase5_calibration/medqa_dev_calibration.json`,
+`results/phase5_calibration/medqa_raw_logprob_baseline.json`,
+`results/medqa_V4_a714fe0-dirty_20260907T121703Z/`, `configs/v5.yaml`.
+
+**One real environment finding along the way:** `scipy.optimize` segfaults on
+a bare `import scipy.optimize` in this project's venv (pre-existing
+binary-compatibility issue, confirmed independent of this code). Avoided
+rather than risked fixing mid-run — `fit_weights` uses a hand-rolled
+analytic-gradient Adam optimizer instead (gradient verified against a
+finite-difference check to 1e-8, `tests/test_calibration_softmax_rank.py`).
+If a future session wants `scipy.optimize` for something else, that
+underlying breakage is still there and unresolved.
+
+---
+
+## 2026-09-07 audit remediation (docs/AUDIT_2026-09-06.md) — done, commit a714fe0
+
+Fixed before Phase 5 could safely start: the Phase 2 KG test-split leakage
+(ADR-027), four integrity blockers (surviving-invalid recomputation,
+real contamination check, git dirty-stamping, named+superseded B-runs),
+the calibration/corpus overlap (ADR-026 — this is *why* Phase 5's fit set
+is real dev items, not `pqa_artificial`), the `docs/00_RESEARCH_SPEC.md` §3
+rewrite (C1–C5 restated honestly), ADR-021's no-op perturbation floor, the
+B3 context-invariance reframing, and five one-line doc corrections. Full
+detail in ADR-026/027 and `docs/00_RESEARCH_SPEC.md` §7's disclosure.
 
 **Deferred, tracked in `docs/02_ROADMAP.md`'s "Pre-Phase-7 fixes" section:**
 §1.1/§1.2 (real Phase 1 `metrics.json`), §4.1 (B3 prompt-sensitivity), §4.3
-(equal-budget B2 comparator), §6.7 (grid-wide multiplicity discipline — the
-kg_rerank decision above got its own targeted correction today, this is the
-full ~9-metric × ~10-variant-pair version), all MINORs. Still open and not yet
-triaged: §1.3–1.9, §2.3 *(fixed today, strike from this list)*, §3.4, §5.5,
-§6.3, §6.4.
+(equal-budget B2 comparator — **now also gates reading Phase 5's rank-1
+number against anything**), §6.7 (grid-wide multiplicity discipline), all
+MINORs.
 
 ---
 
-## Where the three contributions actually stand (`docs/00_RESEARCH_SPEC.md` §3
-is the authoritative version — this is the short version)
+## Where the contributions stand (`docs/00_RESEARCH_SPEC.md` §3 is authoritative)
 
-- **C1** — diagnostic/negative, pending Phase 7 V2-vs-V3. No run yet shows the
-  KG arm improving anything downstream; 1/108 audit cells cite KG even with
-  the slot filled 17/20 times.
-- **C2** — audit-discrimination is supported (108 cells, 61/80 options get
-  signal, vs. B3's binary verifier isolating 1/20 under both context
-  conditions tested). Conflict *resolution* is unverified: `conflict_fire_rate
-  = 0.00` under the correct claim-level definition.
-- **C3** — untested. Phase 5 decides it. No "guarantee" language; a temperature
-  fit on 500 items is a real limitation to state alongside the ECE numbers.
-- **C4** — pending Phase 7. PubMedQA has no baseline code path yet
-  (`run_baselines.py --dataset` is `{medqa, medmcqa}` only).
-- **C5 (new)** — SUPPORTED, fully traceable: the KG-hit-rate arithmetic
-  artifact (~96% question-level "coverage" vs. 11% real per-entity mapping).
-  Currently the strongest, most defensible result in the project.
+- **C1** — diagnostic/negative, pending Phase 7 V2-vs-V3. 1/108 (dev-20) and
+  12/626 (this 120-slice) audit cells cite KG; gamma unidentifiable (ADR-028).
+- **C2** — audit-discrimination supported; conflict *resolution* unverified
+  (`conflict_fire_rate` ≈0 both times measured).
+- **C3 — SUPPORTED on a dev-scale, disjoint fit/held-out slice (ADR-028).**
+  ECE beats a real logprob baseline with a CI entirely below 0. Needs the
+  Phase 7 grid to confirm at n=500 and to check whether gamma stays
+  unidentifiable at scale (if so, drop it from the model).
+- **C4** — pending Phase 7. PubMedQA has no baseline code path yet.
+- **C5** — SUPPORTED, fully traceable: the KG-hit-rate arithmetic artifact.
 
 ---
 
 ## Delivery schedule
 
-See `docs/SCHEDULE.md` — hard deadline Saturday 2026-09-12, day-by-day plan,
-accepted scope cuts (MedQA-only grid, 5 cells not 8×3×3, RAGAS dropped,
-minimal Phase 6 harness). Today (Mon 7) was the audit-remediation day on that
-schedule. **Next: `/phase 5`** — calibration, ranked output, ECE, p-vectors
-persisted, fit on `pqa_labeled` dev per ADR-026.
+See `docs/SCHEDULE.md` — hard deadline Saturday 2026-09-12. Mon 7 covered both
+the audit-remediation day and Phase 5 (planned for Tue 8) same-session.
+**Next: Phase 6** — minimal eval harness + NLI hallucination scoring, per the
+schedule's Wed 9 slot — or pull forward the pre-Phase-7 fixes (§4.1, §4.3)
+since §4.3 now also blocks reading Phase 5's rank-1 number against B2.
 
 ## Standing rules
 
-- Per ADR-012/018/025/027: a result that undercuts a contribution is
-  reported, not engineered around — including naming a deviation from a
-  pre-registered decision rule when one happens (ADR-027).
-- n=20 dev numbers are plumbing checks. No "A beats B" claims until Phase 7.
+- Per ADR-012/018/025/027/028: a result that undercuts a contribution is
+  reported, not engineered around — including a parameter's own
+  unidentifiability (ADR-028's gamma) and a pre-registered-rule deviation
+  (ADR-027).
+- Every A-vs-B numeric claim gets a paired-bootstrap CI, never a point
+  estimate alone — this now explicitly includes ECE comparisons
+  (`src.eval.metrics.paired_bootstrap_ece_diff`, ADR-028), not just
+  retrieval-metric diffs.
+- A fitting set and its evaluation set must be disjoint, always — fitting
+  and measuring on the same n makes any positive result circular
+  (ADR-028's fit/held-out split; the exact failure this guards against was
+  in an earlier draft plan for this phase, caught before implementation).
+- n=20/n=60 dev numbers are plumbing/mechanism checks. No "A beats B" claims
+  until Phase 7 — and §4.3 (equal-budget B2) must land before Phase 5's own
+  rank-1 number can be compared to anything.
 - Never select a hyper-parameter, threshold, or ablation decision by reading
-  the split Phase 7 reports on (ADR-027 is what happens when this rule is
-  violated and later caught).
+  the split Phase 7 reports on (ADR-027).

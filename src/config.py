@@ -227,6 +227,41 @@ class AgentsConfig(BaseModel):
     }
 
 
+class CalibrationConfig(BaseModel):
+    """Phase 5 evidential calibration & ranking. See docs/01_ARCHITECTURE.md
+    "3. MULTI-CHOICE EVIDENTIAL CALIBRATION & RANKING" and the ADR this phase
+    adds to docs/05_DECISIONS.md for the feature definitions and fit
+    procedure. `enabled=False` in base.yaml/agents.yaml -- only Phase 7's V5
+    variant (configs/v5.yaml, per agents.yaml's own header comment) turns
+    calibration on.
+
+    z_i = alpha*s_pos_i - beta*s_neg_i + gamma*kg_support_count_i +
+    delta*mean_rerank_score_i; p = softmax(z / temperature).
+    """
+
+    enabled: bool = False
+    alpha: float = 1.0
+    beta: float = 1.0
+    gamma: float = 0.0
+    delta: float = 0.0
+    temperature: float = 1.0
+    # Abstain (report no ranked answer) when the top-1 probability is below
+    # this threshold. 0.0 = never abstain (the coverage-risk curve's t=0 end).
+    abstention_tau: float = 0.0
+    # ECE bin count/strategy for THIS config's own eval runs (docs/04
+    # §4 default is 15 equal-width bins for the n=500 grid; a dev-scale fit
+    # run uses fewer, equal-mass bins -- see the ADR and src.eval.metrics.ece).
+    n_ece_bins: int = 15
+    ece_binning: str = "equal_width"
+    # The dev slice these weights were fit on -- recorded here (not just in
+    # the fitting script's own output) so a resolved config.yaml alone shows
+    # provenance for a V5 run's weights, per CLAUDE.md's reproducibility rule.
+    fit_dataset: str = "medqa"
+    fit_split: str = "train"
+    fit_limit: int = 60
+    fit_seed: int = 42
+
+
 class AppConfig(BaseModel):
     seed: int = 42
     llm: LLMConfig
@@ -234,6 +269,7 @@ class AppConfig(BaseModel):
     retrieval: RetrievalConfig = RetrievalConfig()
     kg: KGConfig = KGConfig()
     agents: AgentsConfig = AgentsConfig()
+    calibration: CalibrationConfig = CalibrationConfig()
     cache_dir: Path = Path(".cache/llm")
 
 

@@ -231,13 +231,24 @@ def _load_pipeline(cfg: AppConfig, repo_root: Path) -> TriModalPipeline:
 
 
 def _run_agents_eval(
-    *, config_path: str, dataset: str, split: str, limit: int, seed: int | None
+    *,
+    config_path: str,
+    dataset: str,
+    split: str,
+    limit: int,
+    seed: int | None,
+    exclude_limit: int | None = None,
+    exclude_seed: int | None = None,
 ) -> Path:
     import torch
 
     from src.agents.graph import run_consensus
     from src.eval.results import make_run_id, write_run
-    from src.kg.dataset_questions import gold_letter, load_question_sample
+    from src.kg.dataset_questions import (
+        gold_letter,
+        load_question_sample,
+        load_question_sample_excluding,
+    )
     from src.llm.client import default_tracker
 
     repo_root = Path(__file__).resolve().parents[1]
@@ -250,7 +261,26 @@ def _run_agents_eval(
     if torch.cuda.is_available():
         print(f"  {torch.cuda.get_device_name(0)} cap {torch.cuda.get_device_capability(0)}")
 
-    questions = load_question_sample(dataset, split, limit, seed=seed)
+    if exclude_limit is not None:
+        # Phase 5 (docs/02_ROADMAP.md): the calibration fit/eval slice must be
+        # disjoint from an earlier sample (e.g. Phase 3/4's dev-20) so a
+        # calibration result is not fitted+evaluated on data an earlier phase
+        # already reported numbers from. Excluded by resolved question_id, not
+        # index arithmetic -- see load_question_sample_excluding's docstring
+        # for why a bigger --limit does not nest the smaller sample.
+        excl_seed = exclude_seed if exclude_seed is not None else seed
+        excluded = load_question_sample(dataset, split, exclude_limit, seed=excl_seed)
+        exclude_ids = {q.question_id for q in excluded}
+        questions = load_question_sample_excluding(
+            dataset, split, limit, seed, exclude_ids
+        )
+        print(
+            f"[pipeline] excluding {len(exclude_ids)} questions "
+            f"(load_question_sample({dataset!r}, {split!r}, {exclude_limit}, "
+            f"seed={excl_seed})) before sampling"
+        )
+    else:
+        questions = load_question_sample(dataset, split, limit, seed=seed)
     print(f"[pipeline] {len(questions)} questions, {dataset}/{split} seed={seed}")
 
     pipe = _load_pipeline(cfg, repo_root)
@@ -451,6 +481,21 @@ def main() -> None:
     ap.add_argument("--split", default="train")
     ap.add_argument("--limit", type=int, default=20)
     ap.add_argument("--seed", type=int, default=None)
+    ap.add_argument(
+        "--exclude-limit",
+        type=int,
+        default=None,
+        help="exclude the question_ids that load_question_sample(dataset, split, "
+        "exclude_limit, seed=exclude_seed) would draw before sampling --limit "
+        "questions -- e.g. --exclude-limit 20 excludes Phase 3/4's dev-20 so a "
+        "Phase 5 calibration run is disjoint from it (docs/02_ROADMAP.md Phase 5).",
+    )
+    ap.add_argument(
+        "--exclude-seed",
+        type=int,
+        default=None,
+        help="seed for --exclude-limit's sample (default: same as --seed)",
+    )
     args = ap.parse_args()
     _run_agents_eval(
         config_path=args.config,
@@ -458,6 +503,8 @@ def main() -> None:
         split=args.split,
         limit=args.limit,
         seed=args.seed,
+        exclude_limit=args.exclude_limit,
+        exclude_seed=args.exclude_seed,
     )
 
 
