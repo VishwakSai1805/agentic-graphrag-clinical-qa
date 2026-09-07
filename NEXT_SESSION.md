@@ -7,7 +7,7 @@ Phase 4 `e75de9c`/`6f9690e`/`1388904`, ADR-025 conflict fix `30700f9`/`ccba531`,
 
 ---
 
-## Phase 5 result (ADR-028) — the exit test passed, and passed clearly
+## Phase 5 result (ADR-028) — exit test passes literally; the ablation that matters says C3 needs restating
 
 Fit α,β,γ,δ,T on a 60-question MedQA train slice, measured ECE on a
 **disjoint** 60-question held-out slice (both disjoint from Phase 3/4's
@@ -16,19 +16,32 @@ per-token-logprob baseline (`src.llm.client.chat(logprobs=True)`, same
 EvidenceBundle as the agent pipeline), with a paired-bootstrap CI on the ECE
 difference (ADR-012 discipline, not a point estimate):
 
-- Calibrated ECE 0.0724 vs. raw-logprob ECE 0.5418 on the same 60 held-out
-  questions.
-- **95% CI on the difference: [−0.5426, −0.2826], entirely below 0 —
-  calibrated significantly better.** Not a marginal call.
+- Calibrated ECE 0.0724 vs. raw-logprob-at-T=1 ECE 0.5418 — 95% CI on the
+  diff [−0.5426, −0.2826], entirely below 0. Passes the literal exit test.
+- **But a temperature-scaled-raw-logprob ablation (no new LLM calls) shows
+  this gap is almost entirely a temperature effect: fit a single T on the
+  fit-half's saved logprobs (T≈92.03), apply to held-out → ECE 0.0725,
+  statistically tied with calibrated's 0.0724 (95% CI [−0.1344, +0.0887]).**
+  **C3 is restated: temperature scaling alone matches the evidential
+  features' ECE at this sample size; the features' additional value beyond
+  temperature scaling is not established.** A real bug surfaced fitting T: an
+  initial `t_max=20` search bound silently saturated and reported a
+  spuriously bad T-scaled ECE (0.095) that looked like a genuine gap —
+  caught by widening the search and confirming the NLL kept improving past
+  the old bound. `fit_temperature_only` and `fit_calibration.py` now guard
+  against this (boundary-saturation detection + auto-retry at 50× range).
 - Ranked output carries per-option citations for all 120 questions × 4
   options (63.1% of option-rows carry a real citation; the rest legitimately
   ungrounded).
 
-**What it does NOT show:** any comparison to B2/B3 (the §4.3 budget asymmetry
-— V4/V5 get 12 evidence items, B2/B3 up to ~52 — is still unfixed) or that
-calibration "solved" Phase 4's low rank-1-by-support (0.267 calibrated vs
-0.35 uncalibrated on different, disjoint question sets — reported as a
-number, not explained away).
+**Calibration improved confidence quality while accuracy went down — stated
+plainly, not buried.** Calibrated rank-1 accuracy is **0.267** (both fit and
+held-out) vs. Phase 4's uncalibrated `rank-1-by-support` **0.35** — different
+question sets (a real caveat), but a better-calibrated, less-accurate model
+is a genuinely limited contribution and the paper must say so.
+
+**What this does NOT show:** any comparison to B2/B3 (the §4.3 budget
+asymmetry — V4/V5 get 12 evidence items, B2/B3 up to ~52 — is still unfixed).
 
 **Gamma (the KG-evidence weight) is unidentifiable — confirmed from a second
 direction, exactly as predicted.** Only 12/626 cells (1.9%) on this slice are
@@ -80,10 +93,14 @@ MINORs.
   12/626 (this 120-slice) audit cells cite KG; gamma unidentifiable (ADR-028).
 - **C2** — audit-discrimination supported; conflict *resolution* unverified
   (`conflict_fire_rate` ≈0 both times measured).
-- **C3 — SUPPORTED on a dev-scale, disjoint fit/held-out slice (ADR-028).**
-  ECE beats a real logprob baseline with a CI entirely below 0. Needs the
-  Phase 7 grid to confirm at n=500 and to check whether gamma stays
-  unidentifiable at scale (if so, drop it from the model).
+- **C3 — restated, not supported as originally framed (ADR-028).** The
+  mechanism works (a well-calibrated ranked differential can be produced,
+  ECE 0.0724), but a temperature-scaled-raw-logprob ablation ties it
+  (0.0725) — temperature scaling alone matches the evidential features at
+  this n. The features' additional value is not established, and
+  calibrated rank-1 accuracy (0.267) is below the uncalibrated rule's
+  (0.35). Needs the Phase 7 grid at n=500 to re-test both the ablation and
+  whether gamma stays unidentifiable at scale (if so, drop it).
 - **C4** — pending Phase 7. PubMedQA has no baseline code path yet.
 - **C5** — SUPPORTED, fully traceable: the KG-hit-rate arithmetic artifact.
 

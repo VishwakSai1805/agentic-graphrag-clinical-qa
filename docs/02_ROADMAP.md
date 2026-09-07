@@ -152,20 +152,33 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done (add run_id/commit)
   on**, so the result is not circular. See ADR-028.
 - Abstention threshold τ + coverage/risk curve — computed on the held-out set
   (`tau=0.5458` at a 10% target risk).
-- **Exit test result (real, not simulated):** calibrated ECE 0.0724 vs.
-  raw-logprob-baseline ECE 0.5418 on the same 60 held-out questions
-  (real per-token logprobs via `src.llm.client.chat(logprobs=True)`, same
-  EvidenceBundle as the agent pipeline saw); paired bootstrap (10k resamples,
-  seed 42) on the difference: **95% CI [−0.5426, −0.2826], entirely below
-  0 — calibrated significantly better, not a marginal call.** Ranked output
-  carries per-option citations for all 120 questions × 4 options. **PASSED.**
+- **Exit test result, literal reading: PASSED, but the literal reading is not
+  the one to build C3 on.** Calibrated ECE 0.0724 vs. raw-logprob-baseline
+  ECE 0.5418 (T=1) on the same 60 held-out questions; paired bootstrap 95%
+  CI [−0.5426, −0.2826], entirely below 0. Ranked output carries per-option
+  citations for all 120 questions × 4 options.
+- **A temperature-scaled-raw-logprob ablation (no new LLM calls — fit a
+  single T on the fit-half's already-saved logprobs, apply to held-out)
+  shows the gap above is almost entirely a temperature effect, not an
+  evidential-calibration effect: T-scaled raw ECE = 0.0725 (T≈92.03) vs.
+  calibrated 0.0724 — a TIE, 95% CI [−0.1344, +0.0887].** Caught and fixed a
+  real bug along the way: a too-narrow initial search bound (`t_max=20`)
+  silently saturated and reported a spuriously bad T-scaled ECE (0.095) that
+  looked like a real gap; widening the search found the genuine optimum.
+  **C3 is restated: temperature scaling alone matches the evidential
+  features' ECE at this sample size; the features' additional contribution
+  beyond temperature scaling is not established.** See ADR-028 Decision 5.
   `results/phase5_calibration/medqa_dev_calibration.json`,
   `results/phase5_calibration/medqa_raw_logprob_baseline.json`,
   `results/medqa_V4_a714fe0-dirty_20260907T121703Z/`.
-- **Not established by this result:** any comparison to B2/B3 (§4.3's budget
-  asymmetry is still unfixed) or to Phase 4's uncalibrated rank-1-by-support
-  (0.267 calibrated vs 0.35 uncalibrated — reported, not explained away; small-n
-  fit on a disjoint slice, not a controlled ablation of the same questions).
+- **Calibration improved confidence quality while accuracy went down —
+  stated plainly.** Calibrated rank-1 accuracy is **0.267** (both fit and
+  held-out) vs. Phase 4's uncalibrated `rank-1-by-support` **0.35** (different
+  question sets, not a controlled ablation — a real caveat, not a reason to
+  soften this). A better-calibrated but less-accurate model is a genuinely
+  limited result.
+- **Not established by this result:** any comparison to B2/B3 — §4.3's budget
+  asymmetry is still unfixed, a separate limitation from the one above.
 - **Gamma (KG-evidence weight) is unidentifiable, confirmed from a second
   direction.** 12/626 cells (1.9%) on this slice are KG-modality SUPPORT
   cells, reproducing §5.5 Finding 2 (1/108) at n=120. A 200-resample bootstrap

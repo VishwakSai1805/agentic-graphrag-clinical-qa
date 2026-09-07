@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
@@ -38,8 +39,10 @@ from src.calibration.softmax_rank import (  # noqa: E402
     bootstrap_weight_uncertainty,
     choose_abstention_threshold,
     coverage_risk_curve,
+    fit_temperature_only,
     fit_weights,
     rank_options,
+    softmax,
 )
 from src.eval.metrics import ece, paired_bootstrap_ece_diff  # noqa: E402
 
@@ -183,6 +186,18 @@ def main() -> None:
         "(project standard, docs/04_EVALUATION.md SS1 / ADR-012)",
     )
     ap.add_argument("--ece-bootstrap-seed", type=int, default=42)
+    ap.add_argument(
+        "--temp-search-min", type=float, default=0.05, help="lower bound for fit_temperature_only"
+    )
+    ap.add_argument(
+        "--temp-search-max",
+        type=float,
+        default=2000.0,
+        help="upper bound for fit_temperature_only -- auto-widened 50x and retried once if "
+        "the fit saturates this bound (see fit_temperature_only's docstring for why this "
+        "matters more than it looks)",
+    )
+    ap.add_argument("--temp-search-grid", type=int, default=6000)
     ap.add_argument("--target-risk", type=float, default=0.10)
     ap.add_argument("--out", default=None)
     ap.add_argument(
@@ -312,6 +327,92 @@ def main() -> None:
             f"[{boot_ece['ci_lo']:+.4f}, {boot_ece['ci_hi']:+.4f}] "
             f"({boot_ece['n_resamples']} resamples, seed={boot_ece['seed']}) -> {verdict_text}"
         )
+
+        # -- Ablation: temperature-scaled raw logprobs, the arm that isolates
+        # what C3 actually claims. If T-scaling alone closes most of the gap
+        # to calibrated, the evidential features (s+/s-/kg/rerank) are not
+        # doing much beyond a global confidence rescale; if calibrated still
+        # clearly beats T-scaled raw, the features earn their place. No new
+        # LLM calls: fits ONE temperature on the fit-half's ALREADY-SAVED
+        # logprobs (recovered as log(raw_probability) -- exactly equivalent
+        # to temperature-scaling the true underlying logits, since softmax is
+        # shift-invariant; see fit_temperature_only's docstring), applies it
+        # to the held-out half only.
+        _cal_fit_unused, raw_probs_fit, gold_idx_fit = paired_calibrated_vs_raw(
+            fit_set, weights, raw_by_qid
+        )
+        fit_logits = [[math.log(p) for p in row] for row in raw_probs_fit]
+        t_min, t_max = args.temp_search_min, args.temp_search_max
+        fitted_temperature = fit_temperature_only(
+            fit_logits, gold_idx_fit, t_min=t_min, t_max=t_max, n_grid=args.temp_search_grid
+        )
+        # Boundary-saturation guard: a grid search that lands at (or right
+        # next to) its own upper bound has not found the true fit-optimal T
+        # -- it found the edge of the range it was told to look in. This bit
+        # a real run during development (t_max=20 default silently saturated;
+        # the true optimum was ~92, and the resulting held-out ECE differed
+        # by nearly 30% relatively -- enough to flip the ablation's verdict).
+        # Auto-retry once with a much wider range rather than silently
+        # trusting a boundary value.
+        if fitted_temperature >= t_max * 0.999:
+            wider_t_max = t_max * 50
+            print(
+                f"[fit_calibration] WARNING: fitted T={fitted_temperature:.4f} saturated the "
+                f"search bound (t_max={t_max}) -- retrying with t_max={wider_t_max}"
+            )
+            fitted_temperature = fit_temperature_only(
+                fit_logits,
+                gold_idx_fit,
+                t_min=t_min,
+                t_max=wider_t_max,
+                n_grid=args.temp_search_grid,
+            )
+            if fitted_temperature >= wider_t_max * 0.999:
+                print(
+                    f"[fit_calibration] WARNING: fitted T={fitted_temperature:.4f} STILL "
+                    f"saturated at t_max={wider_t_max} -- the fit-set NLL objective may be "
+                    "genuinely unbounded (flattening toward log(n_options) as T->infinity, "
+                    "i.e. the raw signal carries ~no information the fit set can use to set a "
+                    "temperature). Reported T is a lower bound on the true fit-optimal value, "
+                    "not the value itself -- state this explicitly wherever T is cited."
+                )
+        print(f"[fit_calibration] fitted single temperature (raw-logprob ablation): "
+              f"T={fitted_temperature:.4f}")
+
+        held_out_logits = [[math.log(p) for p in row] for row in raw_probs]
+        tscaled_probs = [softmax(row, fitted_temperature) for row in held_out_logits]
+        ece_tscaled = ece(tscaled_probs, joined_gold_idx, n_bins=5, binning="equal_mass")
+        print(f"[fit_calibration] T-scaled raw-logprob ECE, held-out: {ece_tscaled['ece']}")
+
+        boot_calibrated_vs_tscaled = paired_bootstrap_ece_diff(
+            calibrated_probs, tscaled_probs, joined_gold_idx,
+            n_bins=5, binning="equal_mass",
+            n_resamples=args.n_ece_bootstrap, seed=args.ece_bootstrap_seed,
+        )
+        boot_raw_vs_tscaled = paired_bootstrap_ece_diff(
+            raw_probs, tscaled_probs, joined_gold_idx,
+            n_bins=5, binning="equal_mass",
+            n_resamples=args.n_ece_bootstrap, seed=args.ece_bootstrap_seed,
+        )
+        print(
+            f"[fit_calibration] ABLATION calibrated vs T-scaled-raw: diff="
+            f"{boot_calibrated_vs_tscaled['point_estimate_diff']:+.4f}, 95% CI "
+            f"[{boot_calibrated_vs_tscaled['ci_lo']:+.4f}, "
+            f"{boot_calibrated_vs_tscaled['ci_hi']:+.4f}] -> "
+            f"{boot_calibrated_vs_tscaled['verdict']}"
+        )
+        print(
+            f"[fit_calibration] ABLATION raw vs T-scaled-raw (T-scaling's own effect): diff="
+            f"{boot_raw_vs_tscaled['point_estimate_diff']:+.4f}, 95% CI "
+            f"[{boot_raw_vs_tscaled['ci_lo']:+.4f}, {boot_raw_vs_tscaled['ci_hi']:+.4f}] -> "
+            f"{boot_raw_vs_tscaled['verdict']}"
+        )
+        exit_test["temperature_scaled_raw_ablation"] = {
+            "fitted_temperature": fitted_temperature,
+            "tscaled_raw_ece_held_out_point": ece_tscaled["ece"],
+            "calibrated_vs_tscaled": boot_calibrated_vs_tscaled,
+            "raw_vs_tscaled": boot_raw_vs_tscaled,
+        }
 
     out = {
         "generated_at_utc": datetime.now(UTC).isoformat(),

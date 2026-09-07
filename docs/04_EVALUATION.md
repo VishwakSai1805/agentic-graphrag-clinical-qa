@@ -419,37 +419,74 @@ held-out (second 60); weights fit on the fit half only, every ECE number below
 is measured on the held-out half. See ADR-028 for the full feature
 definitions, split rationale, and gamma-identifiability discussion.
 
-**The exit test** (`docs/02_ROADMAP.md`: "ECE on dev improves vs. raw LLM
-option log-probs; ranked output includes per-option citations for every
-question") **passes, with a paired-bootstrap CI, not a point estimate:**
+**The literal exit test** (`docs/02_ROADMAP.md`: "ECE on dev improves vs. raw
+LLM option log-probs; ranked output includes per-option citations for every
+question") **passes on its literal reading — and a follow-up ablation shows
+that reading is not the one to build a claim on:**
 
 | | value |
 |---|---|
 | Calibrated ECE, held-out (5 equal-mass bins, n=60) | **0.0724** |
-| Raw-logprob ECE, held-out (same 60 questions, same bins) | 0.5418 |
+| Raw-logprob ECE (temperature 1), held-out (same 60 questions, same bins) | 0.5418 |
 | Paired bootstrap mean diff (calibrated − raw), 10k resamples seed 42 | −0.4204 |
 | 95% CI | **[−0.5426, −0.2826]** |
-| Verdict | **calibrated significantly better** — CI entirely below 0 |
+| Verdict | calibrated significantly better than raw-at-T=1 — CI entirely below 0 |
 
 The raw-logprob comparator is a real per-token-logprob readout
 (`scripts/raw_logprob_baseline.py`, `src.llm.client.chat(logprobs=True)` —
 Ollama's native provider rejects `logprobs`; routed through LiteLLM's
 `openai/` provider type at the same server instead, confirmed empirically),
-given the **same EvidenceBundle** the agent pipeline saw, so the comparison
-isolates the calibration mechanism rather than an information-access
-difference. The gap is wide (CI upper bound −0.28) — not a marginal result
-sitting near zero the way ADR-018's kg_rerank win was. Ranked output
+given the **same EvidenceBundle** the agent pipeline saw. Ranked output
 (`results/phase5_calibration/medqa_dev_calibration.json`) carries all 120
 questions × 4 options with per-option citations structurally present for every
 row (63.1% of option-rows carry ≥1 real citation; the rest are legitimately
 ungrounded per CLAUDE.md's carve-out, not missing data).
 
-**What this does NOT establish:** the calibrated rank-1 accuracy (0.267,
-both fit and held-out) is reported as a number, not a comparison — the §4.3
-budget asymmetry (V4/V5 get 12 evidence items; B2/B3 get up to ~52) is still
-unfixed, so no "beats B2" claim is made here. §5.5 Finding 3's "0.35 vs 0.65"
-gap is not closed by this result; that comparator needs the equal-budget B2
-first (AUDIT 2026-09-06 §4.3, deferred).
+**But this comparison does not isolate what C3 claims, and a direct ablation
+shows the gap above is almost entirely a temperature effect, not an
+evidential-calibration effect.** A single scalar temperature T was fit on the
+fit-60's already-saved raw logprobs (no new LLM calls — `log(raw_probability)`
+is a valid stand-in for the true logit here, since softmax is shift-invariant)
+and applied, frozen, to the held-out-60:
+
+| comparison (held-out, n=60) | point ECE | diff | 95% CI | verdict |
+|---|---|---|---|---|
+| Calibrated (0.0724) vs. **T-scaled raw** (0.0725, T=92.03) | −0.0001 | −0.0001 | **[−0.1344, +0.0887]** | **tie** |
+| Raw-at-T=1 (0.5418) vs. T-scaled raw (0.0725) | +0.4694 | +0.4694 | [+0.2168, +0.5563] | T-scaling significantly better |
+
+**Temperature scaling alone — zero evidential features, zero agent
+reasoning — reaches the same ECE as the full calibrated pipeline.** Nearly all
+of the 0.54→0.07 improvement above is a temperature-scaling effect. **C3 is
+restated accordingly: at this sample size, temperature scaling of the raw
+signal suffices to match the evidential features' ECE; the evidential
+features' additional contribution over temperature scaling alone is not
+established.** This is not a null result to bury — it is exactly the finding
+a careful ablation should surface, and it directly answers the "the gain is
+just temperature scaling" objection a reviewer would otherwise have to raise.
+It leaves open (Phase 7, larger n, or a different axis such as abstention or
+citation quality) whether the features earn their place; it does not, on this
+evidence, establish that they already have. Fitting `fit_temperature_only`
+also caught and fixed a real methodological bug worth naming: an initial
+narrow search bound (`t_max=20`, borrowed from the evidential fit's own
+temperature bound) silently saturated, reporting a spuriously low T=20 whose
+ECE (0.095) looked like a real gap vs. calibrated — corrected by widening the
+search and confirming the true optimum (T≈92) before reporting anything
+(see ADR-028 Decision 5; `fit_temperature_only` and `scripts/fit_calibration.py`
+now detect and guard against this).
+
+**Calibration improved confidence quality while accuracy went down — stated
+plainly, not softened into a caveat.** Phase 4's uncalibrated
+`rank-1-by-support` (raw `s+ − s−` argmax, §5.5 Finding 3) was **0.35** on its
+own dev-20. This phase's fitted, temperature-scaled model gets **0.267**
+rank-1 accuracy on both the fit-60 and held-out-60. These come from different
+question sets, not a controlled before/after on the same items — a real
+caveat, not a reason to soften the number. A model that is better-calibrated
+(ECE 0.07) and less accurate than the cruder rule it replaces is a genuinely
+limited contribution, and that is the honest headline alongside the ECE
+result, not a footnote under a "not established" note. The §4.3 budget
+asymmetry (V4/V5 get 12 evidence items; B2/B3 get up to ~52) separately still
+forbids any comparison to B2 (AUDIT 2026-09-06, deferred) — a different
+limitation from this one.
 
 **Gamma identifiability, checked from two independent directions and
 consistent.** On this 120-question slice, KG-modality SUPPORT cells are 12 of

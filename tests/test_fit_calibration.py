@@ -174,3 +174,176 @@ def test_paired_calibrated_vs_raw_probability_vectors_use_same_option_order():
 def test_paired_calibrated_vs_raw_empty_matrices_returns_empty():
     calibrated, raw, gold_idx = paired_calibrated_vs_raw([], CalibrationWeights(), {})
     assert calibrated == raw == gold_idx == []
+
+
+# --------------------------------------------------------------------------
+# End-to-end: temperature-scaled raw-logprob ablation (main(), via CLI)
+# --------------------------------------------------------------------------
+
+
+def _write_run(tmp_path, matrices):
+    run_dir = tmp_path / "fake_run"
+    run_dir.mkdir()
+    with (run_dir / "predictions.jsonl").open("w", encoding="utf-8") as f:
+        for m in matrices:
+            f.write(json.dumps(m.model_dump(mode="json")) + "\n")
+    return run_dir
+
+
+def _write_raw_baseline(tmp_path, matrices, seed=0):
+    import random
+
+    rng = random.Random(seed)
+    rows = []
+    for m in matrices:
+        letters = sorted(m.options)
+        vals = [max(0.01, rng.random()) for _ in letters]
+        total = sum(vals)
+        raw_probs = {letters[i]: vals[i] / total for i in range(len(letters))}
+        rows.append(
+            {
+                "question_id": m.question_id,
+                "gold_letter": m.gold_option,
+                "letters": letters,
+                "raw_probs": raw_probs,
+            }
+        )
+    path = tmp_path / "raw_baseline.json"
+    path.write_text(json.dumps({"per_question": rows}), encoding="utf-8")
+    return path
+
+
+def test_main_writes_temperature_scaled_ablation_block(tmp_path, monkeypatch):
+    import scripts.fit_calibration as mod
+
+    matrices = [
+        _matrix(
+            f"train_{i:05d}",
+            gold="A",
+            cells=[
+                SupportCell(
+                    option_id="A", claim_idx=0, evidence_id=f"chunk::{i}#0", label="SUPPORT"
+                )
+            ],
+            option_support=[
+                OptionSupport(option_id=o, s_pos=1 if o == "A" else 0) for o in "ABCD"
+            ],
+        )
+        for i in range(20)
+    ]
+    run_dir = _write_run(tmp_path, matrices)
+    raw_path = _write_raw_baseline(tmp_path, matrices)
+    out_path = tmp_path / "out.json"
+
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "fit_calibration",
+            "--run-dir",
+            str(run_dir),
+            "--raw-baseline-json",
+            str(raw_path),
+            "--n-bootstrap",
+            "5",
+            "--n-ece-bootstrap",
+            "50",
+            "--out",
+            str(out_path),
+        ],
+    )
+    mod.main()
+
+    out = json.loads(out_path.read_text(encoding="utf-8"))
+    ablation = out["exit_test"]["temperature_scaled_raw_ablation"]
+    assert "fitted_temperature" in ablation
+    assert 0.05 - 1e-6 <= ablation["fitted_temperature"] <= 100_000.0
+    assert "tscaled_raw_ece_held_out_point" in ablation
+    for key in ("calibrated_vs_tscaled", "raw_vs_tscaled"):
+        assert set(("point_estimate_diff", "ci_lo", "ci_hi", "verdict")) <= set(ablation[key])
+
+
+def test_main_without_raw_baseline_json_has_no_exit_test(tmp_path, monkeypatch):
+    import scripts.fit_calibration as mod
+
+    matrices = [_matrix(f"train_{i:05d}") for i in range(20)]
+    run_dir = _write_run(tmp_path, matrices)
+    out_path = tmp_path / "out.json"
+
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "fit_calibration",
+            "--run-dir",
+            str(run_dir),
+            "--n-bootstrap",
+            "5",
+            "--out",
+            str(out_path),
+        ],
+    )
+    mod.main()
+
+    out = json.loads(out_path.read_text(encoding="utf-8"))
+    assert out["exit_test"] is None
+
+
+def test_main_auto_widens_temperature_search_when_saturated(tmp_path, monkeypatch, capsys):
+    """Regression test for a real bug: a too-narrow --temp-search-max silently
+    saturates the grid search, reporting a materially wrong 'optimal'
+    temperature. main() must detect saturation and retry with a wider range,
+    warning about it, rather than trusting the boundary value."""
+    import scripts.fit_calibration as mod
+
+    # Construct raw probs where the truly NLL-optimal T is well above a
+    # deliberately tiny --temp-search-max (2.0), forcing saturation.
+    matrices = [
+        _matrix(f"train_{i:05d}", gold="A" if i % 2 == 0 else "B") for i in range(20)
+    ]
+    run_dir = _write_run(tmp_path, matrices)
+
+    rows = []
+    for m in matrices:
+        letters = sorted(m.options)
+        # Sharp, mostly-wrong raw confidence -- needs a large T to fix, well
+        # past a --temp-search-max of 2.0.
+        vals = [0.94 if letters[i] == "C" else 0.02 for i in range(len(letters))]
+        raw_probs = {letters[i]: vals[i] for i in range(len(letters))}
+        rows.append(
+            {
+                "question_id": m.question_id,
+                "gold_letter": m.gold_option,
+                "letters": letters,
+                "raw_probs": raw_probs,
+            }
+        )
+    raw_path = tmp_path / "raw.json"
+    raw_path.write_text(json.dumps({"per_question": rows}), encoding="utf-8")
+    out_path = tmp_path / "out.json"
+
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "fit_calibration",
+            "--run-dir",
+            str(run_dir),
+            "--raw-baseline-json",
+            str(raw_path),
+            "--n-bootstrap",
+            "5",
+            "--n-ece-bootstrap",
+            "50",
+            "--temp-search-max",
+            "2.0",
+            "--temp-search-grid",
+            "200",
+            "--out",
+            str(out_path),
+        ],
+    )
+    mod.main()
+
+    captured = capsys.readouterr()
+    assert "saturated the search bound" in captured.out
+    out = json.loads(out_path.read_text(encoding="utf-8"))
+    fitted_t = out["exit_test"]["temperature_scaled_raw_ablation"]["fitted_temperature"]
+    assert fitted_t > 2.0  # the retry actually found something past the original bound

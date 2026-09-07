@@ -1576,8 +1576,11 @@ merely an ordinary ablation cell. The four test-split probe JSONs remain in
 `results/phase2_kg_probe/` carrying `superseded: true` and must never be cited
 as the basis of a decision.
 
-## ADR-028 — Phase 5 evidential calibration: feature definitions, disjoint fit/held-out split, and the KG-invisibility finding confirmed from a second direction
-Date: 2026-09-07 · Phase: 5 · Status: accepted
+## ADR-028 — Phase 5 evidential calibration: feature definitions, disjoint fit/held-out split, temperature scaling alone matches it, and gamma's KG-invisibility confirmed from a second direction
+Date: 2026-09-07 · Phase: 5 · Status: accepted · amended same day after the
+temperature-scaled-raw-logprob ablation (Decision 5) showed the original
+calibrated-vs-raw-at-T=1 exit-test framing overstated what the result
+established — corrected in place, not left standing
 
 **Context.** `docs/01_ARCHITECTURE.md`'s calibration stage (`z_i = alpha*s_pos_i
 - beta*s_neg_i + gamma*kg_i + delta*rerank_i`, `p = softmax(z/T)`) leaves the
@@ -1679,22 +1682,83 @@ produce them run independently.
 | 95% CI | **[-0.5426, -0.2826]** |
 | Verdict | **calibrated significantly better** (CI entirely below 0) |
 
-**The exit test passes, and passes by a wide margin — the CI's upper bound
-(-0.28) is itself larger in magnitude than most ECE values reported in the
-calibration literature as "well-calibrated."** This is not a marginal result
-sitting close to zero the way ADR-018's kg_rerank win was; the raw-logprob
-baseline is *badly* miscalibrated (ECE 0.54 — the model's raw next-token
-confidence on a single-shot 4-option pick bears little relationship to its
-actual accuracy), and even the crude, heavily-regularized, 60-question agent-
-derived fit does dramatically better. State this plainly rather than
-underselling it, but also plainly: this establishes that the calibration
-*mechanism* works and beats an appropriately real (not strawman)
-uncalibrated baseline — it does not establish that the mechanism beats B2 or
-any other system, which the still-unfixed §4.3 budget asymmetry (12 items for
-V4/V5 vs up to ~52 for B2/B3) continues to forbid claiming (AUDIT 2026-09-06,
-deferred to the pre-Phase-7 batch).
+The literal roadmap exit test passes, by a wide margin. **But this result on
+its own is the wrong thing to read as evidence for C3, and an earlier draft of
+this ADR read it that way before the ablation below was run — corrected here
+rather than left standing.** A raw single-shot LLM confidence readout at
+temperature 1 is a strawman-adjacent baseline for a very specific, boring
+reason: temperature 1 is simply not the right temperature for this model's
+confidence, and *any* miscalibrated-but-informative signal will look bad at
+the wrong temperature and look better merely by rescaling it — with no
+evidential feature (`s_pos`, `s_neg`, `kg_support_count`, `mean_rerank_score`)
+involved at all. The 0.54-vs-0.07 gap above conflates two different possible
+explanations — "the evidential features are doing real calibration work" and
+"the raw signal just needed its temperature fixed" — and does not distinguish
+between them. Decision 6 below runs the ablation that does.
 
-**Decision 5 — report gamma's identifiability, not just its point estimate**
+**Decision 5 — a temperature-scaled-raw-logprob ablation is required to
+isolate what C3 actually claims** (per the project owner, before Phase 6:
+"the comparison right now is calibrated-evidential vs. uncalibrated logprobs,
+and a reviewer will say the gain is temperature scaling, not evidential
+calibration — because for the most part it might be"). Fit a single scalar
+temperature T on the fit-half's *already-saved* logprobs (no new LLM calls):
+`log(raw_probability)` per option is a valid stand-in for the true
+(unobserved) logit for this purpose — softmax is shift-invariant, and
+`log(p_i) = u_i - logsumexp(u)` is `u_i` shifted by a per-question constant,
+so `softmax(log(p)/T) == softmax(u/T)` for any T (verified to floating-point
+precision, `tests/test_calibration_softmax_rank.py`). `T` is fit by grid
+search minimizing mean NLL of the gold option on the fit-60, then applied,
+frozen, to the held-out-60.
+
+**A real bug surfaced immediately and is recorded because it changes how this
+result should be read by anyone reusing this method.** The grid search's
+first run used `t_max=20` (borrowed from the evidential fit's own temperature
+bound, which was appropriate for that model's much smaller logit scale but
+not for raw log-probabilities). The fit saturated exactly at that boundary,
+reporting `T=20` — and using it gave a *materially wrong* answer
+(T-scaled-raw ECE 0.095, a real-looking but spurious gap vs. calibrated's
+0.072). Widening the search and checking whether the NLL kept improving past
+the old bound (it did, for a long way — the fit-set NLL surface flattens
+toward `log(4)`, the uniform-prediction NLL, because the raw signal here
+carries very little correlation with correctness at the fit-set's 60
+questions) found the genuine fit-optimal **T≈92.03**, well inside a widened
+range. `fit_temperature_only` now defaults to a much wider search
+(`t_max=2000`) and `scripts/fit_calibration.py` detects boundary saturation
+and auto-retries at 50× the range, warning loudly if it saturates again —
+this exact failure mode (a plausible-looking, wrong optimum from an
+insufficiently wide search) is now guarded against structurally, not just
+noted here.
+
+**Real ablation result (held-out, n=60, T=92.03 fit on the disjoint fit-60):**
+
+| comparison | point diff | 95% CI | verdict |
+|---|---|---|---|
+| calibrated ECE (0.0724) vs. T-scaled-raw ECE (0.0725) | −0.0001 | [−0.1344, +0.0887] | **tie** |
+| raw-at-T=1 ECE (0.5418) vs. T-scaled-raw ECE (0.0725) | +0.4694 | [+0.2168, +0.5563] | **T-scaling significantly better than raw** |
+
+**This is the honest answer, and it is the outcome the project owner
+predicted as the one requiring a restated claim.** Temperature-scaling the
+raw logprobs *alone*, with zero evidential features, zero agent reasoning,
+and zero new LLM calls, reaches ECE 0.0725 — statistically indistinguishable
+from the full evidential pipeline's 0.0724. Essentially all of the 0.54→0.07
+improvement documented above is a temperature-scaling effect, not an
+evidential-calibration effect. **C3 ("evidential calibration for multi-choice")
+is restated: at this sample size (n=60 fit / n=60 held-out), temperature
+scaling of the raw signal suffices to reach the same ECE the evidential
+features reach; the evidential features' additional contribution over
+temperature scaling alone is not established.** This does not mean the
+evidential features are worthless — `s_pos`/`s_neg` audit-derived counts are
+a *different, and arguably more inspectable/groundable* signal than a raw
+next-token confidence, and the features may earn their place at the larger
+n the Phase 7 grid provides, or on a different axis (citations, abstention)
+this ablation does not test — but the specific claim "evidential features
+improve calibration beyond temperature scaling" is not what this run shows,
+and must not be reported as if it were. The §4.3 budget asymmetry (12 items
+for V4/V5 vs. up to ~52 for B2/B3) still separately forbids any comparison
+to B2 (AUDIT 2026-09-06, deferred to the pre-Phase-7 batch) — a wholly
+different limitation from this one.
+
+**Decision 6 — report gamma's identifiability, not just its point estimate**
 (per the project owner's explicit request, predicted from §5.5 Finding 2: only
 1/108 audit cells on the dev-20 cite a KG triple). On this 120-question slice
 the pattern reproduces almost exactly: **12 of 626 total cells (1.9%) are
@@ -1727,17 +1791,34 @@ wired), reached by unrelated measurements. Report gamma's bootstrap interval
 alongside its point estimate wherever gamma is discussed; the point estimate
 alone would misleadingly suggest a real, moderate positive effect.
 
+**Calibration improved confidence quality while accuracy went down — stated
+plainly, not as a footnote.** Phase 4's uncalibrated `rank-1-by-support` (raw
+`s+ - s-` argmax, no temperature, no gamma/delta) was **0.35** on its own
+dev-20 (`docs/04` §5.5 Finding 3). This phase's fitted, temperature-scaled
+model gets **0.267** rank-1 accuracy on both the fit-60 and held-out-60 (same
+number both places — see the fit-vs-held-out discussion above). These are
+different question sets, not a controlled before/after on the same items, and
+that caveat is real — but it is not a reason to soften the finding: a fitted
+model that is *better calibrated* (ECE 0.07 vs. an implicit uncalibrated ECE
+never measured for the 0.35 rule, since raw argmax carries no probability at
+all to score) and *less accurate* than the crude uncalibrated rule it replaces
+is a genuinely limited result, not a strict improvement, and the paper must
+say so exactly that plainly. Reading the two results together: this phase
+demonstrates a *well-calibrated* differential can be produced, and separately
+that doing so did not preserve (on this evidence) the accuracy of the cruder
+rule it's built on top of — two different claims, and only the first is
+supported.
+
 **Consequences.** `configs/v5.yaml` records the fitted weights (Phase 7's V5
 variant: agents + calibration). The abstention threshold
 (`tau=0.5458` at a 10% target risk on the held-out coverage-risk curve) and
 the full per-question ranked output (all 120 questions, all options, with
 citations — 63.1% of option-rows carry at least one real citation, the rest
 legitimately ungrounded per CLAUDE.md's carve-out) are in
-`results/phase5_calibration/medqa_dev_calibration.json`. `rank1_accuracy`
-(0.267 both fit and held-out) is reported as a number, explicitly not a B2
-comparison (§4.3's budget asymmetry is unfixed) — it is low, and that is
-stated plainly rather than obscured by the exit test's headline pass. `src.eval.metrics`
-gains `paired_bootstrap_ece_diff`; `src.llm.client.chat` gains `logprobs`
+`results/phase5_calibration/medqa_dev_calibration.json`. `src.eval.metrics`
+gains `paired_bootstrap_ece_diff`; `src.calibration.softmax_rank` gains
+`fit_temperature_only` (with the boundary-saturation lesson from Decision 5
+in its docstring); `src.llm.client.chat` gains `logprobs`
 support; `src.retrieval` gains nothing (this ADR's bootstrap lives in
 `src/eval/metrics.py` alongside `ece()`, not `src/retrieval/metrics.py`,
 since it is ECE-specific, not a general per-item-diff bootstrap). Phase 7's

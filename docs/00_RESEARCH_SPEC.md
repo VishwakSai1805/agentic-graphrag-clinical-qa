@@ -60,17 +60,32 @@ opposing evidence. Whether that is a property of MedQA, of the evidence bundle
 size, or of the definition itself is open, and is the first thing Phase 7 must
 answer at n=500.
 
-**C3 — Evidential calibration for multi-choice.** `PENDING Phase 5.` Per-option
+**C3 — Evidential calibration for multi-choice.** `RESTATED — mechanism works,
+the evidential contribution is not established (ADR-028, Phase 5).` Per-option
 evidence scoring → temperature-scaled softmax → ranked differential with
-per-option citation sets, evaluated by ECE and a reliability diagram. There is
-no calibration *guarantee* — the word is removed. A temperature fitted on a dev
-split is an empirical fit that may or may not transfer; it carries no bound.
-Nothing is implemented yet: there is no `src/calibration/`, `src/eval/metrics.py`
-ships only accuracy and macro-F1, and every ECE cell in `docs/04_EVALUATION.md`
-§5 is `TBD`. Per ADR-026 the fit set is `pqa_labeled` dev (500 items), which is
-verified absent from the retrieval corpus — and 500 items supports a single
-global temperature, not a richly parameterised calibrator. That limit is part
-of the claim.
+per-option citation sets, evaluated by ECE. There is no calibration
+*guarantee* — the word stays removed; a temperature fitted on a dev split is
+an empirical fit, not a bound. Fit on a 60-question MedQA train slice
+(disjoint from Phase 3/4's dev-20), ECE measured on a disjoint 60-question
+held-out slice: 0.0724, significantly better than a real raw-logprob baseline
+at temperature 1 (0.5418, 95% CI [−0.5426, −0.2826]). **A follow-up ablation
+shows that gap is almost entirely a temperature-scaling effect: a single
+temperature fit on the same raw logprobs, with zero evidential features,
+reaches ECE 0.0725 — a statistical tie with the full calibrated pipeline
+(95% CI [−0.1344, +0.0887]).** The claim is therefore restated: temperature
+scaling of the raw signal suffices to match the evidential features'
+calibration quality at this sample size; the features' (`s_pos`, `s_neg`,
+`kg_support_count`, `mean_rerank_score`) additional contribution beyond
+temperature scaling is not established, and must not be claimed until a
+larger-n test (Phase 7) shows otherwise. Separately, calibrated rank-1
+accuracy (0.267) is below Phase 4's uncalibrated `rank-1-by-support` (0.35,
+different question set) — a better-calibrated but less-accurate model, stated
+plainly. `kg_support_count`'s weight (gamma) is itself unidentifiable
+(bootstrap std 3x alpha's, interval spanning zero) — independent confirmation
+that the KG modality is nearly invisible to this pipeline, consistent with C1.
+Fit set: a MedQA train slice, not `pqa_labeled` dev — ADR-026's PubMedQA
+fitting-set discipline applies once/if a PubMedQA calibration pipeline exists
+(C4 is still pending), not to this MedQA-only Phase 5 run.
 
 **C4 — Empirical study.** `PENDING Phase 7.` Baseline parity on PubMedQA
 (binary), and the MedQA-USMLE / MedMCQA multi-choice comparison, with an

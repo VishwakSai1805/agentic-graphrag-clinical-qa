@@ -257,3 +257,63 @@ def choose_abstention_threshold(curve: list[dict], target_risk: float = 0.10) ->
     if meeting:
         return max(meeting, key=lambda row: row["coverage"])["tau"]
     return min(curve, key=lambda row: row["risk"])["tau"]
+
+
+def fit_temperature_only(
+    logits: list[list[float]],
+    gold_idx: list[int],
+    t_min: float = 0.05,
+    t_max: float = 2000.0,
+    n_grid: int = 6000,
+) -> float:
+    """Fits a SINGLE scalar temperature T minimizing mean NLL of the gold
+    option under `softmax(logit / T)`, via a log-spaced grid search over
+    `[t_min, t_max]`.
+
+    This is the classical two-stage temperature-scaling procedure (Guo et al.
+    2017: fix the logits, fit only T) -- used for the temperature-scaled
+    raw-logprob-baseline ablation (docs/05_DECISIONS.md's Phase 5 ADR), which
+    isolates how much of any ECE gap is "temperature scaling alone" vs. "the
+    evidential features add something beyond temperature scaling." A grid
+    search, not gradient descent, because a single scalar parameter does not
+    need more machinery and a grid search cannot diverge or get stuck.
+
+    **`t_max` matters more than it looks.** When the logits carry little
+    information correlated with the gold label (as raw single-shot LLM
+    confidence on this project's MedQA slice turned out to), the NLL surface
+    flattens toward `log(n_options)` (the uniform-prediction NLL) as T grows,
+    with no interior minimum -- the fit-optimal T can be genuinely large (this
+    project measured ~92 against a naive `t_max=20` default that silently
+    saturated the search at its boundary and produced a materially wrong,
+    over-confident "optimal" T -- caught only by manually widening the range
+    and checking the NLL kept improving past the old bound). **Callers MUST
+    check whether the returned T sits at or near `t_max` and, if so, re-run
+    with a wider range before trusting the result** -- this function does not
+    self-check that, since it has no way to know what "near the boundary"
+    should mean for a given caller's tolerance.
+
+    `logits` need not come from `compute_logit` -- e.g. `log(raw_probability)`
+    per option is a valid logit vector for this purpose: softmax is
+    shift-invariant, and `log(p_i) = u_i - logsumexp(u)` is `u_i` shifted by a
+    PER-QUESTION CONSTANT, so `softmax(log(p)/T) == softmax(u/T)` for any T
+    -- temperature-scaling recovered log-probabilities gives the exact answer
+    you'd get from the true (unobserved) original logits. Verified to
+    floating-point precision in `tests/test_calibration_softmax_rank.py`.
+
+    Raises ValueError on empty input.
+    """
+    if not logits or len(logits) != len(gold_idx):
+        raise ValueError("fit_temperature_only: logits/gold_idx must be non-empty and same length")
+    log_lo, log_hi = math.log(t_min), math.log(t_max)
+    best_t, best_loss = t_min, math.inf
+    for i in range(n_grid):
+        log_t = log_lo + (log_hi - log_lo) * i / (n_grid - 1)
+        t = math.exp(log_t)
+        total = 0.0
+        for logit_row, gold in zip(logits, gold_idx, strict=True):
+            probs = softmax(logit_row, t)
+            total += -math.log(max(probs[gold], 1e-12))
+        mean_nll = total / len(logits)
+        if mean_nll < best_loss:
+            best_loss, best_t = mean_nll, t
+    return best_t
