@@ -79,6 +79,67 @@ def macro_f1(preds: Sequence[Prediction], labels: Sequence[str]) -> float:
 
 
 # --------------------------------------------------------------------------
+# Phase 6: ranking quality (docs/04_EVALUATION.md §4, hypothesis H4)
+# --------------------------------------------------------------------------
+
+
+def precision_at_k(ranked_option_ids: Sequence[str], gold_option_id: str, k: int) -> float:
+    """`docs/04_EVALUATION.md` §4 "Precision@K (K=1,2) over the ranked option list".
+
+    Multi-choice QA has exactly ONE correct option, so P@K here is the hit
+    rate: ``1.0`` iff ``gold_option_id`` appears in the top-``k`` of
+    ``ranked_option_ids`` (best-first), else ``0.0``. With a single relevant
+    item this coincides with recall@k and with hit@k -- the convention is
+    fixed here (and in ADR-029) so "P@2" is read as "did the gold option stay
+    in the top-2 differential" (H4), not as ``relevant_in_top_k / k`` which
+    would cap a correct top-2 at 0.5. P@1 therefore equals accuracy for a
+    ranked prediction.
+
+    ``k`` must be >= 1. A ranking shorter than ``k`` is not padded -- only the
+    ids actually present are considered.
+    """
+    if k < 1:
+        raise ValueError(f"k must be >= 1, got {k}")
+    return 1.0 if gold_option_id in list(ranked_option_ids)[:k] else 0.0
+
+
+def reciprocal_rank_option(ranked_option_ids: Sequence[str], gold_option_id: str) -> float:
+    """``1 / rank`` of ``gold_option_id`` in ``ranked_option_ids`` (rank
+    1-based, best-first); ``0.0`` if the gold option is absent from the
+    ranking. This is the per-question term of MRR (`docs/04` §4)."""
+    for pos, oid in enumerate(ranked_option_ids, start=1):
+        if oid == gold_option_id:
+            return 1.0 / pos
+    return 0.0
+
+
+def mean_precision_at_k(
+    rankings: Sequence[Sequence[str]], golds: Sequence[str], k: int
+) -> float:
+    """Mean of :func:`precision_at_k` over a set of questions. Empty input
+    returns ``0.0`` (not NaN), matching :func:`accuracy`."""
+    if len(rankings) != len(golds):
+        raise ValueError(f"{len(rankings)} rankings but {len(golds)} golds")
+    if not rankings:
+        return 0.0
+    return sum(precision_at_k(r, g, k) for r, g in zip(rankings, golds, strict=True)) / len(
+        rankings
+    )
+
+
+def mean_mrr(rankings: Sequence[Sequence[str]], golds: Sequence[str]) -> float:
+    """Mean Reciprocal Rank of the gold option over a set of questions
+    (`docs/04_EVALUATION.md` §4). Empty input returns ``0.0``."""
+    if len(rankings) != len(golds):
+        raise ValueError(f"{len(rankings)} rankings but {len(golds)} golds")
+    if not rankings:
+        return 0.0
+    return sum(
+        reciprocal_rank_option(r, g) for r, g in zip(rankings, golds, strict=True)
+    ) / len(rankings)
+
+
+# --------------------------------------------------------------------------
 # Phase 5: Expected Calibration Error
 # --------------------------------------------------------------------------
 

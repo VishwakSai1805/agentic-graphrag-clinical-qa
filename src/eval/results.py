@@ -36,7 +36,14 @@ def _git(*args: str) -> str | None:
         out = subprocess.run(
             ["git", *args],
             capture_output=True,
-            text=True,
+            # Decode as UTF-8 explicitly: `text=True` uses the locale codec
+            # (cp1252 on Windows), which raises UnicodeDecodeError in a reader
+            # thread the moment a tracked file's diff contains a non-latin-1
+            # byte (docs/*.md here are full of "≈", "−", en-dashes). That
+            # corrupted `git_diff_sha256` for any run made from a dirty tree
+            # with non-ASCII changes -- exactly the provenance this records.
+            encoding="utf-8",
+            errors="replace",
             cwd=REPO_ROOT,
             check=True,
         )

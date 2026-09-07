@@ -230,6 +230,54 @@ def _load_pipeline(cfg: AppConfig, repo_root: Path) -> TriModalPipeline:
     )
 
 
+def consensus_over_questions(
+    pipe: TriModalPipeline,
+    cfg: AppConfig,
+    questions: list,
+    dataset: str,
+    *,
+    progress: bool = True,
+) -> list[tuple]:
+    """Run the Phase 4 consensus graph over `questions`, returning
+    `[(SupportMatrix, ConsensusState), ...]` in question order.
+
+    The one place the per-question agent loop lives -- both
+    `_run_agents_eval` (the V4 entrypoint) and `src.eval.harness` (Phase 6)
+    call this so neither re-implements bundle-build -> run_consensus ->
+    collect. Does NOT touch `default_tracker` (the caller resets/reads it) and
+    does NOT write anything.
+    """
+    from src.agents.graph import run_consensus
+    from src.kg.dataset_questions import gold_letter
+
+    kg_rank_fn = pipe.reranker.rerank if cfg.agents.kg_slot_rerank else None
+
+    def retrieve_fn(query: str, k: int):
+        return pipe.retrieve_passages(query, k)
+
+    out: list[tuple] = []
+    for i, q in enumerate(questions):
+        bundle = pipe.build_bundle(
+            q.question, q.options or {}, dataset=dataset, question_id=q.question_id
+        )
+        matrix, state = run_consensus(
+            question_id=q.question_id,
+            dataset=dataset,
+            query=q.question,
+            options=q.options or {},
+            bundle_passages=bundle.passages,
+            bundle_triples=bundle.triples,
+            cfg=cfg,
+            gold_option=gold_letter(q),
+            retrieve_fn=retrieve_fn,
+            kg_rank_fn=kg_rank_fn,
+        )
+        out.append((matrix, state))
+        if progress and ((i + 1) % 5 == 0 or (i + 1) == len(questions)):
+            print(f"[consensus] {i + 1}/{len(questions)}", flush=True)
+    return out
+
+
 def _run_agents_eval(
     *,
     config_path: str,
@@ -242,10 +290,8 @@ def _run_agents_eval(
 ) -> Path:
     import torch
 
-    from src.agents.graph import run_consensus
     from src.eval.results import make_run_id, write_run
     from src.kg.dataset_questions import (
-        gold_letter,
         load_question_sample,
         load_question_sample_excluding,
     )
@@ -285,35 +331,12 @@ def _run_agents_eval(
 
     pipe = _load_pipeline(cfg, repo_root)
     default_tracker.reset()
-    matrices: list[dict] = []
-    traces: dict[str, dict] = {}
-    # reuse the pipeline's already-loaded cross-encoder for KG-slot ranking --
-    # do NOT let the graph build a second copy per question.
-    kg_rank_fn = pipe.reranker.rerank if cfg.agents.kg_slot_rerank else None
-
-    def retrieve_fn(query: str, k: int):
-        return pipe.retrieve_passages(query, k)
-
-    for i, q in enumerate(questions):
-        bundle = pipe.build_bundle(
-            q.question, q.options or {}, dataset=dataset, question_id=q.question_id
-        )
-        matrix, state = run_consensus(
-            question_id=q.question_id,
-            dataset=dataset,
-            query=q.question,
-            options=q.options or {},
-            bundle_passages=bundle.passages,
-            bundle_triples=bundle.triples,
-            cfg=cfg,
-            gold_option=gold_letter(q),
-            retrieve_fn=retrieve_fn,
-            kg_rank_fn=kg_rank_fn,
-        )
-        matrices.append(matrix.model_dump(mode="json"))
-        traces[q.question_id] = state.model_dump(mode="json")
-        if (i + 1) % 5 == 0 or (i + 1) == len(questions):
-            print(f"[pipeline] {i + 1}/{len(questions)}", flush=True)
+    pairs = consensus_over_questions(pipe, cfg, questions, dataset)
+    matrices: list[dict] = [m.model_dump(mode="json") for m, _ in pairs]
+    traces: dict[str, dict] = {
+        q.question_id: state.model_dump(mode="json")
+        for q, (_, state) in zip(questions, pairs, strict=True)
+    }
 
     metrics = _aggregate_agent_metrics(matrices)
     _stats = default_tracker.summary()

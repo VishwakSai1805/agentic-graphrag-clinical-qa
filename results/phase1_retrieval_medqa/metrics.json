@@ -1,0 +1,22 @@
+{
+  "dataset": "medqa",
+  "generated_at_utc": "2026-09-07T16:24:01.757648+00:00",
+  "k": 10,
+  "metrics": {
+    "bm25": {
+      "MRR": 0.022748177476118653,
+      "Recall@10": 0.04
+    },
+    "dense": {
+      "MRR": 0.02022711895887111,
+      "Recall@10": 0.055
+    },
+    "rrf": {
+      "MRR": 0.02638791126726135,
+      "Recall@10": 0.055
+    }
+  },
+  "n_evaluated": 200,
+  "note": "diagnostic only, lexically biased toward BM25, never gates -- ADR-011",
+  "seed": 42
+}

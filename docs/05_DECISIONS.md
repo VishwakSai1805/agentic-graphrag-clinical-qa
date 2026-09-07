@@ -1826,3 +1826,161 @@ V5 grid cell is the natural next place gamma's identifiability gets tested
 again, at n=500 — if it remains unidentifiable there too, gamma should be
 dropped from the model rather than carried as a free parameter with no
 signal to constrain it.
+
+## ADR-029 — Phase 6 harness is minimal (run → score → write); the V-variant map, the uncalibrated-ranking rule, and the dual hallucination denominator
+Date: 2026-09-07 · Phase: 6 · Status: accepted
+
+**Context.** The roadmap's Phase 6 spec was "parallel, resumable, cached
+harness + concurrency benchmark". `docs/SCHEDULE.md` (hard deadline
+2026-09-12) cut that to "minimal: run, score, write" — concurrency
+benchmarking is an engineering nicety, not a result. This ADR records what
+that minimal harness *is*, plus three modelling choices the spec left open
+that a reader would otherwise re-derive differently.
+
+**Decision 1 — scope.** `src/eval/harness.py` is a sequential loop:
+`run_eval(config, dataset, split, limit, variant, …)` → per-question predict →
+`score_run` → `src.eval.results.write_run`. **Cut:** the `asyncio.Semaphore`
+concurrency layer, resumability, and the 1/2/4 questions-per-hour benchmark.
+`docs/04` §0.2's planning-estimate "3× concurrency speedup" is **not** replaced
+by a measured number — Phase 7 runs sequentially at n=500 and that is
+acceptable within the deadline. Resumability's absence means a crashed grid
+job re-runs its variant from the top; the LLM cache (`.cache/llm/`) makes that
+cheap for the agent calls, and calibration/NLI are deterministic.
+`src/eval/ragas_eval.py` is not written — RAGAS is dropped (`docs/SCHEDULE.md`;
+NLI entailment against cited evidence covers factual fidelity).
+
+**Decision 2 — the V0–V5 → run mapping lives in one place** (`harness.VARIANTS`),
+because the grid names V0–V5 while the code has baselines B0–B3 + V4/V5 and the
+match is not 1:1:
+
+| V-id | what it runs | modalities |
+|---|---|---|
+| V0 | `_run_b0` (zero-shot, no retrieval) | — |
+| V1 | `_run_generation` | `{dense}` |
+| V2 | `_run_generation` | `{dense, lexical}` — **new, never run before Phase 6** |
+| V3 | `_run_generation` | `{dense, lexical, kg}` — **identical to baseline B2** |
+| V4 | `run_consensus`, ranked by `(s+ - s-)` | (agent bundle) |
+| V5 | `run_consensus` + `rank_options` with `configs/v5.yaml` weights | (agent bundle) |
+
+The committed `results/medqa_B2_*` runs therefore map to **V3, not V2**;
+`scripts/report.py` enforces this and V2's cell stays `TBD`. A `pubmedqa_B*`
+run maps to no grid cell (PubMedQA smoke runs are not grid results).
+
+**Decision 3 — ranking metrics (P@K / MRR / ECE) by variant.**
+- V0–V3 emit one predicted option, not a ranking → P@K / MRR / ECE are
+  reported `null` (the §5 grid shows `TBD`). P@1 for a ranked variant equals
+  accuracy anyway.
+- V4 has an agent SupportMatrix but no calibrated distribution → P@K / MRR are
+  computed from the **uncalibrated `(s+ - s-)` support-margin ordering**, tagged
+  `ranking_source = "uncalibrated_support_margin"` in `metrics.json` *and* in
+  the table, so no reader takes V4's P@2 for a calibrated-model number. V4 ECE
+  stays `null` (no probability vector to be calibrated).
+- V5 gets all three from the calibrated `p_vector`.
+This is why the pre-registration (`docs/04` §1.0) names **V4 vs V5 ranking** as
+the comparison that isolates whether calibration improves *ordering* (P@K/MRR)
+versus only *confidence* (ECE).
+
+**Decision 4 — hallucination rate is reported under BOTH denominators**
+(`src/eval/nli.py`), from one NLI pass:
+- `hallucination_rate_predicted_option` — claims backing the answered option.
+  **Primary.** It is what a reader taking the top-1 answer is exposed to, and
+  it is comparable across variants that do not all produce a full differential.
+- `hallucination_rate_all_support_cells` — every SUPPORT assertion across all
+  options. The system's real output is a ranked differential with per-option
+  citations, so every SUPPORT cell is an assertion on display; scoring only the
+  winner undercounts what a reader sees.
+A reviewer who prefers the other denominator reads it off the same
+`metrics.json` — no re-run. For V0–V3 (one rationale, no per-option cells) the
+two are equal by construction. Claim splitting is a small pure regex
+(`split_claims`) that guards decimals and abbreviations — unit-tested on
+adversarial strings, no LLM (an LLM splitter is another non-deterministic call
+and makes the denominator unauditable).
+
+**Decision 5 — `src/eval/results.py` git-diff decode.** `_git` used
+`text=True`, which decodes subprocess output with the locale codec (cp1252 on
+this Windows box) and raised `UnicodeDecodeError` in a reader thread the moment
+a tracked file's diff carried a non-latin-1 byte — and `docs/*.md` are full of
+non-ASCII (≈, minus signs, en-dashes). Every run made from a dirty tree with
+non-ASCII changes got a corrupted `git_diff_sha256`, the exact provenance field
+it records. Fixed to `encoding="utf-8", errors="replace"`. A bug fix, not a
+design change.
+
+**Consequences.** New: `src/eval/harness.py`, `src/eval/nli.py`,
+`scripts/report.py`, `paper/tables/results_grid.{md,tex}`. Extended:
+`src/eval/metrics.py` (`precision_at_k`, `reciprocal_rank_option`, `mean_*`),
+`src/eval/baselines.py` (`Prediction.rationale`), `src/pipeline.py`
+(`consensus_over_questions` — the per-question agent loop, now shared by
+`_run_agents_eval` and the harness, not forked). §5.5's "H4 cannot be measured
+— no p-vector is persisted" is resolved: V5 runs persist `p_vector` + `ranked`
+per question. Exit test (dev-20 V5): acc 0.30, P@1 0.30, P@2 0.55, MRR 0.57,
+ECE 0.080, halluc-rate 0.68 (predicted) / 0.72 (all cells), `abstention_rate`
+1.00 (every calibrated p1 sits below `configs/v5.yaml: abstention_tau=0.5458`
+— a real property of the near-degenerate Phase 5 fit, ADR-028, recorded not
+hidden), `results/medqa_V5_aa73199-dirty_20260907T170604Z/`.
+
+## ADR-030 — Phase 7 multiplicity pre-registered before any grid number; PubMedQA baseline is word-framed, not lettered
+Date: 2026-09-07 · Phase: 6 (pre-Phase-7) · Status: accepted
+
+**Context.** Two things had to be settled *before* the Wednesday grid launch,
+because settling them afterwards is worthless: (1) AUDIT 2026-09-06 §6.7 — the
+grid runs ~5 variants of paired-bootstrap comparisons across ~7 metrics and
+nothing in `docs/04` §1 mentioned family-wise error, while ADR-012 already ran
+3 uncorrected comparisons and ADR-018 ran 2; (2) the overnight PubMedQA smoke
+run showed all four baselines at accuracy 0.50 with a one-class ("yes")
+predictor — a degenerate result that would poison any PubMedQA grid cell.
+
+**Decision 1 — pre-registered analysis plan, written into `docs/04` §1.0,
+dated 2026-09-07.**
+- **Confirmatory: exactly one test — V3 vs V5, accuracy (singular), MedQA
+  n=500, alpha = 0.05 two-sided.** Not accuracy *and* Macro-F1 *and* ECE (that
+  re-smuggles a family into the confirmatory slot). Two-sided because Phase 4
+  §5.5 Finding 3 and Phase 5 ADR-028 both make "V5 does not beat V3" a live
+  outcome — the direction may not be assumed.
+- **A null result is the finding.** Written before the number is seen: if
+  V3 = V5 on accuracy, the paper reports that the full stack does not beat
+  tri-modal retrieval alone on MedQA at this scale, with the mechanism
+  (fusion tie ADR-012, conflict never fires ADR-025, temperature scaling
+  matches the features ADR-028). C1/C3 are already framed as diagnostic in
+  `docs/00` §3, so this is consistent, not a salvage job.
+- **Everything else is exploratory**, Holm–Bonferroni across a pre-registered
+  family of 30 {variant-pair × metric} cells (enumerated in §1.0). Any test
+  added after seeing grid numbers is reported as unplanned and excluded from
+  the Holm family.
+
+**Decision 2 — PubMedQA baselines use word-framed prompts** (`src/eval/
+baselines.py: _PUBMEDQA_*_PROMPT`, `_PUBMEDQA_SYNONYMS`). Lettering yes/no/maybe
+as A/B/C hid the task. Three prompt versions were run on the dev-20:
+
+| Prompt | B0 pred dist | B0 acc | B3 `verifier_decision_rate` | B3 `n_supported` |
+|---|---|---|---|---|
+| v1: `A. yes / B. no / C. maybe` | `{A:14, B:5, C:1}` | 0.50 | 0.00 | `{0:12, 2:6, 3:2}` |
+| v2: words + "use maybe when mixed/insufficient" | `{C:16, A:4}` | 0.25 | 0.15 | `{0:9, 1:3, 2:7, 3:1}` |
+| v3 (kept): words, "give your best single answer" | `{C:14, A:6}` | 0.25 | 0.15 | `{0:9, 1:3, 2:7, 3:1}` |
+
+**None of the three is non-degenerate** — the local 7B model never predicts
+"no" under word framing and predicts one class 70–90% of the time under every
+framing. This is a **model-capability ceiling, not a prompt bug**: it is
+disclosed as a limitation, and PubMedQA stays out of the Phase 7 grid
+(`docs/SCHEDULE.md` already cut it to "MedQA only"). v3 is kept because it is
+the faithful statement of the task and it does not artificially cripple B3 —
+under v3 the binary verifier still isolates a single option on only **3/20**
+three-way questions (`verifier_decision_rate = 0.15`), which is the honest form
+of the binary-bottleneck evidence for a 3-way task, reported in `docs/04` §5.4.
+All v1/v2 PubMedQA runs are stamped `superseded` (by run id) pointing at the v3
+run.
+
+**Decision 3 — PubMedQA `contamination_assertion` runs for real**
+(`src.eval.contamination.pubmedqa_contamination_report`, wired into both
+`scripts/run_baselines.py` and `src/eval/harness.py`). It previously returned
+`{"checked": False, "applies": True}` — knowing the check applied and skipping
+it, the AUDIT §3.2 failure class. Now it calls `assert_no_contamination` with
+`blocklisted_pmids("pubmedqa")` (the 500 `pqa_labeled` TEST PMIDs) against the
+built corpus; `checked: True` is earned because the corpus was scanned. The
+overnight and re-run PubMedQA runs record `passed: True`.
+
+**Consequences.** `docs/04` §1.0 (pre-registration), §5.4 (word-framed B3
+number + the lettered-prompt 0.00 as prompt-sensitivity), §5.5 Finding 3
+(equal-budget B2 = 0.60 vs V4 = 0.35, now unconfounded). `src/eval/
+contamination.py` gains `pubmedqa_contamination_report`. The multiplicity
+family is recomputed and re-registered if the grid is expanded back toward
+`docs/04` §5's full schema.

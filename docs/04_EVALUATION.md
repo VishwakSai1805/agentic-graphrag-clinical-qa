@@ -103,6 +103,63 @@ fixes.
   PubMedQA (class-imbalanced yes/no/maybe).
 - Paired bootstrap (10k resamples) vs. the nearest ablation; report p-values.
 
+### 1.0 Pre-registered analysis plan (AUDIT 2026-09-06 §6.7)
+
+**Registered 2026-09-07, before any Phase 7 grid run exists.** Committed at the
+Phase 6 checkpoint (`docs/05_DECISIONS.md` ADR-030); the grid launches Wednesday
+2026-09-09. Multiple comparison discipline is fixed *here and now* precisely
+because deciding it after seeing grid numbers is worthless: ADR-012 already ran
+3 uncorrected comparisons and ADR-018 ran 2, and the grid multiplies that.
+
+**The single confirmatory comparison: V3 vs V5, accuracy, on MedQA (n=500,
+seed 42).**
+- One test. The metric is **accuracy, singular** — not accuracy *and* Macro-F1
+  *and* ECE (that would smuggle a family back into the confirmatory slot).
+- **α = 0.05, two-sided.** Two-sided is not negotiable: Phase 4 (`§5.5`
+  Finding 3: the uncalibrated agent stack at 0.35 vs equal-budget hybrid RAG at
+  0.60) and Phase 5 (ADR-028: temperature scaling alone matches the evidential
+  features) both point at V5 possibly *not* beating V3, so the direction may not
+  be assumed.
+- Method: `src.retrieval.metrics.paired_bootstrap_ci` +
+  `paired_bootstrap_p` (10k resamples, seed 42), paired on question id.
+- **What V3 = V5 means, written before the number is seen:** if the confirmatory
+  test shows no significant accuracy difference, *that is the reported finding* —
+  the full tri-modal + multi-agent + evidential-calibration stack does not beat
+  tri-modal retrieval alone on MedQA at this scale. Given the fusion tie
+  (ADR-012), the Conflict agent firing zero times (ADR-025), and temperature
+  scaling matching the evidential features (ADR-028), a null here is a **live
+  outcome the paper reports as a result, not a disappointment to re-frame**. The
+  contribution in that case is the negative result plus its mechanism (C1/C3 are
+  already written as diagnostic, not triumphant — `docs/00` §3).
+
+**Everything else is exploratory** and reported with Holm–Bonferroni correction
+across the pre-registered exploratory family below (family-wise α = 0.05,
+`src.retrieval.metrics.holm_bonferroni`). The SCHEDULE-cut grid runs 5 MedQA
+variants — V1, V3, V5, V4−audit, V4−conflict (`docs/SCHEDULE.md`). The
+exploratory family is exactly these {variant-pair × metric} tests:
+
+| # | Pair | Metrics tested | count |
+|---|---|---|---|
+| a | V1 vs V3 | Acc, Macro-F1, halluc-rate | 3 |
+| b | V3 vs V5 | Macro-F1, halluc-rate, P@1, P@2, MRR, ECE (Acc is confirmatory, not here) | 6 |
+| c | V4−audit vs V5 | Acc, Macro-F1, halluc-rate, P@1, P@2, MRR | 6 |
+| d | V4−conflict vs V5 | Acc, Macro-F1, halluc-rate, P@1, P@2, MRR | 6 |
+| e | V1 vs V5 | Acc, Macro-F1, halluc-rate | 3 |
+| f | V4−audit vs V4−conflict | Acc, Macro-F1, halluc-rate, P@1, P@2, MRR | 6 |
+
+**Family size m = 30.** Holm–Bonferroni is applied across all 30. P@K/MRR
+appear only where both sides produce a ranking (V5 calibrated softmax; V4−audit
+/ V4−conflict uncalibrated `(s⁺−s⁻)` margin — flagged as uncalibrated wherever
+reported, ADR-029); pairs b/c/d's ranking tests compare a calibrated ranking to
+an uncalibrated one, and **pair c/d isolate whether calibration improves
+*ordering* (P@K/MRR) versus only *confidence* (ECE)** — the V4-vs-V5 ranking
+question. ECE is a per-variant descriptive number except in pair b, where V5's
+ECE is tested against V3's (V3 has none → that cell is dropped and m falls to
+29; recorded when the grid runs). Any comparison **not** in this table that is
+run after seeing grid numbers is reported as unplanned, excluded from the Holm
+family, and flagged as post-hoc. If the grid is expanded back toward the full
+`§5` schema, this family is recomputed and re-registered *before* those runs.
+
 ## 2. Factual fidelity
 - **RAGAS faithfulness** — fraction of generated claims entailed by the retrieved
   context. Pin the RAGAS version; run with a fixed judge model recorded in config.
@@ -372,6 +429,22 @@ B0, which does no retrieval and is therefore *unaffected* by the context fix,
 still flips one of 20 answers between them — so a 1/20 (0.05) accuracy delta
 across these two batches is inside the noise floor and is not read as an effect.
 
+**PubMedQA B3 — the binary verifier fails to isolate an option even on a 3-way
+task (ADR-030).** PubMedQA is yes/no/maybe — the exact format MEGA-RAG-class
+binary verifiers were built for — and B3 still cannot use it. On the dev-20
+(`results/pubmedqa_B3_aa73199-dirty_20260907T165909Z/`, the word-framed prompt
+ADR-030 keeps): `verifier_decision_rate = 0.15`, `n_supported = {0: 9, 1: 3,
+2: 7, 3: 1}` — it isolates a single SUPPORTED answer on **3/20** three-way
+questions and falls back to generation on 17/20. Under the earlier
+A/B/C-lettered prompt the rate was **0.00** (`n_supported = {0: 12, 2: 6,
+3: 2}`, superseded run `…T163512Z`) — so word framing *helps* the verifier a
+little, and even at its most favourable it decides 3/20. A per-option yes/no
+verifier does not rank three competing answers any better than four; this is
+the same binary-bottleneck saturation as the MedQA rows, on the task format the
+prior work claims. (The PubMedQA baselines are otherwise a degenerate one-class
+predictor at this model scale — see ADR-030; PubMedQA is not in the Phase 7
+grid, `docs/SCHEDULE.md`.)
+
 ### 5.5 Phase 4 multi-agent consensus plumbing check (dev slice, n=20 — NOT a grid result)
 
 `python -m src.pipeline --config configs/agents.yaml --limit 20` (MedQA train
@@ -412,14 +485,31 @@ and effectively ignores the verbalised triples. Read with ADR-016
 actual contribution to the agent pipeline close to nil on this slice — a
 Phase 7 `evidence_split` / KG-verbalisation question, recorded not softened.
 
-**Finding 3 — the uncalibrated agent signal is below B2.** `rank-1-by-support`
-(crude `s⁺ − s⁻` argmax, no calibration, `resolved` not penalised per ADR-025)
-= **0.35**, vs B2's 0.65 (§5.4) on the same slice. The gold option carries the
-(tied-)max `s⁺` on only 10/20 questions, and the Audit agent is SUPPORT-heavy
-(78 vs 30). Turning this raw count vector into a calibrated logit that beats
-B2 is precisely Phase 5's job (fit α,β,γ,δ,T on dev); a raw argmax
-underperforming a direct LLM answer is expected, but the gap is the number
-Phase 5 has to close and Phase 6 has to measure at scale.
+**Finding 3 — the agent layer underperforms plain hybrid RAG at equal evidence
+budget.** `rank-1-by-support` (crude `s⁺ − s⁻` argmax, no calibration,
+`resolved` not penalised per ADR-025) = **0.35** on the dev-20. The original
+comparison was against B2 at 0.65, but B2 there saw up to ~52 evidence items
+(12 reranked passages + all cached KG triples) against the agents' 12 — a
+budget confound. That confound is now removed: `scripts/run_baselines.py
+--equal-budget` (AUDIT §4.3) trims B2's bundle to the *same* 12-item,
+`[8, 4]`-reserved split V4/V5 use, and
+`results/medqa_B2eq_aa73199-dirty_20260907T162956Z/` scores **B2 = 0.600**
+(macro-F1 0.594) on the identical dev-20. B2's drop from 0.650 → 0.600 under
+the trim is **0.05 — exactly ADR-021's measured ±0.05 no-op noise floor** — so
+the evidence-budget asymmetry does *not* explain B2's advantage over the
+agents.
+
+The unconfounded comparison therefore stands: on the same 20 questions at the
+same 12-item budget, **plain hybrid RAG (one LLM call) reaches 0.60 and the
+Hypothesis→Audit→Conflict agent stack reaches 0.35**. The gold option carries
+the (tied-)max `s⁺` on only 10/20 questions and the Audit agent is
+SUPPORT-heavy (78 vs 30). Calibration (Phase 5) fits α,β,γ,δ,T to turn this
+count vector into a better logit, but a raw-argmax gap this large against an
+equal-budget baseline is a **real finding to report** — the multi-agent layer,
+as built, costs ~5.8 LLM calls/question to land below a single-call hybrid RAG
+baseline — not a caveat to defer to Phase 7. Phase 7's V2/V3-vs-V4/V5 cells at
+n=500 settle whether calibration closes it or whether the agent layer is a net
+negative on MedQA.
 
 ### 5.6 Phase 5 evidential calibration (disjoint fit/held-out, n=60/60 — NOT a grid result)
 

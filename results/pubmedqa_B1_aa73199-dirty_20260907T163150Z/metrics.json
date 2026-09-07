@@ -1,0 +1,44 @@
+{
+  "config_hash": "30087bf71de2c8d8db937ae82a154312e87dd7917d0c4c17496b7af3b6129665",
+  "dataset": "pubmedqa",
+  "git_diff_sha256": "0ebe08a0c123df178480378404ca511897da5c50445250ba94154524101633ce",
+  "git_dirty": true,
+  "git_dirty_files": [
+    "results/medqa_B2eq_aa73199-dirty_20260907T162956Z/",
+    "results/phase1_nfcorpus/",
+    "results/phase1_retrieval_medqa/",
+    "results/phase1_retrieval_nfcorpus/",
+    "results/phase1_retrieval_pubmedqa/",
+    "results/pubmedqa_B0_aa73199-dirty_20260907T163036Z/",
+    "results/pubmedqa_B1_aa73199-dirty_20260907T163150Z/"
+  ],
+  "git_sha7": "aa73199-dirty",
+  "limit": 20,
+  "metrics": {
+    "accuracy": 0.5,
+    "contamination_assertion": {
+      "applies": true,
+      "checked": false,
+      "note": "contamination check for pubmedqa not wired in Phase 3"
+    },
+    "equal_budget": false,
+    "grounded_rate": 0.95,
+    "invalid_citation_count": 2,
+    "llm_cache_hits": 0,
+    "llm_calls_total": 20,
+    "macro_f1": 0.2962962962962963,
+    "macro_f1_note": "position-bias check, NOT a skill metric for 3-option MCQ; Accuracy is the headline",
+    "mean_llm_calls": 1.0,
+    "n_evaluated": 20,
+    "status_counts": {
+      "ok": 20
+    }
+  },
+  "run_id": "pubmedqa_B1_aa73199-dirty_20260907T163150Z",
+  "seed": 42,
+  "split": "dev",
+  "superseded": true,
+  "superseded_by": "pubmedqa_B1_aa73199-dirty_20260907T165706Z",
+  "superseded_reason": "PubMedQA baseline prompt superseded (ADR-030). v1 lettered the yes/no/maybe answers A/B/C; v2 added a 'use maybe when mixed/insufficient' hint. Both produced a degenerate one-class predictor. Superseded by the word-framed 'give your best single answer: yes, no, or maybe' run in superseded_by. Retained as the prompt-sensitivity comparison in docs/04 SS5.4; never tabulate as a headline result.",
+  "variant": "B1"
+}

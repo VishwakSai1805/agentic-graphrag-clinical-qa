@@ -13,7 +13,16 @@ from dataclasses import dataclass, field
 
 import pytest
 
-from src.eval.metrics import accuracy, ece, macro_f1, paired_bootstrap_ece_diff
+from src.eval.metrics import (
+    accuracy,
+    ece,
+    macro_f1,
+    mean_mrr,
+    mean_precision_at_k,
+    paired_bootstrap_ece_diff,
+    precision_at_k,
+    reciprocal_rank_option,
+)
 
 LABELS = ["A", "B", "C", "D"]
 
@@ -287,3 +296,59 @@ def test_paired_bootstrap_ece_diff_reports_n_and_config():
     assert result["n_bins"] == 3
     assert result["n_resamples"] == 100
     assert result["seed"] == 1
+
+
+# --------------------------------------------------------------------------
+# precision_at_k / MRR over ranked option lists (Phase 6, docs/04 §4 / H4)
+# --------------------------------------------------------------------------
+
+
+def test_precision_at_k_hit_and_miss():
+    # single-gold MCQ: P@k == "gold in top-k"
+    assert precision_at_k(["B", "A", "C", "D"], "B", 1) == 1.0
+    assert precision_at_k(["B", "A", "C", "D"], "A", 1) == 0.0
+    assert precision_at_k(["B", "A", "C", "D"], "A", 2) == 1.0
+    assert precision_at_k(["B", "A", "C", "D"], "C", 2) == 0.0
+    assert precision_at_k(["B", "A", "C", "D"], "C", 3) == 1.0
+
+
+def test_precision_at_k_gold_absent_is_zero():
+    assert precision_at_k(["A", "B"], "C", 2) == 0.0
+
+
+def test_precision_at_k_k_below_one_raises():
+    with pytest.raises(ValueError, match="k must be"):
+        precision_at_k(["A"], "A", 0)
+
+
+def test_precision_at_1_equals_accuracy_for_a_ranking():
+    rankings = [["A", "B"], ["B", "A"], ["C", "A"]]
+    golds = ["A", "A", "C"]
+    # rank-1 picks: A, B, C  vs golds A, A, C -> 2/3 correct
+    assert mean_precision_at_k(rankings, golds, 1) == pytest.approx(2 / 3)
+
+
+def test_reciprocal_rank_option_positions():
+    assert reciprocal_rank_option(["A", "B", "C"], "A") == 1.0
+    assert reciprocal_rank_option(["A", "B", "C"], "B") == pytest.approx(0.5)
+    assert reciprocal_rank_option(["A", "B", "C"], "C") == pytest.approx(1 / 3)
+    assert reciprocal_rank_option(["A", "B", "C"], "D") == 0.0
+
+
+def test_mean_mrr_hand_computed():
+    # gold ranks: 1, 2, 3 -> RR 1, 0.5, 0.333... -> mean = 1.8333/3
+    rankings = [["A", "B", "C"], ["B", "A", "C"], ["B", "C", "A"]]
+    golds = ["A", "A", "A"]
+    assert mean_mrr(rankings, golds) == pytest.approx((1 + 0.5 + 1 / 3) / 3)
+
+
+def test_mean_precision_and_mrr_empty_is_zero_not_nan():
+    assert mean_precision_at_k([], [], 2) == 0.0
+    assert mean_mrr([], []) == 0.0
+
+
+def test_mean_helpers_length_mismatch_raises():
+    with pytest.raises(ValueError, match="rankings"):
+        mean_precision_at_k([["A"]], ["A", "B"], 1)
+    with pytest.raises(ValueError, match="rankings"):
+        mean_mrr([["A"]], ["A", "B"])

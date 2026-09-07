@@ -1,0 +1,37 @@
+{
+  "dataset": "pubmedqa",
+  "floor_pass": true,
+  "generated_at_utc": "2026-09-07T16:06:37.298432+00:00",
+  "hard_subset_metrics": {
+    "bm25": {
+      "MRR": 1.0,
+      "Recall@10": 1.0
+    },
+    "rrf": {
+      "MRR": 0.625,
+      "Recall@10": 1.0
+    }
+  },
+  "hard_subset_n": 2,
+  "k": 10,
+  "metrics": {
+    "bm25": {
+      "MRR": 0.9501251453150431,
+      "Recall@1": 0.93,
+      "Recall@10": 0.98
+    },
+    "dense": {
+      "MRR": 0.9925,
+      "Recall@1": 0.99,
+      "Recall@10": 0.995
+    },
+    "rrf": {
+      "MRR": 0.9779924242424243,
+      "Recall@1": 0.97,
+      "Recall@10": 0.99
+    }
+  },
+  "n_evaluated": 200,
+  "recall_floor": 0.9,
+  "seed": 42
+}

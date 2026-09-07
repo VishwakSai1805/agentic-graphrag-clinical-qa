@@ -133,6 +133,13 @@ def contamination_assertion(dataset: str, questions: list[Question], pipeline) -
     retrieved to compare against, and that is recorded as `checked: false`
     rather than being passed off as a clean check.
     """
+    if dataset == "pubmedqa":
+        # Real blocklist check: the pqa_labeled TEST 500 must not be indexed
+        # (mid-Phase-6 fix -- previously this path returned an unearned
+        # checked=False/applies=True, the AUDIT §3.2 failure class).
+        from src.eval.contamination import pubmedqa_contamination_report
+
+        return pubmedqa_contamination_report(CORPUS_PATH)
     if dataset != "medqa":
         return {
             "checked": False,
@@ -244,14 +251,15 @@ def main() -> None:
         )
 
     contam = contamination_assertion(args.dataset, questions, pipeline)
+    if "max_overlap" in contam:  # MedQA n-gram overlap distribution
+        detail = f" max_overlap={contam['max_overlap']:.3f} n_flagged={contam['n_flagged']}"
+    elif "passed" in contam:  # PubMedQA blocklist check
+        detail = f" passed={contam['passed']} blocklist_size={contam['blocklist_size']}"
+    else:
+        detail = ""
     print(
         f"[run_baselines] contamination check: checked={contam['checked']} "
-        f"applies={contam['applies']}"
-        + (
-            f" max_overlap={contam['max_overlap']:.3f} n_flagged={contam['n_flagged']}"
-            if contam.get("checked")
-            else ""
-        )
+        f"applies={contam['applies']}{detail}"
     )
 
     for baseline in requested:

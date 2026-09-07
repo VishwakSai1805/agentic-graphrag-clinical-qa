@@ -47,6 +47,8 @@ _HYBRID_MODALITIES = frozenset({"dense", "lexical", "kg"})
 # yes/no/maybe. Project that onto letters so the baselines stay dataset-generic
 # (the caller still passes the gold letter in explicitly).
 _PUBMEDQA_OPTIONS = {"A": "yes", "B": "no", "C": "maybe"}
+# Answer-word -> letter, for parsing the word-framed PubMedQA prompts below.
+_PUBMEDQA_SYNONYMS = {"yes": "A", "no": "B", "maybe": "C"}
 
 _SYSTEM = (
     "You are a careful clinical question-answering assistant. "
@@ -84,6 +86,43 @@ _VERIFY_PROMPT = (
     + ' STRICT JSON: {{"verdict": "SUPPORTED" | "NOT_SUPPORTED", "evidence_id": "<id or null>"}}'
 )
 
+# ------------------------------------------------------------------------
+# PubMedQA prompt variants (ADR-030). PubMedQA is a yes/no/maybe research
+# question, not a lettered MCQ. Lettering the three answers A/B/C (the Phase 3
+# generic path) hid the task: on the dev-20 all four baselines predicted "yes"
+# 14-15/20 and "maybe" 0-1/20 -- a degenerate one-class predictor at acc 0.50.
+# These prompts state the task in words and take the answer as the literal
+# word; `_PUBMEDQA_SYNONYMS` maps it back to a letter for scoring.
+# ------------------------------------------------------------------------
+
+_PUBMEDQA_B0_PROMPT = (
+    "{question}\n\n"
+    "This is a research yes/no/maybe question. Give your best single answer: "
+    "yes, no, or maybe.\n"
+    'STRICT JSON: {{"answer": "yes|no|maybe", "rationale": "<=3 sentences"}}'
+)
+
+_PUBMEDQA_GEN_PROMPT = (
+    "{question}\n\nEvidence:\n{evidence}\n\n"
+    "This is a research yes/no/maybe question. Using the evidence above, give "
+    "your best single answer: yes, no, or maybe. " + _CITE_INSTRUCTION + " STRICT JSON: "
+    '{{"answer": "yes|no|maybe", "citations": ["<id>", ...], "rationale": "..."}}'
+)
+
+_PUBMEDQA_VERIFY_PROMPT = (
+    "{question}\n\n"
+    'Given ONLY the evidence below, is "{text}" the correct answer to this '
+    'research question? Say SUPPORTED only if the evidence positively supports '
+    '"{text}", otherwise NOT_SUPPORTED.\n\n'
+    "Evidence:\n{evidence}\n\n"
+    + _CITE_INSTRUCTION
+    + ' STRICT JSON: {{"verdict": "SUPPORTED" | "NOT_SUPPORTED", "evidence_id": "<id or null>"}}'
+)
+
+
+def _is_pubmedqa(question: Question) -> bool:
+    return question.dataset == "pubmedqa"
+
 
 class Prediction(BaseModel):
     question_id: str
@@ -95,6 +134,11 @@ class Prediction(BaseModel):
     grounded: bool  # True iff >=1 valid citation survives; B0 always False
     status: Literal["ok", "parse_error", "no_answer", "context_exceeded"]
     n_llm_calls: int
+    # Phase 6 (src/eval/nli.py): the model's own free-text justification, kept
+    # so the hallucination-rate scorer can split it into claims and NLI-check
+    # each against the cited evidence. "" when the path produced no rationale
+    # (B0 still emits one; B3's verifier-decided branch does not).
+    rationale: str = ""
     verifier_decided: bool | None = None  # B3 only
     n_supported: int | None = None  # B3 only
     per_option_verdict: dict[str, str] | None = None  # B3 only
@@ -167,6 +211,21 @@ def _coerce_citations(value: object) -> list[str]:
     return []
 
 
+def _rationale_from_text(text: str) -> str:
+    """The model's ``rationale`` string, from the first JSON object or a
+    regex fallback. "" when absent. Phase 6: fed to `src.eval.nli.split_claims`.
+    """
+    if not text:
+        return ""
+    obj = _first_json_obj(text)
+    if obj is not None:
+        raw = obj.get("rationale")
+        if isinstance(raw, str):
+            return raw.strip()
+    m = re.search(r'rationale"\s*:\s*"((?:[^"\\]|\\.)*)"', text)
+    return m.group(1).strip() if m else ""
+
+
 def _citations_from_regex(text: str) -> list[str]:
     m = re.search(r'citations"\s*:\s*\[([^\]]*)\]', text)
     if not m:
@@ -179,11 +238,27 @@ def _citations_from_regex(text: str) -> list[str]:
     return out
 
 
-def _parse_answer(text: str, valid_letters: set[str]) -> tuple[str | None, list[str], str]:
+def _resolve_synonym(token: str, synonyms: dict[str, str] | None) -> str:
+    """Map a raw answer token to a letter: through `synonyms` (case-folded)
+    if it hits, else the upper-cased token unchanged."""
+    if synonyms:
+        hit = synonyms.get(token.strip().lower())
+        if hit is not None:
+            return hit
+    return token.strip().upper()
+
+
+def _parse_answer(
+    text: str, valid_letters: set[str], synonyms: dict[str, str] | None = None
+) -> tuple[str | None, list[str], str]:
     """Return ``(letter, citations, status)``.
 
     status is "no_answer" (blank output), "parse_error" (no letter, or a
     letter outside ``valid_letters``), or "ok".
+
+    `synonyms` (PubMedQA, ADR-030): a case-folded ``word -> letter`` map so a
+    word-framed answer ("yes"/"no"/"maybe") resolves to its letter. Applied to
+    both the JSON ``answer`` field and the regex fallbacks.
     """
     if text is None or not text.strip():
         return None, [], "no_answer"
@@ -195,13 +270,18 @@ def _parse_answer(text: str, valid_letters: set[str]) -> tuple[str | None, list[
     if obj is not None:
         raw = obj.get("answer")
         if isinstance(raw, str) and raw.strip():
-            letter = raw.strip().upper()
+            letter = _resolve_synonym(raw, synonyms)
         citations = _coerce_citations(obj.get("citations"))
 
     if letter is None or letter not in valid_letters:
-        m = re.search(r'["\']?answer["\']?\s*[:=]\s*["\']?([A-Za-z])', text)
+        token_pat = r"([A-Za-z]+)" if synonyms else r"([A-Za-z])"
+        m = re.search(r'["\']?answer["\']?\s*[:=]\s*["\']?' + token_pat, text)
         if m:
-            letter = m.group(1).strip().upper()
+            letter = _resolve_synonym(m.group(1), synonyms)
+    if (letter is None or letter not in valid_letters) and synonyms:
+        m = re.search(r"\b(yes|no|maybe)\b", text, re.I)
+        if m:
+            letter = synonyms[m.group(1).lower()]
     if not citations:
         citations = _citations_from_regex(text)
 
@@ -279,6 +359,7 @@ def _finalize(
     valid_ids: set[str],
     n_llm_calls: int,
     allow_grounded: bool = True,
+    rationale: str = "",
 ) -> Prediction:
     invalid = [c for c in citations if c not in valid_ids]
     has_valid = any(c in valid_ids for c in citations)
@@ -292,6 +373,7 @@ def _finalize(
         grounded=(allow_grounded and has_valid),
         status=status,  # constrained to the Literal set by all call sites
         n_llm_calls=n_llm_calls,
+        rationale=rationale,
     )
 
 
@@ -304,9 +386,15 @@ def _run_b0(
     question: Question, gold_option: str, tracker: StatsTracker | None, seed: int
 ) -> Prediction:
     options = _resolve_options(question)
-    prompt = _B0_PROMPT.format(question=question.question, options=_format_options(options))
+    if _is_pubmedqa(question):
+        prompt = _PUBMEDQA_B0_PROMPT.format(question=question.question)
+        synonyms: dict[str, str] | None = _PUBMEDQA_SYNONYMS
+    else:
+        prompt = _B0_PROMPT.format(question=question.question, options=_format_options(options))
+        synonyms = None
     resp = chat(prompt, system=_SYSTEM, temperature=0, seed=seed, tracker=tracker)
-    letter, _cites, status = _parse_answer(resp.text, set(options))
+    letter, _cites, status = _parse_answer(resp.text, set(options), synonyms)
+    rationale = _rationale_from_text(resp.text)
     # --- CLAUDE.md grounding carve-out ------------------------------------
     # CLAUDE.md: "An answer with an empty citation set is a bug, and is scored
     # as ungrounded." B0 is the documented exception: it runs zero retrieval,
@@ -321,6 +409,7 @@ def _run_b0(
         valid_ids=set(),
         n_llm_calls=1,
         allow_grounded=False,
+        rationale=rationale,
     )
 
 
@@ -330,14 +419,23 @@ def _generate_answer(
     bundle,
     tracker: StatsTracker | None,
     seed: int,
-) -> tuple[str | None, list[str], str]:
-    prompt = _GEN_PROMPT.format(
-        question=question.question,
-        options=_format_options(options),
-        evidence=_format_evidence(bundle.evidence()),
-    )
+) -> tuple[str | None, list[str], str, str]:
+    if _is_pubmedqa(question):
+        prompt = _PUBMEDQA_GEN_PROMPT.format(
+            question=question.question,
+            evidence=_format_evidence(bundle.evidence()),
+        )
+        synonyms: dict[str, str] | None = _PUBMEDQA_SYNONYMS
+    else:
+        prompt = _GEN_PROMPT.format(
+            question=question.question,
+            options=_format_options(options),
+            evidence=_format_evidence(bundle.evidence()),
+        )
+        synonyms = None
     resp = chat(prompt, system=_SYSTEM, temperature=0, seed=seed, tracker=tracker)
-    return _parse_answer(resp.text, set(options))
+    letter, citations, status = _parse_answer(resp.text, set(options), synonyms)
+    return letter, citations, status, _rationale_from_text(resp.text)
 
 
 def _apply_equal_budget(
@@ -393,7 +491,9 @@ def _run_generation(
     if agents_cfg is not None:
         kg_rank_fn = pipeline.reranker.rerank if agents_cfg.kg_slot_rerank else None
         bundle = _apply_equal_budget(bundle, agents_cfg, kg_rank_fn)
-    letter, citations, status = _generate_answer(question, options, bundle, tracker, seed)
+    letter, citations, status, rationale = _generate_answer(
+        question, options, bundle, tracker, seed
+    )
     return _finalize(
         question_id=question.question_id,
         letter=letter,
@@ -402,6 +502,7 @@ def _run_generation(
         gold_option=gold_option,
         valid_ids=bundle.valid_citation_ids(),
         n_llm_calls=1,
+        rationale=rationale,
     )
 
 
@@ -428,16 +529,24 @@ def _run_b3(
     valid_ids = bundle.valid_citation_ids()
     evidence_block = _format_evidence(bundle.evidence())
 
+    is_pqa = _is_pubmedqa(question)
     per_option_verdict: dict[str, str] = {}
     per_option_evidence: dict[str, str | None] = {}
     n_calls = 0
     for letter in sorted(options):
-        prompt = _VERIFY_PROMPT.format(
-            question=question.question,
-            letter=letter,
-            text=options[letter],
-            evidence=evidence_block,
-        )
+        if is_pqa:
+            prompt = _PUBMEDQA_VERIFY_PROMPT.format(
+                question=question.question,
+                text=options[letter],
+                evidence=evidence_block,
+            )
+        else:
+            prompt = _VERIFY_PROMPT.format(
+                question=question.question,
+                letter=letter,
+                text=options[letter],
+                evidence=evidence_block,
+            )
         resp = chat(prompt, system=_SYSTEM, temperature=0, seed=seed, tracker=tracker)
         n_calls += 1
         verdict, evidence_id = _parse_verdict(resp.text)
@@ -464,14 +573,21 @@ def _run_b3(
     else:
         # 0 or >=2 SUPPORTED: the binary verifier cannot decide. Fall back to
         # exactly the B2 generation call (same model, temp=0, same evidence).
-        prompt = _GEN_PROMPT.format(
-            question=question.question,
-            options=_format_options(options),
-            evidence=evidence_block,
-        )
+        if is_pqa:
+            prompt = _PUBMEDQA_GEN_PROMPT.format(
+                question=question.question, evidence=evidence_block
+            )
+        else:
+            prompt = _GEN_PROMPT.format(
+                question=question.question,
+                options=_format_options(options),
+                evidence=evidence_block,
+            )
         resp = chat(prompt, system=_SYSTEM, temperature=0, seed=seed, tracker=tracker)
         n_calls += 1
-        letter, citations, status = _parse_answer(resp.text, set(options))
+        letter, citations, status = _parse_answer(
+            resp.text, set(options), _PUBMEDQA_SYNONYMS if is_pqa else None
+        )
         pred = _finalize(
             question_id=question.question_id,
             letter=letter,
@@ -480,6 +596,7 @@ def _run_b3(
             gold_option=gold_option,
             valid_ids=valid_ids,
             n_llm_calls=n_calls,
+            rationale=_rationale_from_text(resp.text),
         )
         pred.verifier_decided = False
 

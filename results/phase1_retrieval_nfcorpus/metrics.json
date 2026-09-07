@@ -1,0 +1,20 @@
+{
+  "dataset": "nfcorpus",
+  "gate_pass": true,
+  "generated_at_utc": "2026-09-07T16:03:55.421816+00:00",
+  "k": 10,
+  "mean_ndcg": {
+    "bm25": 0.2929194150448118,
+    "dense": 0.33615928535474643,
+    "rrf": 0.33272570891315806
+  },
+  "n_evaluated": 323,
+  "n_resamples": 10000,
+  "seed": 42,
+  "significance": {
+    "ci_hi": 0.010264999951797773,
+    "ci_lo": -0.01707540917552516,
+    "compared_against": "dense",
+    "mean_diff": -0.0034335764415885355
+  }
+}

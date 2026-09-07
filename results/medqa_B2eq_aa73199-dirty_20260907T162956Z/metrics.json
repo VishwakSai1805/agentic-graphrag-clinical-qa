@@ -1,0 +1,58 @@
+{
+  "config_hash": "30087bf71de2c8d8db937ae82a154312e87dd7917d0c4c17496b7af3b6129665",
+  "dataset": "medqa",
+  "git_diff_sha256": "b2ef60f9ececa74a42faf4853286ad0efeb293773966b88a9358584c7b96e2e8",
+  "git_dirty": true,
+  "git_dirty_files": [
+    "results/medqa_B2eq_aa73199-dirty_20260907T162956Z/",
+    "results/phase1_nfcorpus/",
+    "results/phase1_retrieval_medqa/",
+    "results/phase1_retrieval_nfcorpus/",
+    "results/phase1_retrieval_pubmedqa/"
+  ],
+  "git_sha7": "aa73199-dirty",
+  "limit": 20,
+  "metrics": {
+    "accuracy": 0.6,
+    "contamination_assertion": {
+      "applies": false,
+      "check": "medqa_stem_vs_retrieved_chunk_ngram_overlap",
+      "checked": true,
+      "flag_threshold": 0.5,
+      "max_overlap": 0.0,
+      "mean_overlap": 0.0,
+      "median_overlap": 0.0,
+      "n_flagged": 0,
+      "n_questions": 20,
+      "n_questions_with_any_shared_ngram": 0,
+      "ngram_n": 8,
+      "note": "Executed check: fraction of each question stem's 8-grams appearing verbatim in any passage retrieved for that question. MedQA has no source-abstract blocklist (blocklisted_pmids('medqa') raises by design); the 18 USMLE textbooks are in the corpus disclosed under ADR-009, so non-zero overlap is expected and is reported as a distribution. `applies` is True iff >=1 question reaches 0.5 verbatim overlap, which would indicate a stem reproduced inside a retrieved chunk.",
+      "p95_overlap": 0.0,
+      "retrieved_passages_per_question": 12
+    },
+    "equal_budget": true,
+    "equal_budget_evidence_split": [
+      8,
+      4
+    ],
+    "equal_budget_max_evidence": 12,
+    "grounded_rate": 1.0,
+    "invalid_citation_count": 1,
+    "llm_cache_hits": 3,
+    "llm_calls_total": 20,
+    "macro_f1": 0.5942307692307693,
+    "macro_f1_note": "position-bias check, NOT a skill metric for 4-option MCQ; Accuracy is the headline",
+    "mean_llm_calls": 1.0,
+    "n_evaluated": 20,
+    "status_counts": {
+      "ok": 20
+    }
+  },
+  "run_id": "medqa_B2eq_aa73199-dirty_20260907T162956Z",
+  "seed": 42,
+  "split": "train",
+  "superseded": false,
+  "superseded_by": null,
+  "superseded_reason": null,
+  "variant": "B2eq"
+}

@@ -185,17 +185,23 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done (add run_id/commit)
   gives gamma std=0.234 (>3x alpha's 0.072) with an interval spanning
   [−0.40, +0.66] — consistent with zero. See ADR-028.
 
-## Phase 6 — Evaluation harness  `[ ]`
-- `src/eval/harness.py` (parallel, resumable, cached), `metrics.py` (Acc, Macro-F1, P@K, MRR, ECE), `ragas_eval.py`, `nli.py`
-- Harness issues LLM calls through an `asyncio.Semaphore` sized by
-  `configs/base.yaml: eval.concurrency` (default 4, matching
-  `OLLAMA_NUM_PARALLEL=4` — see `docs/04_EVALUATION.md` §0.4 and ADR-006).
-- Benchmark concurrency = 1, 2, 4 on a fixed dev slice; write the measured
-  questions/hour for each into `results/` — this real number replaces the
-  planning-estimate 3× speedup assumption in `docs/04_EVALUATION.md` §0.2
-  before Phase 7 is scheduled.
-- `scripts/report.py` → markdown + LaTeX tables into `paper/tables/`
-- **Exit test:** one command reproduces a full dataset run from a config and regenerates identical tables; the concurrency benchmark table (1/2/4) is written to `results/` with no `TBD`.
+## Phase 6 — Evaluation harness  `[x]` (COMMIT_SHA_PENDING, 2026-09-07) — exit test passed on the dev-20
+- `src/eval/harness.py` — **minimal: run → score → write** (ADR-029). `run_eval(config, dataset, split, limit, variant, …)`, sequential. `metrics.py` gains `precision_at_k` / `reciprocal_rank_option` / `mean_*`. `src/eval/nli.py` = claim split + NLI hallucination vs *cited* evidence, both denominators (ADR-029). `ragas_eval.py` **dropped** (`docs/SCHEDULE.md`).
+- **CUT (SCHEDULE, ADR-029):** the `asyncio.Semaphore` concurrency layer, resumability, and the 1/2/4 concurrency benchmark. `docs/04` §0.2's planning-estimate speedup is not replaced by a measured number — Phase 7 runs sequentially and that is fine at n=500.
+- `scripts/report.py` → `paper/tables/results_grid.{md,tex}` from `results/*/metrics.json`, superseded runs skipped, every cell a JSON field or `TBD`/`--`.
+- **Exit test (rewritten — the concurrency-benchmark clause is cut):**
+  `python -m src.eval.harness --config configs/v5.yaml --dataset medqa --split train --limit 20`
+  writes one `results/<run_id>/` whose `metrics.json` carries non-null
+  `accuracy`, `macro_f1`, `p_at_1`, `p_at_2`, `mrr`, `ece`,
+  `hallucination.hallucination_rate_predicted_option`, `invalid_citation_count`,
+  `n_evaluated`; then `python -m scripts.report` regenerates
+  `paper/tables/results_grid.md` (every cell a value or `TBD`/`--`) and a second
+  run of it is byte-identical. `pytest -q` + `ruff check src tests` green.
+- Mid-Phase-6 fixes folded in (2026-09-07): PubMedQA baseline prompt (ADR-030 —
+  word-framed, was a degenerate lettered MCQ); PubMedQA `contamination_assertion`
+  now runs the real `blocklisted_pmids` check; `src/eval/results.py` git-diff
+  decode bug (cp1252 → utf-8); `docs/04` §5.4/§5.5 updated from the overnight
+  artifacts (equal-budget B2, PubMedQA B3).
 
 ## Pre-Phase-7 fixes — MUST complete before any grid run  `[ ]`
 Items parked earlier plus the AUDIT 2026-09-06 findings deferred on 2026-09-07,
@@ -303,8 +309,11 @@ deferred to this batch and **must be closed before the grid runs**:
 Also still open from the audit and **not** in the 2026-09-07 work order —
 flagged here so they are not lost: §2.2 (ADR-024 is `Status: accepted` while
 still asserting the `conflict_fire_rate = 0.55` numbers ADR-025 retracts — a
-BLOCKER, and a one-line status fix), §1.3–1.9, §2.3–2.6, §3.4, §5.5 (H4 cannot
-be measured — no p-vector is persisted), §6.3, §6.4.
+BLOCKER, and a one-line status fix), §1.3–1.9, §2.3–2.6, §3.4, ~~§5.5 (H4 cannot
+be measured — no p-vector is persisted)~~ **resolved 2026-09-07: the Phase 6
+harness persists `p_vector` + `ranked` per question for V5 and `ranked` (from the
+uncalibrated support margin) for V4, so P@K/MRR/ECE are computable — see
+ADR-029**, §6.3, §6.4.
 
 ## Phase 7 — Full runs & ablation grid  `[ ]`
 
@@ -317,6 +326,14 @@ be measured — no p-vector is persisted), §6.3, §6.4.
 | V4 | ✓ | ✓ | ✓ | ✓ | – |
 | V5 (full) | ✓ | ✓ | ✓ | ✓ | ✓ |
 | V4−audit, V4−conflict | leave-one-agent-out | | | | |
+
+**Variant → committed-run mapping (ADR-029).** The Phase 3 baselines are not a
+1:1 name match: `B2` retrieves `{dense, lexical, kg}`, so the committed
+`results/medqa_B2_*` runs map to **V3, not V2**. **V2 = `{dense, lexical}` has
+never been run** — its cell is genuinely empty and stays `TBD` until the grid
+produces it. `scripts/report.py` keys `medqa_B2_*` to the V3 row and a
+`pubmedqa_B*` smoke run to no grid cell at all. Mislabelling `B2` as V2 would
+make the V3−V2 comparison a variant against itself.
 
 **Grid scale (ADR-005, `docs/04_EVALUATION.md` §0.3 — the ceiling estimate in
 §0.2 is what forced this cut):**

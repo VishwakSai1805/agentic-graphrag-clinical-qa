@@ -292,3 +292,48 @@ def assert_calibration_fit_set_uncontaminated(corpus_path: Path) -> None:
         ContaminationError: if one or more calibration-fit PMIDs are in the corpus.
     """
     assert_no_contamination(corpus_path, calibration_fit_pmids())
+
+
+# --------------------------------------------------------------------------
+# Eval-time contamination record for a PubMedQA run (mid-Phase-6 fix)
+# --------------------------------------------------------------------------
+
+
+def pubmedqa_contamination_report(corpus_path: Path) -> dict:
+    """The `contamination_assertion` record for a PubMedQA eval run.
+
+    Earlier both `scripts.run_baselines.contamination_assertion` and the Phase 6
+    harness returned ``{"checked": False, "applies": True, ...}`` for PubMedQA
+    -- knowing the check applied and skipping it, the same failure class as
+    AUDIT 2026-09-06 §3.2 (a `checked` that was not earned). This runs the real
+    thing: `assert_no_contamination` scans the built corpus for any PMID on the
+    `pqa_labeled` TEST blocklist (`blocklisted_pmids('pubmedqa')`, 500 ids).
+    ``checked: True`` here means the corpus was actually read.
+
+    Returns a dict (never raises) so a finished eval still writes its
+    metrics.json; ``passed`` carries the outcome.
+    """
+    try:
+        blocklist = blocklisted_pmids("pubmedqa")
+    except (FileNotFoundError, ValueError) as e:
+        return {
+            "checked": False,
+            "applies": True,
+            "note": f"could not build PubMedQA blocklist: {e}",
+        }
+    if not Path(corpus_path).exists():
+        return {
+            "checked": False,
+            "applies": True,
+            "note": f"corpus {corpus_path} not found -- PubMedQA blocklist check not run",
+        }
+    base = {
+        "applies": True,
+        "check": "pubmedqa_test_pmid_blocklist_absent_from_corpus",
+        "blocklist_size": len(blocklist),
+    }
+    try:
+        assert_no_contamination(Path(corpus_path), blocklist)
+        return {**base, "checked": True, "passed": True, "n_offending": 0}
+    except ContaminationError as e:
+        return {**base, "checked": True, "passed": False, "error": str(e)}
