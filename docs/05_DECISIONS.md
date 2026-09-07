@@ -2046,3 +2046,61 @@ faithful".
 `results/medqa_B2eq_79ee599-dirty_20260907T210514Z/` (B2 re-run with rationale;
 the earlier `…aa73199…` B2eq run is stamped `superseded`). `docs/04` §5.7
 records the control; §3 and `§1.0` gain the "relative only" framing.
+
+## ADR-032 — BM25 `k1`/`b` retuned on NFCorpus; defaults kept as a checked non-change
+Date: 2026-09-08 · Phase: 6 (pre-Phase-7) · Status: accepted
+
+**Context.** `configs/base.yaml` shipped the `rank_bm25` library defaults
+(k1=1.5, b=0.75) with tuning parked in Phase 1. The roadmap's pre-Phase-7 list
+requires: retune on a fixed dev slice, report Recall@10 / MRR before/after,
+record the chosen values in an ADR and the config. NFCorpus (BEIR) is the
+project's retrieval-quality dev slice (ADR-012) — 323 test queries with
+human-judged graded qrels, no single-modality ceiling.
+
+**Method** (`scripts/analysis/bm25_tune.py`, CPU-only, artifact
+`results/phase1_bm25_tune/metrics.json`): rebuild `BM25Okapi` in memory for
+each of an 8×6 grid — k1 ∈ {0.6, 0.8, 1.0, 1.2, 1.5, 1.8, 2.0, 2.5}, b ∈
+{0.3, 0.5, 0.65, 0.75, 0.9, 1.0} — over `data/processed/nfcorpus_corpus.jsonl`
+(6,241 chunks), retrieve top-50 per query, dedupe to document rankings, score
+mean nDCG@10 / Recall@10 / MRR against the qrels. Primary metric nDCG@10
+(ADR-012). Best cell judged by a paired bootstrap of per-query nDCG@10 vs the
+current default (10k resamples, seed 42), the project's standard significance
+rule.
+
+**Numbers.**
+
+| config | nDCG@10 | Recall@10 | MRR |
+|---|---|---|---|
+| default k1=1.5, b=0.75 | 0.2929 | 0.6780 | 0.4923 |
+| best cell k1=2.5, b=0.3 | 0.2993 | 0.6842 | 0.5063 |
+
+Δ nDCG@10 (best − default) = **+0.0064**; paired-bootstrap mean +0.0064, 95%
+CI **[+0.0008, +0.0126]**, p = 0.025 — the CI excludes zero, so the gain is
+statistically detectable.
+
+**Decision — keep the defaults (k1=1.5, b=0.75).** Reasons, all recorded:
+1. **Below the practical floor.** The adoption bar was pre-set at Δ nDCG@10 ≥
+   0.01; +0.0064 is under it.
+2. **Selection-on-the-same-sample.** "Best" is the max over 48 cells chosen on
+   the identical 323-query NFCorpus sample it is then tested on — the CI is
+   optimistic and the true out-of-sample gain is smaller.
+3. **BM25 is near-flat here.** Every one of the 48 cells lands at 0.29 ± 0.005
+   nDCG@10. There is no meaningful ridge to move onto; low b (0.3) and high k1
+   help by a hair, high b (0.9–1.0) hurts by a hair, and that is the whole
+   dynamic range.
+4. **NFCorpus is a domain proxy.** The real retrieval corpus is PubMed
+   abstracts + 18 USMLE textbooks (113k chunks), not nutrition literature.
+   Destabilising the retrieval config on a 0.006 proxy-metric gain immediately
+   before the Phase 7 grid is not worth it.
+
+This is not "the default was never checked" — it is "the default was checked
+against a 48-cell grid and a significance test and is within noise of the grid
+optimum". `configs/base.yaml` carries a comment to that effect so a future
+reader does not re-open it.
+
+**Consequences.** New: `scripts/analysis/bm25_tune.py`,
+`results/phase1_bm25_tune/metrics.json`. `configs/base.yaml` unchanged in value,
+annotated. If Phase 7 retrieval diagnostics on the real corpus show BM25
+underperforming, this grid is re-run on the real corpus (slower — 113k-chunk
+`BM25Okapi` rebuild per cell) rather than trusting the NFCorpus proxy; recorded
+here so that path is known.

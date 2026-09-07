@@ -36,6 +36,10 @@ retrieval:
     nprobe: 16
     checkpoint_every_batches: 25
   bm25:
+    # Checked on the NFCorpus dev slice (ADR-032, 2026-09-08): an 8x6 (k1, b)
+    # grid moves nDCG@10 by <0.007 across its whole range; these defaults sit
+    # in the flat region and the best cell's +0.0064 gain is below the 0.01
+    # adoption floor. Not an untested default -- a measured non-change.
     k1: 1.5
     b: 0.75
   fusion:

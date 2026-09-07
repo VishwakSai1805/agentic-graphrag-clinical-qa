@@ -207,9 +207,17 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done (add run_id/commit)
 Items parked earlier plus the AUDIT 2026-09-06 findings deferred on 2026-09-07,
 tracked here so they are not silently dropped. None affects Phases 3–6; all gate
 the Phase 7 ablation grid.
-- **BM25 parameter tuning** (`k1`/`b`) — parked in Phase 1; retune on a fixed
-  dev slice, report Recall@10/MRR before/after, record the chosen values in an
-  ADR and `configs/base.yaml`.
+- ~~**BM25 parameter tuning** (`k1`/`b`)~~ — **DONE 2026-09-08 (ADR-032, checked
+  non-change).** 8×6 (k1, b) grid on the NFCorpus dev slice (323 judged
+  queries, `scripts/analysis/bm25_tune.py`,
+  `results/phase1_bm25_tune/metrics.json`). Default (k1=1.5, b=0.75): nDCG@10
+  0.2929 / R@10 0.678 / MRR 0.492. Best cell (k1=2.5, b=0.3): nDCG@10 0.2993 /
+  R@10 0.684 / MRR 0.506 — Δ nDCG@10 **+0.0064**, paired-bootstrap 95% CI
+  [+0.0008, +0.0126], p=0.025. **Default kept**: the gain is below the 0.01
+  practical floor, "best" is selected on the same sample it is tested on (CI
+  optimistic), and BM25 is near-flat across the whole grid (all cells 0.29 ±
+  0.005 nDCG@10). `configs/base.yaml` `k1=1.5, b=0.75` stands as a checked
+  choice, not an untested default.
 - ~~**`kg_rerank` re-test at n=500**~~ — **DONE 2026-09-07 (ADR-027).** Re-run on
   a 500-question MedQA **train** slice (not test — the original n=200 was
   test-split, AUDIT §3.1). The primary metric's tie **flipped to a significant
