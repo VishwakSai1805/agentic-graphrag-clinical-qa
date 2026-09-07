@@ -49,9 +49,18 @@ conflict resolution.` A bounded agent network that audits each option's claims
 against retrieved evidence and labels them SUPPORT / CONTRADICT / NEUTRAL,
 replacing the single binary verifier. The *discrimination* half is supported:
 on the dev-20 the audit layer produced 108 non-neutral cells (78 SUPPORT / 30
-CONTRADICT) giving a graded signal on 61 of 80 options, where the B3 binary
-verifier isolated exactly one option on 1/20 questions under **both** context
-conditions tested (`docs/04_EVALUATION.md` §5.4). The *conflict-resolution*
+CONTRADICT) giving a graded signal on 61 of 80 options. The B3 binary verifier
+comparison is **weaker than earlier stated and must be quoted with its range**
+(ADR-033, AUDIT §4.1): B3's `verifier_decision_rate` is prompt-sensitive —
+**0.05** under the shipped strict phrasing ("SUPPORTED only if the evidence
+positively supports it"), but **0.30–0.35** under neutral / permissive
+phrasings on the same dev-20. The prompt-invariant part of the claim is
+narrower: under *every* phrasing tested the binary verifier isolates a single
+option on a minority of questions (best case 7/20) and returns multiple- or
+zero-SUPPORTED on the rest — a per-option yes/no verifier cannot rank
+mutually-exclusive options — but the strong "1/20" figure is an artifact of
+the strict instruction and is retired (`docs/04_EVALUATION.md` §5.4). The
+*conflict-resolution*
 half is *not* supported and must not be claimed: under the corrected
 claim-level definition (ADR-025) the Conflict agent has **never executed on
 real data** — `conflict_fire_rate = 0.00`, `conflict_llm_calls = 0`,

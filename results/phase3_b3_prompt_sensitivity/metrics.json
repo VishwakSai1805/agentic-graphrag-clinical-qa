@@ -1,0 +1,52 @@
+{
+  "dataset": "medqa",
+  "n_questions": 20,
+  "prompts": {
+    "neutral": {
+      "label": "neutral (no 'only if positively')",
+      "llm_calls": 80,
+      "n_decided_exactly_one": 6,
+      "n_supported_distribution": {
+        "0": 8,
+        "1": 6,
+        "2": 3,
+        "3": 1,
+        "4": 2
+      },
+      "verifier_decision_rate": 0.3
+    },
+    "permissive": {
+      "label": "permissive ('consistent with')",
+      "llm_calls": 80,
+      "n_decided_exactly_one": 7,
+      "n_supported_distribution": {
+        "0": 6,
+        "1": 7,
+        "2": 4,
+        "3": 1,
+        "4": 2
+      },
+      "verifier_decision_rate": 0.35
+    },
+    "strict_shipped": {
+      "label": "strict (the shipped _VERIFY_PROMPT)",
+      "llm_calls": 80,
+      "n_decided_exactly_one": 1,
+      "n_supported_distribution": {
+        "0": 15,
+        "1": 1,
+        "2": 4
+      },
+      "verifier_decision_rate": 0.05
+    }
+  },
+  "reported_comparator_run": "medqa_B3_d5e3af5_20260906T102134Z",
+  "seed": 42,
+  "split": "train",
+  "spread": 0.3,
+  "verifier_decision_rate_by_prompt": {
+    "neutral": 0.3,
+    "permissive": 0.35,
+    "strict_shipped": 0.05
+  }
+}

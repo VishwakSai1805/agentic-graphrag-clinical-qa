@@ -130,8 +130,15 @@ def paired_bootstrap_ci(
     boot_means = sorted(
         sum(diffs[rng.randrange(n)] for _ in range(n)) / n for _ in range(n_resamples)
     )
+    # AUDIT 2026-09-06 §6.8: the upper index was `int((1 - alpha/2) * n_resamples)`
+    # (e.g. 9750 for n=10000), one past the symmetric partner of `lo_idx` and
+    # off the intended (1-alpha) coverage by one sample. Now symmetric:
+    # `lo_idx` samples are trimmed from each tail, leaving exactly
+    # `n_resamples - 2*lo_idx` in the interval. The shift is <=1 sample in
+    # n_resamples (~1e-4 on any CI this project reports) and flips no verdict,
+    # but the convention is now the standard one.
     lo_idx = int((alpha / 2) * n_resamples)
-    hi_idx = int((1 - alpha / 2) * n_resamples)
+    hi_idx = n_resamples - 1 - lo_idx
     return sum(diffs) / n, boot_means[lo_idx], boot_means[hi_idx]
 
 

@@ -2104,3 +2104,67 @@ annotated. If Phase 7 retrieval diagnostics on the real corpus show BM25
 underperforming, this grid is re-run on the real corpus (slower — 113k-chunk
 `BM25Okapi` rebuild per cell) rather than trusting the NFCorpus proxy; recorded
 here so that path is known.
+
+## ADR-033 — B3's `verifier_decision_rate` is prompt-sensitive; the "1/20 = 0.05" figure is retired, the claim is restated with its 0.05–0.35 range
+Date: 2026-09-08 · Phase: 6 (pre-Phase-7) · Status: accepted
+
+**Context.** `docs/04_EVALUATION.md` §5.4 reported the binary verifier B3's
+`verifier_decision_rate = 0.05` on the MedQA dev-20 (isolates exactly one
+SUPPORTED option on 1/20 questions), and framed it — after the context-window
+check — as robust "direct empirical evidence for the binary bottleneck C2
+targets". AUDIT 2026-09-06 §4.1 flagged that the number rests on a single
+verifier phrasing while B2 gets a neutral instruction, leaving it open to a
+"strawman by prompt construction" objection. The roadmap's *B3 verifier-collapse
+robustness check* required running B3 under further phrasings.
+
+**Method** (`scripts/analysis/b3_prompt_sensitivity.py`, artifact
+`results/phase3_b3_prompt_sensitivity/metrics.json`). The B3 verify
+loop (ask SUPPORTED / NOT_SUPPORTED per option, decide iff exactly one is
+SUPPORTED) re-run on the same 20 MedQA dev questions, same evidence bundles,
+temperature 0, seed 42, with three verify phrasings:
+
+| phrasing | `verifier_decision_rate` | `n_supported` distribution |
+|---|---|---|
+| strict — "SUPPORTED only if the evidence positively supports it" (shipped) | **0.05** | `{0: 15, 1: 1, 2: 4}` |
+| neutral — "is option X supported as the correct answer?" | **0.30** | `{0: 8, 1: 6, 2: 3, 3: 1, 4: 2}` |
+| permissive — "could option X be correct? SUPPORTED if consistent with it" | **0.35** | `{0: 6, 1: 7, 2: 4, 3: 1, 4: 2}` |
+
+Spread **0.30**. The strict instruction makes the verifier reject nearly
+everything (15/20 questions have zero SUPPORTED); neutral and permissive
+phrasings triple the decision rate.
+
+**Decision.**
+1. **The "1/20 = 0.05" headline figure is retired.** It is substantially an
+   artifact of the strict verify instruction, not an intrinsic property of
+   binary verification. §5.4 now reports all three rates and states the
+   number as a **0.05–0.35 range**.
+2. **The robustness claim is split by axis, honestly:** robust to the context
+   window (0.05 at both `num_ctx` 4096 and 8192), **not** robust to verifier
+   phrasing. §5.4 says both.
+3. **What survives, and is what C2 may lean on:** under *every* phrasing tested
+   the binary verifier isolates a single option on a minority of questions
+   (best case 7/20 = 0.35) and returns multiple- or zero-SUPPORTED on the
+   rest. A per-option yes/no head cannot rank mutually-exclusive options; no
+   phrasing tested gets it above 0.35. That is a real limitation — but the
+   defensible statement is "isolates a single option on ≤ 35% of questions",
+   not "1/20".
+4. **C2 (`docs/00` §3) is edited** to quote the range and to lean the
+   audit-discrimination claim on the 108 non-neutral audit cells and the
+   Phase 7 V4−audit leave-one-out cell, which do not depend on B3's prompt.
+   The B3 comparison is demoted to a motivating illustration.
+5. **The shipped `_VERIFY_PROMPT` is NOT changed.** Reverting to a more
+   permissive phrasing to inflate the bottleneck contrast would be the same
+   prompt-selection error in the other direction (cf. ADR-030's PubMedQA
+   decision — keep the faithful prompt, report the number it gives). The
+   strict phrasing is a defensible verifier instruction; it is simply not the
+   only one, and the paper says so.
+6. **Phase 7** re-measures `verifier_decision_rate` at n=500 for whichever
+   phrasing the B3 row uses, and reports it with this dev-20 range as context.
+
+**Consequences.** New: `scripts/analysis/b3_prompt_sensitivity.py`,
+`results/phase3_b3_prompt_sensitivity/metrics.json`. Edited: `docs/04` §5.4
+(MedQA B3 diagnostic rewritten; PubMedQA B3 para notes the strict-prompt floor),
+`docs/00` §3 C2, `docs/02_ROADMAP.md` (the *B3 verifier-collapse robustness
+check* item closed with this outcome). This weakens a talking point, not the
+project: C2's real evidence is the audit layer's graded output and the Phase 7
+leave-one-agent-out cells, and those are unaffected.

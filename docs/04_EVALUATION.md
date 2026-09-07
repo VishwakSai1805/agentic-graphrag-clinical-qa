@@ -63,21 +63,21 @@ concrete justification for the cut in §0.3.
 
 - Server: `OLLAMA_NUM_PARALLEL=4` (see `.env.example`) so a single Ollama
   process can serve overlapping requests instead of queuing them.
-- Harness: `src/eval/harness.py` (Phase 6) issues requests through an
-  `asyncio.Semaphore` bound to a `concurrency` config value
-  (`configs/base.yaml: eval.concurrency`, default 4).
-- Phase 6 exit criteria include benchmarking **1 vs 2 vs 4** concurrent
-  requests on a fixed dev slice and recording real throughput
-  (questions/hour) into `results/` — replacing the §0.2 3× assumption with a
-  measured number before Phase 7 is scheduled.
+- **The harness concurrency layer and the 1/2/4 benchmark were CUT** (ADR-029,
+  `docs/SCHEDULE.md`). `src/eval/harness.py` is a sequential loop — no
+  `asyncio.Semaphore`, no `eval.concurrency` wiring. The §0.2 "3×" figure is
+  therefore **not** replaced by a measured number; the Phase 7 grid runs
+  sequentially, which is acceptable at n=500 within the deadline. The LLM cache
+  (`.cache/llm/`) absorbs re-runs of a crashed grid job.
+- `configs/base.yaml: eval.concurrency` remains as a knob for a future
+  parallel harness but is currently read by nothing.
 
 ### 0.5 Keep-alive
 
 Eval runs set `OLLAMA_KEEP_ALIVE=-1` (never idle-unload) — see
 `.env.example` and ADR-006. Without it, the default ~5-minute unload timeout
-means the first request after any harness pause (checkpoint I/O, a slow
-question) pays a full model-load penalty, which would corrupt the throughput
-benchmark in §0.4.
+means the first request after any harness pause (a slow question, NLI-model
+load between the consensus and scoring phases) pays a full model-load penalty.
 
 ### 0.6 Stronger-model sensitivity check (robustness, not a headline result)
 
@@ -406,36 +406,48 @@ slice, single-seed, no significance test, no "A beats B" claim. The §5 grid
 † position-bias check, not a skill metric on 4-option MCQ (ADR-020).
 ‡ B0 runs no retrieval — ungrounded by construction, not a failure (ADR-020).
 
-**B3 diagnostic (the useful number), reported under both context conditions.**
-`verifier_decision_rate = 0.05` in *both* runs — the binary verifier isolated
-exactly one SUPPORTED option on 1/20 questions at `num_ctx=4096` and on 1/20
-questions at `num_ctx=8192`. What changes between them is only the *direction*
-in which it fails:
+**B3 diagnostic — the `verifier_decision_rate` is robust to the context window
+but NOT to verifier phrasing (ADR-033, AUDIT §4.1).** The earlier framing
+("invariant at 1/20 = 0.05") was premature and is retired.
 
-| Run | `num_ctx` | `n_supported` distribution | exactly-one | `verifier_decision_rate` | failure direction |
-|---|---|---|---|---|---|
-| `medqa_B3_d5e3af5_20260906T100551Z` (superseded) | 4096 | `{0: 7, 1: 1, 3: 2, 4: 10}` | 1/20 | **0.05** | over-admits — 10/20 questions have *all four* options SUPPORTED |
-| `medqa_B3_d5e3af5_20260906T102134Z` (reported) | 8192 | `{0: 15, 1: 1, 2: 4}` | 1/20 | **0.05** | over-rejects — 15/20 questions have *no* option SUPPORTED |
+*Context-window axis (holds).* At the shipped strict verify prompt, the rate is
+0.05 under `num_ctx=4096` and 0.05 under `num_ctx=8192`; only the *direction* of
+failure changes:
 
-Both distributions are traceable to the `n_supported_distribution` and
-`verifier_decision_rate` keys of the two `metrics.json` files named above.
+| Run | `num_ctx` | `n_supported` distribution | exactly-one | `verifier_decision_rate` |
+|---|---|---|---|---|
+| `medqa_B3_d5e3af5_20260906T100551Z` (superseded) | 4096 | `{0: 7, 1: 1, 3: 2, 4: 10}` | 1/20 | **0.05** (over-admits — 10/20 all-four SUPPORTED) |
+| `medqa_B3_d5e3af5_20260906T102134Z` (reported) | 8192 | `{0: 15, 1: 1, 2: 4}` | 1/20 | **0.05** (over-rejects — 15/20 zero SUPPORTED) |
 
-Read correctly, this is a **stronger** result than the single-run version, not a
-weaker one. The decision rate is not a fragile 0.05 that happened to fall out of
-one context setting: under a perturbation that inverts the verifier's entire
-error mode — from admitting everything to admitting nothing — the rate at which
-it isolates a single option is *invariant at 1/20*. A per-option yes/no verifier
-does not rank competing options; it saturates at one end or the other, and which
-end it saturates at is an artifact of how much evidence fits in the window. That
-is **direct empirical evidence for the binary bottleneck C2 targets**, and the
-invariance across the two conditions is what makes it evidence rather than a
-single-point coincidence. To be re-measured at scale in Phase 7. See ADR-020.
+*Prompt-wording axis (does not hold).* Re-run on the same dev-20 with two
+further verify phrasings (`scripts/analysis/b3_prompt_sensitivity.py`,
+`results/phase3_b3_prompt_sensitivity/metrics.json`):
 
-Two limits stand regardless: n=20 single-seed (so 1/20 carries a wide interval),
-and the prompt-sensitivity check — B3 under a neutral and a permissive verifier
-phrasing — has **not** been run (AUDIT §4.1, deferred to the pre-Phase-7 batch;
-`docs/02_ROADMAP.md`). Until it has, this result is stated as robust to the
-context window, not to prompt wording.
+| verify phrasing | `verifier_decision_rate` | `n_supported` distribution |
+|---|---|---|
+| strict ("SUPPORTED only if the evidence positively supports it" — shipped) | **0.05** | `{0: 15, 1: 1, 2: 4}` |
+| neutral ("is option X supported as the correct answer?") | **0.30** | `{0: 8, 1: 6, 2: 3, 3: 1, 4: 2}` |
+| permissive ("could option X be correct? SUPPORTED if the evidence is consistent with it") | **0.35** | `{0: 6, 1: 7, 2: 4, 3: 1, 4: 2}` |
+
+Spread 0.30. **The 0.05 is substantially an artifact of the strict instruction**
+— it makes the verifier reject nearly everything. Under a fair (neutral or
+permissive) instruction the rate is 0.30–0.35. The AUDIT §4.1
+"strawman-by-prompt-construction" objection is therefore *confirmed* for the
+strong form of the claim.
+
+**What survives.** Even at the *most permissive* phrasing the binary verifier
+isolates exactly one option on only 7/20 questions and returns multiple- or
+zero-SUPPORTED on the other 13 — a per-option yes/no head cannot rank
+mutually-exclusive options, and no phrasing tested gets it above 0.35. That is a
+real limitation of binary verification and it motivates C2, but the honest
+figure is "isolates a single option on ≤ 35% of questions", **not** "1/20". C2's
+audit-discrimination evidence does not depend on this comparison (it rests on
+the 108 non-neutral audit cells and the leave-one-agent-out V4−audit grid cell,
+`§5.5` / Phase 7); the B3 number is a motivating illustration, quoted with its
+0.05–0.35 range, not a headline result. To be re-measured at n=500 in Phase 7.
+
+n=20 single-seed remains a limit on all of the above (0.35 = 7/20 carries a wide
+interval).
 
 **Recorded per ADR-021:** the 4096-token batch was Ollama's default context,
 which silently truncated the KG-triple block (appended last) and collapsed
@@ -455,12 +467,15 @@ ADR-030 keeps): `verifier_decision_rate = 0.15`, `n_supported = {0: 9, 1: 3,
 questions and falls back to generation on 17/20. Under the earlier
 A/B/C-lettered prompt the rate was **0.00** (`n_supported = {0: 12, 2: 6,
 3: 2}`, superseded run `…T163512Z`) — so word framing *helps* the verifier a
-little, and even at its most favourable it decides 3/20. A per-option yes/no
-verifier does not rank three competing answers any better than four; this is
-the same binary-bottleneck saturation as the MedQA rows, on the task format the
-prior work claims. (The PubMedQA baselines are otherwise a degenerate one-class
-predictor at this model scale — see ADR-030; PubMedQA is not in the Phase 7
-grid, `docs/SCHEDULE.md`.)
+little. Both PubMedQA numbers use the shipped *strict* verify instruction; per
+ADR-033 that instruction depresses the rate on MedQA (0.05 strict vs 0.30–0.35
+neutral/permissive), so the PubMedQA 0.15 is almost certainly a strict-prompt
+floor too and should be read as "≤ ~0.35 under a fair instruction", not as a
+hard 0.15. The prompt-invariant point stands: a per-option yes/no verifier does
+not rank three competing answers any better than four, and no phrasing gets it
+near reliable single-option isolation. (The PubMedQA baselines are otherwise a
+degenerate one-class predictor at this model scale — see ADR-030; PubMedQA is
+not in the Phase 7 grid, `docs/SCHEDULE.md`.)
 
 ### 5.5 Phase 4 multi-agent consensus plumbing check (dev slice, n=20 — NOT a grid result)
 

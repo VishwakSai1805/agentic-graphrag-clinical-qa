@@ -297,7 +297,7 @@ def paired_bootstrap_ece_diff(
         diffs.append(ece_a - ece_b)
     diffs.sort()
     lo_idx = int((alpha / 2) * n_resamples)
-    hi_idx = int((1 - alpha / 2) * n_resamples)
+    hi_idx = n_resamples - 1 - lo_idx  # symmetric (AUDIT §6.8, matches paired_bootstrap_ci)
     ci_lo, ci_hi = diffs[lo_idx], diffs[hi_idx]
 
     if ci_hi < 0:

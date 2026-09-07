@@ -233,14 +233,17 @@ the Phase 7 ablation grid.
   for the full Phase 7 grid (~9 metrics × ~10 variant-pairs) is still §6.7,
   deferred below. Artifact:
   `results/phase2_kg_probe/medqa_train_n500_kg_rerank_ablation.json`.
-- **B3 verifier-collapse robustness check** — Phase 3's `verifier_decision_rate
-  = 0.05` (`n_supported = 0` on 15/20) is evidence for C2's binary bottleneck,
-  but could instead be a 7B model with a mis-calibrated SUPPORTED threshold.
-  The Phase 6 Gemini Flash sensitivity check (§0.6, ADR-008) must record
-  `verifier_decision_rate` + the `n_supported` distribution for B3 alongside
-  accuracy. If a stronger model still collapses to near-zero decisions the
-  argument is robust; if it does not, that must be known before the claim is
-  in the paper.
+- ~~**B3 verifier-collapse robustness check**~~ — **prompt-wording axis DONE
+  2026-09-08 (ADR-033):** B3's `verifier_decision_rate` is 0.05 under the strict
+  shipped verify prompt but **0.30–0.35** under neutral/permissive phrasings on
+  the same dev-20 (`scripts/analysis/b3_prompt_sensitivity.py`,
+  `results/phase3_b3_prompt_sensitivity/metrics.json`). The "1/20 = 0.05"
+  headline is **retired**; §5.4 and `docs/00` §3 C2 now quote the 0.05–0.35
+  range and lean the C2 audit-discrimination claim on the 108 non-neutral audit
+  cells + the Phase 7 V4−audit cell instead. *Still open:* the **Gemini Flash**
+  model-strength axis (§0.6, ADR-008) — record `verifier_decision_rate` +
+  `n_supported` for B3 under the stronger model alongside accuracy, when the
+  §0.6 sensitivity check runs.
 - **C2 reframing — conflict resolution vs. audit discrimination.** Phase 4
   (ADR-025, `docs/04` §5.5) found the Conflict agent fires 0× under a correct
   claim-level definition on the dev-20, and 1/108 audit cells cite KG. Before
@@ -270,17 +273,13 @@ deferred to this batch and **must be closed before the grid runs**:
   without a Claude Code session. Until that run completes and the doc is
   re-checked against the fresh artifacts, treat §5.2's numbers as carried
   forward from the pre-fix state, not yet re-verified.
-- **§4.1 — B3 prompt-sensitivity check.** `MAJOR`. `verifier_decision_rate`
-  currently rests on a single verifier phrasing while B2 gets a neutral
-  instruction, which leaves the project's designated motivating result open to
-  a "strawman by prompt construction" objection. Run B3 on the dev-20 with at
-  least two further phrasings (one neutral, one permissive) and report
-  `verifier_decision_rate` and the `n_supported` distribution for all three.
-  Note the bar this must now clear: §5.4 already shows the rate is invariant at
-  0.05 across a context-window change that inverts the failure direction, so
-  the open question is specifically wording, not stability in general. Fold
-  into the existing *B3 verifier-collapse robustness check* item above — same
-  claim, two different sensitivity axes.
+- ~~**§4.1 — B3 prompt-sensitivity check.**~~ `MAJOR`. **DONE 2026-09-08
+  (ADR-033).** B3 re-run on the dev-20 with a strict / neutral / permissive
+  verify prompt: `verifier_decision_rate` = 0.05 / 0.30 / 0.35 (spread 0.30).
+  The "strawman by prompt construction" objection is **confirmed** for the
+  strong "1/20" form of the claim; it is retired. §5.4 rewritten, `docs/00` §3
+  C2 edited, the shipped `_VERIFY_PROMPT` deliberately left unchanged (ADR-033
+  Decision 5).
 - **§4.3 — equal-budget B2 comparator.** `MAJOR`. **Code landed 2026-09-08,
   not yet run.** `scripts/run_baselines.py --equal-budget` trims B1/B2/B3's
   evidence bundle to `agents.max_evidence` via the exact modality-reserved
