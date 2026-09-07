@@ -138,7 +138,7 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done (add run_id/commit)
   conflict is claim-level, semantic-check-first (ADR-025, amends docs/01);
   CLI in `src/pipeline.py: main()` (CLAUDE.md §4). ADR-022…ADR-025.
 
-## Phase 5 — Evidential calibration & ranking  `[x]` DONE 2026-09-07 (a0060cf)
+## Phase 5 — Evidential calibration & ranking  `[x]` DONE 2026-09-07 (a0060cf; ablation & corrected framing b9bcda9)
 - `src/calibration/scoring.py` (logit assembly), `softmax_rank.py` (temperature
   scaling + fitting — hand-rolled analytic-gradient Adam, not `scipy.optimize`,
   which segfaults on bare import in this environment), `citations.py`. ECE
