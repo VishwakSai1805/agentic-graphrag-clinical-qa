@@ -145,6 +145,27 @@ def test_claim_level_conflict_needs_same_claim():
     assert matrix.status == "ok"
 
 
+def test_run_conflict_false_skips_the_conflict_node(monkeypatch):
+    # Phase 7 V4−conflict cell (ADR-035): a genuine same-claim SUPPORT+CONTRADICT
+    # pair that WOULD fire the Conflict agent -- with run_conflict=False the
+    # graph routes audit->END, so no Conflict LLM call and no conflict_log.
+    cells_a = [(0, "chunk::D0#0", "SUPPORT"), (0, "chunk::D1#0", "CONTRADICT")]
+    chat = ScriptedChat(audit_cells_for={"A": cells_a, "B": []}, conflict_genuine=True)
+
+    fired = _run(ScriptedChat(audit_cells_for={"A": cells_a, "B": []}, conflict_genuine=True))
+    assert fired[0].conflict_fire_count == 1  # sanity: it WOULD fire
+
+    matrix, state = _run(chat, cfg=_cfg(run_conflict=False))
+    assert matrix.conflict_fire_count == 0
+    assert matrix.conflict_log == []
+    assert "Conflict Resolution" not in "\n".join(chat.calls)
+    # the matrix is otherwise well-formed: cells + option_support present, so
+    # the (s+ - s-) ranking the harness uses is identical in shape to V4/V5
+    assert matrix.cells
+    assert matrix.option_support  # the (s+ - s-) ranking input is still built
+    assert matrix.status == "ok"  # no conflict node -> nothing marks unresolved
+
+
 def test_conflict_unresolved_when_genuine_and_precedence_tied():
     # same claim, both sides textbook-tier (rank 1) -> tied -> unresolved
     cells_a = [(0, "chunk::D0#0", "SUPPORT"), (0, "chunk::D1#0", "CONTRADICT")]

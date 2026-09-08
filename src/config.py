@@ -199,6 +199,12 @@ class AgentsConfig(BaseModel):
     # cells, from different evidence ids. (Mass = integer cell count for
     # Phase 4; a fractional mass over the calibrated tuple is Phase 5's job.)
     epsilon: int = 1
+    # Phase 7 V4−conflict ablation cell (ADR-035): False routes the graph
+    # audit -> END, skipping the Conflict node entirely. ADR-025 already
+    # measured `conflict_fire_rate = 0.00` on the dev-20, so V4−conflict is
+    # expected to be numerically ~identical to V4/V5's agent portion -- a null
+    # here is the reportable finding, not a bug.
+    run_conflict: bool = True
     max_rounds: int = 2
     max_llm_calls_per_question: int = 12
     max_evidence: int = 12

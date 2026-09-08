@@ -1,0 +1,10 @@
+# Phase 7 V4−conflict ablation cell (ADR-035). Inherits configs/agents.yaml
+# (which extends base.yaml); the only change is `agents.run_conflict: false`,
+# which routes the consensus graph audit -> END and never invokes the Conflict
+# node. ADR-025 measured `conflict_fire_rate = 0.00` on the dev-20, so this
+# cell is expected to be numerically ~identical to V4 -- the point is to
+# confirm that at n=500, and a null is the reportable finding.
+_extends: agents.yaml
+
+agents:
+  run_conflict: false

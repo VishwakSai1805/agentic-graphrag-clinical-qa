@@ -135,44 +135,51 @@ seed 42).**
 
 **Everything else is exploratory** and reported with Holm–Bonferroni correction
 across the pre-registered exploratory family below (family-wise α = 0.05,
-`src.retrieval.metrics.holm_bonferroni`). The SCHEDULE-cut grid runs 6 MedQA
-cells — V1, V3, V5, V4−audit, V4−conflict, **and B3** (`docs/SCHEDULE.md`;
-B3 added 2026-09-08, ADR-035 — the MEGA-RAG binary-verifier reimplementation is
-the only direct comparison to the prior work this project extends, and it had
-only ever run at n=20). The exploratory family is exactly these
-{variant-pair × metric} tests:
+`src.retrieval.metrics.holm_bonferroni`). **Recomputed 2026-09-08 (ADR-035,
+ADR-036), before the grid ran.** The first grid slot runs 5 MedQA cells —
+**V1, V3, V5, V4−conflict, B3** (n=500 test, seed 42). **V4−audit is deferred**
+to a later slot (it needs the binary-audit implementation, ADR-036) and its
+pairs are *not* registered here — they are re-registered before that run. One
+zero-GPU derived analysis, **post-hoc-binary** (V5's SupportMatrices with
+`SUPPORT`→`SUPPORTED`, `CONTRADICT`∪`NEUTRAL`→`NOT_SUPPORTED`, `s⁻=0`,
+re-ranked — ADR-036 Constraint B), joins the family now.
 
 | # | Pair | Metrics tested | count |
 |---|---|---|---|
 | a | V1 vs V3 | Acc, Macro-F1, halluc-rate | 3 |
-| b | V3 vs V5 | Macro-F1, halluc-rate, P@1, P@2, MRR, ECE (Acc is confirmatory, not here) | 6 |
-| c | V4−audit vs V5 | Acc, Macro-F1, halluc-rate, P@1, P@2, MRR | 6 |
+| b | V3 vs V5 | Macro-F1, halluc-rate, P@1, P@2, MRR | 5 |
 | d | V4−conflict vs V5 | Acc, Macro-F1, halluc-rate, P@1, P@2, MRR | 6 |
 | e | V1 vs V5 | Acc, Macro-F1, halluc-rate | 3 |
-| f | V4−audit vs V4−conflict | Acc, Macro-F1, halluc-rate, P@1, P@2, MRR | 6 |
 | g | **V3 vs B3** | Acc, Macro-F1, halluc-rate | 3 |
 | h | **V5 vs B3** | Acc, Macro-F1, halluc-rate | 3 |
+| i | post-hoc-binary vs V4−conflict | Acc, Macro-F1, halluc-rate, P@1, P@2, MRR | 6 |
+| j | post-hoc-binary vs V5 | Acc, Macro-F1, halluc-rate, P@1, P@2, MRR | 6 |
 
-**Family size m = 36** (if all 6 cells run). Holm–Bonferroni over all 36.
-Contingencies, fixed here so `m` is never chosen after seeing a number:
-- B3 emits one predicted option, not a ranking → pairs **g/h carry no P@K /
-  MRR / ECE** (3 metrics each, not 6).
-- ECE in pair **b**: V3 has no probability vector, so that one cell is
-  undefined → **m = 35** in practice. Recorded now, not "discovered later".
-- If **V4−conflict is dropped for budget** (ADR-035 — ADR-025 already showed
-  the Conflict agent fires 0×, so that cell is near-certain to be a null),
-  pairs **d and f leave the family** (−12) → **m = 23**. This substitution is
-  pre-authorised; no other cell may be dropped.
-- P@K/MRR appear only where both sides produce a ranking (V5 calibrated
-  softmax; V4−audit / V4−conflict uncalibrated `(s⁺−s⁻)` margin — flagged as
-  uncalibrated wherever reported, ADR-029). Pairs **c/d isolate whether
-  calibration improves *ordering* (P@K/MRR) versus only *confidence* (ECE)** —
-  the V4-vs-V5 ranking question.
+**Family size m = 35.** Holm–Bonferroni over all 35. Fixed contingencies (so
+`m` is never chosen after seeing a number):
+- **b** has no ECE cell — V3 has no probability vector (this is why b is 5, not
+  6); the V5-vs-raw-logprob ECE comparison already lives in §5.6, outside this
+  family.
+- **g/h** carry no P@K/MRR/ECE — B3 emits one option, not a ranking.
+- **i** isolates the graded label cleanly (both sides are *uncalibrated* agent
+  rankings — `(s⁺−s⁻)` for V4−conflict, `s⁺`-only for post-hoc-binary). **j**
+  is the comparison ADR-036 names but it **confounds** "lost the graded label"
+  with "lost calibration" (post-hoc-binary is uncalibrated, V5 is calibrated) —
+  reported with that caveat stated.
+- If **V4−conflict is dropped for budget** (ADR-035 — the Conflict agent fires
+  0×, ADR-025), pairs **d and i leave the family** (−12) → **m = 23**. This one
+  substitution is pre-authorised; no other cell may be dropped, and B3 and the
+  endpoints (V1/V3/V5) are never dropped.
+- P@K/MRR appear only where both sides produce a ranking. V4−conflict and
+  post-hoc-binary rankings are uncalibrated — flagged as such wherever reported
+  (ADR-029).
+
+**Deferred, to be re-registered *before* the V4−audit slot runs** (ADR-036):
+V4−audit vs V5, V4−audit vs V4−conflict, and V4−audit(prompt) vs post-hoc-binary
+(the "does the binary *prompt* change the auditor's reasoning" test).
 
 Any comparison **not** in this table that is run after seeing grid numbers is
 reported as unplanned, excluded from the Holm family, and flagged as post-hoc.
-If the grid is expanded back toward the full `§5` schema, this family is
-recomputed and re-registered *before* those runs.
 
 The halluc-rate tests in the family use the 0.5 entailment threshold; ADR-031
 (§5.7) established that threshold is metric-strict, so alongside the family

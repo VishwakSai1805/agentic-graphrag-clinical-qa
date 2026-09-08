@@ -42,6 +42,11 @@ def test_v2_and_v3_differ_only_by_kg():
     assert VARIANTS["V3"].modalities - VARIANTS["V2"].modalities == {"kg"}
 
 
+def test_v4_conflict_variant_is_an_uncalibrated_agent_cell():
+    spec = VARIANTS["V4-conflict"]
+    assert spec.kind == "agents" and spec.calibration is False
+
+
 def test_resolve_variant_from_config():
     assert resolve_variant(load_config(V5_CONFIG)) == "V5"
     assert resolve_variant(load_config(AGENTS_CONFIG)) == "V4"

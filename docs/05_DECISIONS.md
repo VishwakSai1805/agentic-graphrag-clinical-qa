@@ -2287,3 +2287,82 @@ V-cells and the `run_baselines.py` B3 cell into one logged overnight batch.
 exist in `src/agents/graph.py` (no node-skip flag) and `V4−audit` has no
 operational definition in any doc — that is a separate blocker for those two
 cells, tracked in `NEXT_SESSION.md`, and does not hold up V1/V3/V5/B3.
+
+## ADR-036 — V4−audit is "binary audit": the operational definition (implemented next session), plus a zero-GPU post-hoc binary variant
+Date: 2026-09-08 · Phase: 7 · Status: accepted (definition); implementation deferred
+
+**Context.** The `docs/SCHEDULE.md`-cut grid lists a `V4−audit` "leave-one-
+agent-out" cell, but no doc ever defined it operationally, and it cannot mean
+"delete the Audit agent" — the Audit agent is what *produces* the SupportMatrix,
+so removing it leaves the Conflict agent and the `(s⁺−s⁻)` ranking with nothing
+to act on. This ADR fixes the definition now (recorded before any grid number,
+AUDIT §6.7 discipline) even though the cell is wired and run in a later slot.
+
+**Decision — V4−audit = binary audit.** Same Audit agent, same audit prompt,
+same evidence bundle, same everything else in the pipeline (Hypothesis,
+Conflict-if-enabled, ranking). The only change: the audit label space is
+**binary**, `SUPPORTED` / `NOT_SUPPORTED`, instead of the three-way
+`SUPPORT` / `CONTRADICT` / `NEUTRAL`. This makes V4−audit the *internal
+analogue of B3's binary verifier* — it isolates exactly the graded-
+discrimination capability C2 claims the multi-agent layer adds over a binary
+verifier.
+
+**Label mapping (authoritative — resolves an ambiguity in the instruction).**
+`SUPPORTED` ↔ old `SUPPORT`; `NOT_SUPPORTED` ↔ old `CONTRADICT` ∪ old
+`NEUTRAL`. This is the mapping that (a) matches B3's semantics — B3's
+`NOT_SUPPORTED` covers both "evidence against" and "no evidence" — and (b) is
+consistent with the two constraints below. (The instruction's prose also said
+"every non-NEUTRAL verdict collapses to SUPPORT", which would instead merge
+`CONTRADICT` into `SUPPORTED`; that reading contradicts the B3-analogue framing
+and constraint A, so it is treated as a slip. **Flag for correction if this is
+wrong** — the cell has not run yet.)
+
+**Constraint A — the `s⁻` term.** With no `CONTRADICT` class, `s⁻` collapses to
+0 for every option, so the V4−audit logit is `α·s⁺ + γ·kg_support_count +
+δ·mean_rerank_score` — the `−β·s⁻` term drops out. Stated explicitly here and
+made explicit in the scoring code path (a `binary_audit: true` flag on the
+feature-extraction step, not a silent zeroing). **Consequence:** the
+V5-vs-V4−audit delta bundles two losses — "lost the graded SUPPORT/CONTRADICT
+label" and "lost the negative-evidence term" — both of which are part of what
+C2 claims, so bundling them is acceptable **as long as it is stated**. The
+paper says so at that row.
+
+**Constraint B — the zero-GPU post-hoc binary variant.** Tonight's V5 run logs
+the full three-way SupportMatrix per question. So a **derived** binary cell is
+obtained by pure post-processing — map `SUPPORT`→`SUPPORTED`,
+`CONTRADICT`∪`NEUTRAL`→`NOT_SUPPORTED` over the existing V5 matrices, set
+`s⁻=0`, and re-run **only the ranking** (`α·s⁺ + γ·kg + δ·rerank`, no
+re-fit, no LLM calls). Recorded as a **derived analysis, not a grid cell**
+(`results/phase7_posthoc_binary_audit/`).
+
+Prompt-binary (the real V4−audit cell, next slot) and post-hoc-binary
+(derived, tonight) together separate a confound the single cell cannot:
+
+| observation | conclusion |
+|---|---|
+| post-hoc-binary ≈ V5 ranking | the graded label carries no ranking signal |
+| post-hoc-binary < V5 **and** prompt-binary ≈ post-hoc-binary | the *label* is what matters, not the prompt |
+| prompt-binary < post-hoc-binary | the graded *prompt* changes how the auditor reasons, independent of the label it emits |
+
+**Pre-registered family (`docs/04` §1.0).** The post-hoc-binary comparison
+joins the exploratory family now (see §1.0's recomputed `m`). The prompt-binary
+(V4−audit) pairs — V4−audit vs V5, V4−audit vs V4−conflict, V4−audit vs
+post-hoc-binary — are **deferred and re-registered before the V4−audit run**,
+not now.
+
+**Implementation notes for next session.**
+- Audit prompt: a `prompt_versions.audit = "binary_v1"` variant that instructs
+  `SUPPORTED` / `NOT_SUPPORTED` only; `src/agents/audit.py` parser accepts the
+  2-label space when that version is set.
+- `configs/v4_no_audit.yaml`: `_extends: agents.yaml`, `agents.prompt_versions.
+  audit: binary_v1`, and a `binary_audit: true` marker the scoring reads to
+  zero `s⁻` and label the row.
+- `harness.VARIANTS["V4-audit"]`, run as
+  `--config configs/v4_no_audit.yaml --variant V4-audit`.
+- The post-hoc script reads a completed V5 run dir, transforms its
+  `predictions.jsonl` matrices, re-ranks, writes
+  `results/phase7_posthoc_binary_audit/metrics.json`.
+
+**Consequences.** Definition fixed and committed before the grid. `docs/02`
+Phase 7 grid table notes V4−audit's meaning. Implementation + the post-hoc
+script land next session.

@@ -82,6 +82,12 @@ VARIANTS: dict[str, VariantSpec] = {
     ),
     "V4": VariantSpec("V4", "agents", calibration=False),
     "V5": VariantSpec("V5", "agents", calibration=True),
+    # Phase 7 leave-one-agent-out cell (ADR-035). Runs the agent path with
+    # `--config configs/v4_no_conflict.yaml` (agents.run_conflict=false ->
+    # graph routes audit->END). Ranked by the uncalibrated (s+ - s-) margin,
+    # identical in shape to V4. V4-audit is deferred (needs the binary-audit
+    # implementation, ADR-036).
+    "V4-conflict": VariantSpec("V4-conflict", "agents", calibration=False),
 }
 
 

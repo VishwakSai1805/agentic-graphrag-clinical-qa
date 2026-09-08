@@ -342,7 +342,8 @@ ADR-029**, §6.3, §6.4.
 | V3 | ✓ | ✓ | ✓ | – | – |
 | V4 | ✓ | ✓ | ✓ | ✓ | – |
 | V5 (full) | ✓ | ✓ | ✓ | ✓ | ✓ |
-| V4−audit, V4−conflict | leave-one-agent-out | | | | |
+| **V4−conflict** | ✓ | ✓ | ✓ | ✓, Conflict node skipped (`agents.run_conflict=false`, `configs/v4_no_conflict.yaml`) | – |
+| **V4−audit** | ✓ | ✓ | ✓ | ✓, Audit label space binary `SUPPORTED`/`NOT_SUPPORTED` (= `SUPPORT` / `CONTRADICT`∪`NEUTRAL`), `s⁻`→0 — ADR-036. **Deferred: needs the binary-audit prompt + parser; runs a later slot.** | – |
 | **B3** (binary verifier) | ✓ | ✓ | ✓ | MEGA-RAG-style per-option SUPPORTED/NOT | – |
 
 **B3 is a grid cell at n=500 (ADR-035, 2026-09-08).** It is the reimplementation

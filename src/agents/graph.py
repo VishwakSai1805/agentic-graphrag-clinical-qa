@@ -338,18 +338,23 @@ def build_consensus_graph(
         {"audit": "audit", END: END},
     )
     g.add_conditional_edges(
-        "audit", _route_after_audit, {"retrieve": "retrieve", "conflict": "conflict", END: END}
+        "audit",
+        lambda s: _route_after_audit(s, cfg),
+        {"retrieve": "retrieve", "conflict": "conflict", END: END},
     )
     g.add_edge("retrieve", "audit")
     g.add_edge("conflict", END)
     return g.compile(checkpointer=InMemorySaver())
 
 
-def _route_after_audit(state: ConsensusState) -> str:
+def _route_after_audit(state: ConsensusState, cfg: AppConfig) -> str:
     if state.status != "running":
         return END
     if state.retrieval_query:
         return "retrieve"
+    # Phase 7 V4−conflict ablation (ADR-035): skip the Conflict node.
+    if not cfg.agents.run_conflict:
+        return END
     return "conflict"
 
 
