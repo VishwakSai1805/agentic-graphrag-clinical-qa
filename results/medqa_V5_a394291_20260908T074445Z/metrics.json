@@ -1,0 +1,221 @@
+{
+  "config_hash": "d418eb8e55767a04ac990b38d5e3f1534d59153e5d05b689b5397d4a4319358e",
+  "dataset": "medqa",
+  "git_diff_sha256": "48f6abeb83200f6ee9aa3a056df83a4dd3d88f4257f4e95b94bda845de0ce568",
+  "git_dirty": true,
+  "git_dirty_files": [
+    "results/medqa_V5_a394291_20260908T074445Z/"
+  ],
+  "git_sha7": "a394291-dirty",
+  "limit": 3,
+  "metrics": {
+    "abstention_rate": 1.0,
+    "accuracy": 0.0,
+    "agent_budget_exceeded_rate": 0.0,
+    "agent_claim_level_conflicts_evaluated": 0,
+    "agent_conflict_fire_rate": 0.0,
+    "agent_conflict_resolved": 0,
+    "agent_conflict_spurious": 0,
+    "agent_conflict_unresolved": 0,
+    "agent_every_surviving_cell_has_valid_id": true,
+    "agent_kg_hit_rate": 1.0,
+    "agent_mean_rounds": 1.0,
+    "agent_raw_invalid_citation_count": 2,
+    "agent_surviving_invalid_citation_count": 0,
+    "completion_tokens_total": 2655,
+    "contamination_assertion": {
+      "applies": false,
+      "check": "medqa_stem_vs_retrieved_chunk_ngram_overlap",
+      "checked": true,
+      "flag_threshold": 0.5,
+      "max_overlap": 0.0,
+      "mean_overlap": 0.0,
+      "median_overlap": 0.0,
+      "n_flagged": 0,
+      "n_questions": 3,
+      "n_questions_with_any_shared_ngram": 0,
+      "ngram_n": 8,
+      "note": "Executed check: fraction of each question stem's 8-grams appearing verbatim in any passage retrieved for that question. MedQA has no source-abstract blocklist (blocklisted_pmids('medqa') raises by design); the 18 USMLE textbooks are in the corpus disclosed under ADR-009, so non-zero overlap is expected and is reported as a distribution. `applies` is True iff >=1 question reaches 0.5 verbatim overlap, which would indicate a stem reproduced inside a retrieved chunk.",
+      "p95_overlap": 0.0
+    },
+    "dataset": "medqa",
+    "ece": {
+      "binning": "equal_width",
+      "bins": [
+        {
+          "acc_mean": 0.0,
+          "bin_hi": 0.26666666666666666,
+          "bin_lo": 0.2,
+          "conf_mean": 0.26038779630118036,
+          "n": 2
+        },
+        {
+          "acc_mean": 0.0,
+          "bin_hi": 0.4666666666666667,
+          "bin_lo": 0.4,
+          "conf_mean": 0.43209117922205137,
+          "n": 1
+        }
+      ],
+      "ece": 0.317622257274804,
+      "n": 3,
+      "n_bins": 15
+    },
+    "grounded_rate": 1.0,
+    "hallucination": {
+      "hallucination_rate_all_support_cells": 0.7692307692307693,
+      "hallucination_rate_predicted_option": 1.0,
+      "n_claims_all_support_cells": 13,
+      "n_claims_predicted_option": 5,
+      "n_uncited_all_support_cells": 0,
+      "n_uncited_predicted_option": 0,
+      "n_ungrounded_all_support_cells": 10,
+      "n_ungrounded_predicted_option": 5,
+      "nli_model": "MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli",
+      "per_claim": [
+        {
+          "cited": true,
+          "claim": "Severe hypokalemia can be associated with muscle weakness, overt proximal myopathy, or even hypokalemic paralysis. Aldosterone excess can lead to sodium retention and potassium excretion.",
+          "entailed": true,
+          "max_entail_score": 0.71533203125,
+          "option_id": "A",
+          "predicted_option": false,
+          "question_id": "test_00051"
+        },
+        {
+          "cited": true,
+          "claim": "Increased aldosterone is associated with hypertension, and fluid retention, which in some cases can lead to peripheral edema.",
+          "entailed": true,
+          "max_entail_score": 0.99169921875,
+          "option_id": "A",
+          "predicted_option": false,
+          "question_id": "test_00051"
+        },
+        {
+          "cited": true,
+          "claim": "The patient's blood pressure dropped significantly after starting hydrochlorothiazide, suggesting a role of vasoconstriction in hypertension.",
+          "entailed": false,
+          "max_entail_score": 0.293701171875,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00051"
+        },
+        {
+          "cited": true,
+          "claim": "The presence of a mineralocorticoid excess can be indicated by specific imaging findings, such as an adrenal mass.",
+          "entailed": false,
+          "max_entail_score": 0.407958984375,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00051"
+        },
+        {
+          "cited": true,
+          "claim": "Severe hypokalemia can be associated with muscle weakness, overt proximal myopathy, or even hypokalemic paralysis.",
+          "entailed": false,
+          "max_entail_score": 0.476806640625,
+          "option_id": "C",
+          "predicted_option": false,
+          "question_id": "test_00051"
+        },
+        {
+          "cited": true,
+          "claim": "However, infrequently, polyuria, polydipsia, paresthesias, or muscle weakness may be present as a consequence of hypokalemic alkalosis.",
+          "entailed": true,
+          "max_entail_score": 0.5380859375,
+          "option_id": "C",
+          "predicted_option": false,
+          "question_id": "test_00051"
+        },
+        {
+          "cited": true,
+          "claim": "Fluid retention, which can lead to sodium and water retention, is associated with impaired kidney perfusion.",
+          "entailed": false,
+          "max_entail_score": 0.0020313262939453125,
+          "option_id": "D",
+          "predicted_option": false,
+          "question_id": "test_00051"
+        },
+        {
+          "cited": true,
+          "claim": "Hypertension associated with impaired kidney perfusion can be refractory and is often associated with decreased renal function.",
+          "entailed": false,
+          "max_entail_score": 0.277587890625,
+          "option_id": "D",
+          "predicted_option": false,
+          "question_id": "test_00051"
+        },
+        {
+          "cited": true,
+          "claim": "The evidence describes a wide range of clinical presentations including maculopapular rash.",
+          "entailed": false,
+          "max_entail_score": 0.0036067962646484375,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00228"
+        },
+        {
+          "cited": true,
+          "claim": "The onset of Epstein-Barr virus can be abrupt, accompanied by a maculopapular rash.",
+          "entailed": false,
+          "max_entail_score": 0.0008792877197265625,
+          "option_id": "C",
+          "predicted_option": false,
+          "question_id": "test_00228"
+        },
+        {
+          "cited": true,
+          "claim": "Botryoid sarcoma is a rare variant of rhabdomyosarcoma, which is consistent with the evidence.",
+          "entailed": false,
+          "max_entail_score": 0.01334381103515625,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00563"
+        },
+        {
+          "cited": true,
+          "claim": "Botryoid sarcoma often presents as a polypoid mass, which is consistent with the evidence.",
+          "entailed": false,
+          "max_entail_score": 0.00937652587890625,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00563"
+        },
+        {
+          "cited": true,
+          "claim": "Verrucous carcinoma often presents as a polypoid mass in the vagina, as stated in the evidence.",
+          "entailed": false,
+          "max_entail_score": 0.0052490234375,
+          "option_id": "D",
+          "predicted_option": false,
+          "question_id": "test_00563"
+        }
+      ],
+      "primary": "hallucination_rate_predicted_option",
+      "threshold": 0.5
+    },
+    "hallucination_rate": 1.0,
+    "invalid_citation_count": 0,
+    "llm_cache_hits": 0,
+    "llm_calls_total": 17,
+    "macro_f1": 0.0,
+    "macro_f1_note": "position-bias check, not a skill metric for 4-option MCQ",
+    "mean_llm_calls": 5.666666666666667,
+    "mrr": 0.38888888888888884,
+    "n_evaluated": 3,
+    "p_at_1": 0.0,
+    "p_at_2": 0.3333333333333333,
+    "prompt_tokens_total": 38972,
+    "ranking_source": "calibrated_softmax",
+    "status_counts": {
+      "ok": 3
+    }
+  },
+  "run_id": "medqa_V5_a394291_20260908T074445Z",
+  "seed": 42,
+  "split": "test",
+  "superseded": true,
+  "superseded_by": null,
+  "superseded_reason": "Throwaway n=3 test-split smoke to de-risk the Phase 7 grid launch (verify the harness test-split path works end to end before the overnight run). Not a result; superseded by the n=500 Phase 7 V5 grid cell.",
+  "variant": "V5"
+}
