@@ -343,6 +343,17 @@ ADR-029**, §6.3, §6.4.
 | V4 | ✓ | ✓ | ✓ | ✓ | – |
 | V5 (full) | ✓ | ✓ | ✓ | ✓ | ✓ |
 | V4−audit, V4−conflict | leave-one-agent-out | | | | |
+| **B3** (binary verifier) | ✓ | ✓ | ✓ | MEGA-RAG-style per-option SUPPORTED/NOT | – |
+
+**B3 is a grid cell at n=500 (ADR-035, 2026-09-08).** It is the reimplementation
+of the binary-verifier framework this project extends and the only direct
+"does this beat the prior work" comparison — the ablation cells alone answer
+only "which of our components earn their place". Runs via
+`scripts/run_baselines.py --dataset medqa --split test --limit 500 --baselines B3`
+with the shipped strict `_VERIFY_PROMPT` **unchanged** (ADR-033 measured its
+decision rate at the low end of the 0.05–0.35 range; swapping in a permissive
+prompt for the grid would be selecting a baseline's config after seeing its
+effect). Scored on accuracy / Macro-F1 / halluc-rate only.
 
 **Variant → committed-run mapping (ADR-029).** The Phase 3 baselines are not a
 1:1 name match: `B2` retrieves `{dense, lexical, kg}`, so the committed
@@ -352,18 +363,19 @@ produces it. `scripts/report.py` keys `medqa_B2_*` to the V3 row and a
 `pubmedqa_B*` smoke run to no grid cell at all. Mislabelling `B2` as V2 would
 make the V3−V2 comparison a variant against itself.
 
-**Grid scale (ADR-005, `docs/04_EVALUATION.md` §0.3 — the ceiling estimate in
-§0.2 is what forced this cut):**
-- Full 8-variant ablation (row above, including the two leave-one-out cells) —
-  **MedQA only**, 500-question fixed seeded subset (seed 42).
-- PubMedQA and MedMCQA — **V3 and V5 only**, 500-question fixed seeded subsets
-  each (PubMedQA: official test; MedMCQA: seeded subsample of validation, see
-  `docs/03_DATASETS.md`).
-- 3 seeds (42/43/44) — **V3 and V5 on MedQA only**, the pair the paired
-  bootstrap significance test compares. All other cells single-seed.
-- Run with `eval.concurrency=4` and `OLLAMA_KEEP_ALIVE=-1`; expect the grid to
-  span multiple background-job sessions (§0.2 estimates ~26h at 3×
-  concurrency speedup, to be replaced by the Phase 6 measured number).
+**Grid scale (`docs/SCHEDULE.md` cut + ADR-005/029/035):**
+- **MedQA only, n=500 test slice, seed 42.** Cells: **V1, V3, V5, V4−audit,
+  V4−conflict, B3** (6). V0/V2/V4 rows fill only if a spare slot runs them.
+- Budget contingency (ADR-035): if 6 cells do not fit the overnight budget,
+  **drop V4−conflict** — ADR-025 established the Conflict agent fires 0×, so
+  that cell is near-certain to be a statistical null and the dev-scale finding
+  can be reported. Never drop B3 or an endpoint (V1/V3/V5).
+- PubMedQA / MedMCQA / the 3-seed V3-V5 pair: **cut** (`docs/SCHEDULE.md` —
+  "MedQA only", single seed). The §5 table's other-dataset rows stay `TBD` and
+  are stated as future work.
+- Run **sequentially** (`OLLAMA_KEEP_ALIVE=-1`) — the concurrency layer was cut
+  (ADR-029). §0.2's ~26h estimate assumed 3× concurrency; the real sequential
+  MedQA-6-cell figure is what the grid runner logs.
 - **Sensitivity check (ADR-008):** V3 vs V5, 200 MedQA questions, via free
   Gemini Flash tier — reported alongside the grid as a robustness check, not
   a headline result (`docs/04_EVALUATION.md` §0.6/§5.1).

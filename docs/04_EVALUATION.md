@@ -135,9 +135,12 @@ seed 42).**
 
 **Everything else is exploratory** and reported with Holm–Bonferroni correction
 across the pre-registered exploratory family below (family-wise α = 0.05,
-`src.retrieval.metrics.holm_bonferroni`). The SCHEDULE-cut grid runs 5 MedQA
-variants — V1, V3, V5, V4−audit, V4−conflict (`docs/SCHEDULE.md`). The
-exploratory family is exactly these {variant-pair × metric} tests:
+`src.retrieval.metrics.holm_bonferroni`). The SCHEDULE-cut grid runs 6 MedQA
+cells — V1, V3, V5, V4−audit, V4−conflict, **and B3** (`docs/SCHEDULE.md`;
+B3 added 2026-09-08, ADR-035 — the MEGA-RAG binary-verifier reimplementation is
+the only direct comparison to the prior work this project extends, and it had
+only ever run at n=20). The exploratory family is exactly these
+{variant-pair × metric} tests:
 
 | # | Pair | Metrics tested | count |
 |---|---|---|---|
@@ -147,19 +150,29 @@ exploratory family is exactly these {variant-pair × metric} tests:
 | d | V4−conflict vs V5 | Acc, Macro-F1, halluc-rate, P@1, P@2, MRR | 6 |
 | e | V1 vs V5 | Acc, Macro-F1, halluc-rate | 3 |
 | f | V4−audit vs V4−conflict | Acc, Macro-F1, halluc-rate, P@1, P@2, MRR | 6 |
+| g | **V3 vs B3** | Acc, Macro-F1, halluc-rate | 3 |
+| h | **V5 vs B3** | Acc, Macro-F1, halluc-rate | 3 |
 
-**Family size m = 30.** Holm–Bonferroni is applied across all 30. P@K/MRR
-appear only where both sides produce a ranking (V5 calibrated softmax; V4−audit
-/ V4−conflict uncalibrated `(s⁺−s⁻)` margin — flagged as uncalibrated wherever
-reported, ADR-029); pairs b/c/d's ranking tests compare a calibrated ranking to
-an uncalibrated one, and **pair c/d isolate whether calibration improves
-*ordering* (P@K/MRR) versus only *confidence* (ECE)** — the V4-vs-V5 ranking
-question. ECE is a per-variant descriptive number except in pair b, where V5's
-ECE is tested against V3's (V3 has none → that cell is dropped and m falls to
-29; recorded when the grid runs). Any comparison **not** in this table that is
-run after seeing grid numbers is reported as unplanned, excluded from the Holm
-family, and flagged as post-hoc. If the grid is expanded back toward the full
-`§5` schema, this family is recomputed and re-registered *before* those runs.
+**Family size m = 36** (if all 6 cells run). Holm–Bonferroni over all 36.
+Contingencies, fixed here so `m` is never chosen after seeing a number:
+- B3 emits one predicted option, not a ranking → pairs **g/h carry no P@K /
+  MRR / ECE** (3 metrics each, not 6).
+- ECE in pair **b**: V3 has no probability vector, so that one cell is
+  undefined → **m = 35** in practice. Recorded now, not "discovered later".
+- If **V4−conflict is dropped for budget** (ADR-035 — ADR-025 already showed
+  the Conflict agent fires 0×, so that cell is near-certain to be a null),
+  pairs **d and f leave the family** (−12) → **m = 23**. This substitution is
+  pre-authorised; no other cell may be dropped.
+- P@K/MRR appear only where both sides produce a ranking (V5 calibrated
+  softmax; V4−audit / V4−conflict uncalibrated `(s⁺−s⁻)` margin — flagged as
+  uncalibrated wherever reported, ADR-029). Pairs **c/d isolate whether
+  calibration improves *ordering* (P@K/MRR) versus only *confidence* (ECE)** —
+  the V4-vs-V5 ranking question.
+
+Any comparison **not** in this table that is run after seeing grid numbers is
+reported as unplanned, excluded from the Holm family, and flagged as post-hoc.
+If the grid is expanded back toward the full `§5` schema, this family is
+recomputed and re-registered *before* those runs.
 
 The halluc-rate tests in the family use the 0.5 entailment threshold; ADR-031
 (§5.7) established that threshold is metric-strict, so alongside the family
@@ -198,9 +211,12 @@ the V3-vs-V5 *ordering* on halluc-rate does not flip with the threshold.
 
 ## 5. Results table (fill only from `results/` — no hand-typed numbers)
 
-Grid per §0.3: full 8-variant ablation on MedQA only; PubMedQA and MedMCQA get
-V3/V5 only; V3/V5 on MedQA are the multi-seed pair (report mean ± std over
-seeds 42/43/44 in addition to the single-seed row below).
+Grid per §0.3 and the `docs/SCHEDULE.md` cut: **MedQA only**, cells V1, V3, V5,
+V4−audit, V4−conflict, **B3** (n=500 test slice, seed 42; ADR-035 added B3 —
+the prior-work comparison the ablation cells cannot substitute for). V0/V2/V4
+rows below stay `TBD` unless a spare slot runs them. B3 is scored on
+accuracy / Macro-F1 / halluc-rate only — a binary verifier emits one option,
+no ranking (P@K / MRR / ECE are `–`).
 
 | Variant | Dataset | Acc | Macro-F1 | Faithfulness | Halluc. rate | P@1 | P@2 | MRR | ECE | run_id |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -212,6 +228,7 @@ seeds 42/43/44 in addition to the single-seed row below).
 | V4−audit | MedQA | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
 | V4−conflict | MedQA | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
 | V5 full | MedQA | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
+| B3 binary verifier | MedQA | TBD | TBD | – | TBD | – | – | – | – | TBD |
 | V3 +KG | MedMCQA | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
 | V5 full | MedMCQA | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
 | V3 +KG | PubMedQA | TBD | TBD | TBD | TBD | – | – | – | TBD | TBD |

@@ -2229,3 +2229,61 @@ kwarg), `scripts/precompute_kg_cache.py`, `scripts/kg_cache_manifest.py`
 tests). The committed `medqa_V5_aa73199-dirty_20260907T170604Z` run is
 unaffected — the KG subgraph content is byte-identical, only the `question_stem`
 field was added to the cache files.
+
+## ADR-035 — B3 (the binary-verifier baseline) is a Phase 7 grid cell at n=500; strict verify prompt, and the exploratory family grows to m=36
+Date: 2026-09-08 · Phase: 6→7 · Status: accepted
+
+**Context.** The `docs/SCHEDULE.md`-cut grid was V1, V3, V5, V4−audit,
+V4−conflict on MedQA — five cells that isolate *which of this project's own
+components earn their place*. None of them answers the paper's central
+question: **does the framework beat the prior work it extends?** B3 is the
+MEGA-RAG-class binary-verifier reimplementation (per-option
+SUPPORTED / NOT_SUPPORTED, decide iff exactly one SUPPORTED, else fall back to
+generation) and the only direct comparison to that prior work — and it has only
+ever run at n=20. An ablation cell is worth less than that comparison.
+
+**Decision 1 — B3 is a sixth grid cell.** MedQA test n=500, seed 42, via
+`scripts/run_baselines.py --dataset medqa --split test --limit 500 --baselines
+B3`. Cost ≈ 500 × ~5 LLM calls ≈ 4–5 h, one overnight slot. Scored on
+accuracy / Macro-F1 / hallucination-rate only — a binary verifier emits one
+option, no ranked differential (P@K / MRR / ECE are `–` for its row).
+
+**Decision 2 — budget contingency: drop V4−conflict, never B3 or an
+endpoint.** If six cells do not fit the overnight budget, V4−conflict is the
+cell to cut: ADR-025 already established the Conflict agent fires 0× under the
+claim-level definition, so that cell is near-certain to be a statistical null,
+and the dev-scale finding stands on its own. The `docs/04` §1.0 family then
+loses pairs d and f (see Decision 4). No other cell may be dropped.
+
+**Decision 3 — B3 runs with the shipped strict `_VERIFY_PROMPT`, unchanged.**
+ADR-033 measured that prompt's `verifier_decision_rate` at **0.05** on the
+dev-20 — the *low* end of the 0.05–0.35 range the three phrasings span; neutral
+and permissive phrasings give 0.30–0.35. The grid keeps the strict prompt
+anyway. Swapping in a more permissive phrasing *for the grid run, after seeing
+that it raises the decision rate* would be selecting a baseline's configuration
+to flatter the contrast — the exact prompt-selection error ADR-030 and ADR-033
+refuse in the other direction. The paper reports B3's n=500 number and states,
+next to it, that it uses the strict instruction and that ADR-033's dev-20 sweep
+puts a fairer instruction at 0.30–0.35; the reader sees the full picture and
+the number is not engineered.
+
+**Decision 4 — the pre-registered exploratory family (`docs/04` §1.0) is
+updated NOW, before any grid number exists** (AUDIT §6.7 exists to prevent
+exactly a post-hoc `m`). Added: **pair g = V3 vs B3**, **pair h = V5 vs B3**,
+each on accuracy / Macro-F1 / halluc-rate (B3 has no ranking → no P@K/MRR/ECE).
+Family goes from m=30 to **m=36**. Fixed contingencies, all recorded in §1.0 so
+`m` is never a choice made after a number:
+- ECE cell of pair b is undefined (V3 has no p-vector) → m = 35 in practice.
+- If V4−conflict is dropped (Decision 2), pairs d and f leave the family
+  (−12) → m = 23.
+The confirmatory test is **unchanged**: V3 vs V5, accuracy, α=0.05 two-sided,
+one test, outside the family.
+
+**Consequences.** `docs/04` §1.0 (family → m=36 + contingencies), §5 (B3 grid
+row, MedQA-only scope statement), `docs/02_ROADMAP.md` Phase 7 (B3 row + budget
+contingency + sequential-run note). The grid runner sequences the harness
+V-cells and the `run_baselines.py` B3 cell into one logged overnight batch.
+`V4−audit` / `V4−conflict` require leave-one-agent-out wiring that does not yet
+exist in `src/agents/graph.py` (no node-skip flag) and `V4−audit` has no
+operational definition in any doc — that is a separate blocker for those two
+cells, tracked in `NEXT_SESSION.md`, and does not hold up V1/V3/V5/B3.
