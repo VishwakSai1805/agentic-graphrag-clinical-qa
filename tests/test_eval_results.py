@@ -179,3 +179,33 @@ def test_real_repo_provenance_is_self_consistent():
         assert prov["git_diff_sha256"]
     elif prov["git_dirty"] is False:
         assert not prov["git_sha7"].endswith("-dirty")
+
+
+def test_patch_metrics_merges_into_the_metrics_block(tmp_path, cfg):
+    # ADR-037: a deferred metric (the NLI hallucination block) is filled in
+    # after write_run, without disturbing provenance / superseded flags.
+    run_dir = R.write_run(
+        run_id="medqa_TEST_x_20260908T000000Z",
+        cfg=cfg,
+        dataset="medqa",
+        variant="TEST",
+        split="test",
+        limit=1,
+        seed=42,
+        predictions=[{"question_id": "test_1"}],
+        metrics={"n_evaluated": 1, "accuracy": 0.5, "hallucination": None,
+                 "hallucination_pending": True},
+        results_dir=tmp_path,
+    )
+    before = json.loads((run_dir / "metrics.json").read_text(encoding="utf-8"))
+
+    R.patch_metrics(run_dir, {"hallucination": {"hallucination_rate_predicted_option": 0.7},
+                              "hallucination_rate": 0.7, "hallucination_pending": False})
+
+    after = json.loads((run_dir / "metrics.json").read_text(encoding="utf-8"))
+    assert after["metrics"]["accuracy"] == 0.5  # untouched
+    assert after["metrics"]["n_evaluated"] == 1  # untouched
+    assert after["metrics"]["hallucination_rate"] == 0.7  # patched
+    assert after["metrics"]["hallucination_pending"] is False
+    assert after["git_sha7"] == before["git_sha7"]  # provenance untouched
+    assert after["superseded"] == before["superseded"]

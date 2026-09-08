@@ -35,6 +35,8 @@ Hallucination rate (`src.eval.nli`) is reported under BOTH denominators
 from __future__ import annotations
 
 import argparse
+import gc
+import json
 from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -46,7 +48,7 @@ from src.config import AppConfig, load_config
 from src.eval.contamination import medqa_overlap_check, pubmedqa_contamination_report
 from src.eval.metrics import accuracy, ece, macro_f1, mean_mrr, mean_precision_at_k
 from src.eval.nli import ClaimRecord, score_hallucination, split_claims
-from src.eval.results import RESULTS_DIR, make_run_id, write_run
+from src.eval.results import RESULTS_DIR, make_run_id, patch_metrics, write_run
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CORPUS_PATH = REPO_ROOT / "data" / "processed" / "corpus.jsonl"
@@ -312,10 +314,19 @@ def score_run(
     nli_scorer=None,
     n_ece_bins: int = 15,
     ece_binning: str = "equal_width",
+    compute_hallucination: bool = True,
 ) -> dict:
     """The `metrics.json` body for a completed run. `nli_scorer` is an
     injectable `(premise, hypothesis) -> float`; `None` loads the real NLI
-    model (GPU) lazily."""
+    model (GPU) lazily.
+
+    `compute_hallucination=False` (the grid path, ADR-037): skip the NLI pass
+    entirely and set `hallucination: None`, `hallucination_pending: True`. The
+    caller writes the run dir first, then scores hallucination separately so
+    the ~1.5 GB NLI model never coexists with the retrieval models -- a real
+    OOM on the 16 GB machine (Phase 7 grid launch). `score_hallucination_into`
+    / `scripts/analysis/rescore_hallucination.py` fill it in afterwards.
+    """
     n = len(records)
     letters = PUBMEDQA_LETTERS if dataset == "pubmedqa" else MEDQA_LETTERS
     acc_view = [_AccView(pred_option=r.pred_option, gold_option=r.gold_option) for r in records]
@@ -362,14 +373,20 @@ def score_run(
 
     # hallucination -- one NLI pass, both denominators (ADR-029)
     claim_records = [cr for r in records for cr in r.claim_records]
-    if claim_records:
+    if not compute_hallucination:
+        metrics["hallucination"] = None
+        metrics["hallucination_rate"] = None
+        metrics["hallucination_pending"] = bool(claim_records)
+    elif claim_records:
         metrics["hallucination"] = score_hallucination(claim_records, scorer=nli_scorer)
         metrics["hallucination_rate"] = metrics["hallucination"][
             metrics["hallucination"]["primary"]
         ]
+        metrics["hallucination_pending"] = False
     else:
         metrics["hallucination"] = None
         metrics["hallucination_rate"] = None
+        metrics["hallucination_pending"] = False
 
     metrics["invalid_citation_count"] = sum(len(r.invalid_citations) for r in records)
     metrics["grounded_rate"] = (sum(1 for r in records if r.grounded) / n) if n else 0.0
@@ -398,6 +415,42 @@ def score_run(
             metrics[f"agent_{key}"] = agg.get(key)
 
     return metrics
+
+
+def score_hallucination_into(run_dir: Path, nli_scorer=None) -> dict | None:
+    """Reconstruct `ClaimRecord`s from a written run's `predictions.jsonl`, run
+    the NLI hallucination pass, and patch `metrics.json` in place (ADR-037).
+
+    Called by `run_eval` *after* `write_run` and *after* the retrieval models
+    are released, so the NLI model never coexists with them. Also the entry
+    point for `scripts/analysis/rescore_hallucination.py` when a grid cell
+    wrote its predictions but the NLI pass OOM'd or was skipped.
+    """
+    run_dir = Path(run_dir)
+    rows = [
+        json.loads(line)
+        for line in (run_dir / "predictions.jsonl").read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    claim_records = [
+        ClaimRecord(**cr) for row in rows for cr in row.get("claim_records", [])
+    ]
+    if not claim_records:
+        patch_metrics(
+            run_dir,
+            {"hallucination": None, "hallucination_rate": None, "hallucination_pending": False},
+        )
+        return None
+    hall = score_hallucination(claim_records, scorer=nli_scorer)
+    patch_metrics(
+        run_dir,
+        {
+            "hallucination": hall,
+            "hallucination_rate": hall[hall["primary"]],
+            "hallucination_pending": False,
+        },
+    )
+    return hall
 
 
 # --------------------------------------------------------------------------
@@ -503,19 +556,36 @@ def run_eval(
             if (i + 1) % 5 == 0 or (i + 1) == len(questions):
                 print(f"[harness] {variant}: {i + 1}/{len(questions)}", flush=True)
 
+    contam = _contamination(dataset, questions, pipeline)  # needs the pipeline
+
+    # Free the retrieval models (dense + bm25 + cross-encoder, ~2 GB) BEFORE
+    # the NLI hallucination pass loads DeBERTa (~1.5 GB). Both coexisting OOM'd
+    # the 16 GB machine on the Phase 7 grid launch (ADR-037).
+    if _pipeline is None:  # only free what we loaded, never a test-injected fake
+        pipeline = None
+        gc.collect()
+        try:
+            import torch
+
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+        except Exception:  # pragma: no cover
+            pass
+
     metrics = score_run(
         records,
         dataset=dataset,
         nli_scorer=nli_scorer,
         n_ece_bins=cfg.calibration.n_ece_bins,
         ece_binning=cfg.calibration.ece_binning,
+        compute_hallucination=False,  # deferred -> after write_run (ADR-037)
     )
+    metrics["contamination_assertion"] = contam
     stats = default_tracker.summary()
     metrics["llm_calls_total"] = stats.calls
     metrics["llm_cache_hits"] = stats.cache_hits
     metrics["prompt_tokens_total"] = stats.prompt_tokens
     metrics["completion_tokens_total"] = stats.completion_tokens
-    metrics["contamination_assertion"] = _contamination(dataset, questions, pipeline)
 
     run_id = make_run_id(dataset, variant)
     run_dir = write_run(
@@ -530,7 +600,19 @@ def run_eval(
         metrics=metrics,
         results_dir=results_dir,
     )
-    _print_summary(variant, metrics, run_dir)
+    # predictions.jsonl + non-NLI metrics are now durable. Score hallucination
+    # separately; a failure here (OOM, model fetch) leaves the run intact.
+    try:
+        score_hallucination_into(run_dir, nli_scorer=nli_scorer)
+    except Exception as e:  # pragma: no cover - the OOM path
+        print(
+            f"[harness] hallucination scoring DEFERRED ({type(e).__name__}: {e}).\n"
+            f"[harness]   the run is complete and durable; fill it in with:\n"
+            f"[harness]   uv run python -m scripts.analysis.rescore_hallucination {run_dir}"
+        )
+
+    final = json.loads((run_dir / "metrics.json").read_text(encoding="utf-8"))["metrics"]
+    _print_summary(variant, final, run_dir)
     return run_dir
 
 

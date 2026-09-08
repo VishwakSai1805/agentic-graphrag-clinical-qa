@@ -2366,3 +2366,67 @@ not now.
 **Consequences.** Definition fixed and committed before the grid. `docs/02`
 Phase 7 grid table notes V4−audit's meaning. Implementation + the post-hoc
 script land next session.
+
+## ADR-037 — the harness defers NLI hallucination scoring past `write_run`, and frees the retrieval models first, so a scoring OOM cannot lose a completed cell
+Date: 2026-09-08 · Phase: 7 · Status: accepted
+
+**Context.** The Phase 7 grid's first launch OOM'd. V1 completed all 500
+predictions in ~30 min (3.6 s/q), then `score_run` tried to load the DeBERTa
+NLI model (~1.5 GB) for `score_hallucination` **while the retrieval models
+were still resident** — dense MedCPT encoders + FAISS index + BM25 + MedCPT
+cross-encoder (~2 GB), plus Ollama's resident 7B (`OLLAMA_KEEP_ALIVE=-1`,
+~5 GB). On the 15.2 GB machine (~5 GB free at rest) this paged, thrashed for
+~42 min, and the process was killed. **`write_run` is only called after
+scoring**, so V1 wrote nothing — 500 real LLM calls' worth of work, recoverable
+only from `.cache/llm`, and no `predictions.jsonl` at all.
+
+Two failures compounded: (1) the two model sets coexist in RAM; (2) the
+expensive, durable part (predictions) is written *after* the fragile part
+(NLI), not before.
+
+**Decision.** `run_eval` is restructured:
+1. Prediction loop → `records`.
+2. `_contamination(...)` (the only post-loop step that needs the pipeline).
+3. **Free the retrieval models** — `pipeline = None; gc.collect();
+   torch.cuda.empty_cache()`. Guarded by `_pipeline is None` so a
+   test-injected fake is never touched.
+4. `score_run(records, ..., compute_hallucination=False)` — computes
+   everything *except* the NLI pass; sets `hallucination: None`,
+   `hallucination_rate: None`, `hallucination_pending: <has claim records>`.
+5. `write_run(...)` — **`predictions.jsonl` + all non-NLI metrics are now
+   durable.** A crash past this point loses nothing.
+6. `score_hallucination_into(run_dir, nli_scorer)` — reconstructs
+   `ClaimRecord`s from the just-written `predictions.jsonl`, runs the one NLI
+   pass, and **patches `metrics.json` in place** (`src.eval.results.
+   patch_metrics` — merges into the `metrics` block, leaves provenance /
+   `superseded` untouched). Wrapped in `try/except`: a failure prints the
+   exact `rescore` command and leaves the run complete with
+   `hallucination_pending: true`.
+
+**`scripts/analysis/rescore_hallucination.py <run_dir> [...]`** runs step 6
+standalone from `predictions.jsonl` — for a cell whose in-process NLI pass
+still OOM'd, or to re-score after a threshold change. No LLM calls, no
+retrieval models, idempotent.
+
+**The grid runner** (`scripts/run_phase7_grid.ps1`) gains a final sweep:
+after all cells, `rescore_hallucination` every `results/medqa_*_<launch-sha>_*`
+dir that still reads `hallucination_pending: true`.
+
+**Not changed** (deliberately, and because prompts/retrieval/scoring are frozen
+while the grid runs): the NLI model still loads on CUDA if available;
+`OLLAMA_KEEP_ALIVE=-1` stays (throughput across ~500 sequential calls per agent
+cell). The fix is structural — durability ordering + freeing what isn't needed
+— not a retuning.
+
+**Consequences.** `src/eval/harness.py` (`run_eval` reorder,
+`score_hallucination_into`, `score_run(compute_hallucination=…)`),
+`src/eval/results.py` (`patch_metrics`), `scripts/analysis/
+rescore_hallucination.py` (new), `scripts/run_phase7_grid.ps1` (rescore
+sweep). `metrics.json` gains `hallucination_pending`. 464→ tests pass (3 new).
+`scripts/report.py` already tolerates a missing/`None` hallucination block
+(prints `TBD`); a cell with `hallucination_pending: true` shows `TBD` for that
+column until rescored, which is correct.
+
+**Operational note:** the Phase 7 grid runs from the user's own terminal, not a
+Claude Code Bash background job — those have a memory ceiling that killed the
+14-hour run. The harness fix makes each cell survivable regardless.

@@ -71,6 +71,27 @@ Invoke-Cell -Name "B3"          -Command "$B --baselines B3"
 Invoke-Cell -Name "V5"          -Command "$H --config configs/v5.yaml"
 Invoke-Cell -Name "V4-conflict" -Command "$H --config configs/v4_no_conflict.yaml --variant V4-conflict"
 
+# --- rescore sweep (ADR-037) ------------------------------------------------
+# The harness scores hallucination in-process after freeing the retrieval
+# models. If a cell's NLI pass still OOM'd, its metrics.json reads
+# hallucination_pending:true and the run is otherwise complete -- finish it
+# here (NLI model only, no retrieval models, no LLM calls).
+Write-Host ""
+Write-Host "[phase7_grid] rescore sweep for hallucination_pending runs ..."
+$pending = @(
+    Get-ChildItem -Path "$RepoRoot\results" -Directory -Filter "medqa_*_$LaunchShaShort*" |
+    Where-Object {
+        $mp = Join-Path $_.FullName "metrics.json"
+        (Test-Path $mp) -and ((Get-Content -Raw $mp | ConvertFrom-Json).metrics.hallucination_pending -eq $true)
+    } | ForEach-Object { $_.FullName }
+)
+if ($pending.Count -gt 0) {
+    Write-Host "[phase7_grid]   $($pending.Count) run(s) still pending: $($pending -join ', ')"
+    Invoke-Cell -Name "rescore" -Command ("uv run python -m scripts.analysis.rescore_hallucination " + ($pending -join ' '))
+} else {
+    Write-Host "[phase7_grid]   none pending -- every cell scored hallucination in-process."
+}
+
 # --- manifest -----------------------------------------------------------------
 $manifest = [ordered]@{
     phase                 = 7

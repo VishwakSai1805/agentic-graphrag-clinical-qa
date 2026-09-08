@@ -196,3 +196,16 @@ def write_run(
         json.dumps(result.model_dump(mode="json"), indent=2, sort_keys=True), encoding="utf-8"
     )
     return run_dir
+
+
+def patch_metrics(run_dir: Path, updates: dict) -> None:
+    """Merge `updates` into an already-written run's `metrics.json` -> `metrics`
+    block, leaving everything else (provenance, config_hash, superseded flags)
+    untouched. Used to fill in a metric that was deferred at write time -- e.g.
+    the NLI hallucination block, computed after the retrieval models are freed
+    so the two never coexist in RAM (ADR-037). Rewrites the file in place with
+    the same formatting `write_run` uses."""
+    path = Path(run_dir) / "metrics.json"
+    doc = json.loads(path.read_text(encoding="utf-8"))
+    doc["metrics"] = {**doc.get("metrics", {}), **updates}
+    path.write_text(json.dumps(doc, indent=2, sort_keys=True), encoding="utf-8")

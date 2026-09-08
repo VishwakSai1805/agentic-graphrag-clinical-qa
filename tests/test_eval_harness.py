@@ -16,6 +16,7 @@ from src.eval.harness import (
     QuestionRecord,
     resolve_variant,
     run_eval,
+    score_hallucination_into,
     score_run,
 )
 
@@ -234,3 +235,54 @@ def test_run_eval_v0_end_to_end(tmp_path, monkeypatch):
     ]
     assert len(preds) == 4
     assert preds[0]["rationale_claims"]  # rationale was captured and split
+
+
+# --------------------------------------------------------------------------
+# ADR-037: hallucination scoring is deferred past write_run (OOM survivability)
+# --------------------------------------------------------------------------
+
+
+def test_score_run_deferred_leaves_hallucination_pending():
+    recs = [_baseline_record("q1", "A", "A")]
+    m = score_run(recs, dataset="medqa", compute_hallucination=False)
+    assert m["hallucination"] is None
+    assert m["hallucination_rate"] is None
+    assert m["hallucination_pending"] is True  # there ARE claim_records to score
+    # everything else is still computed
+    assert m["accuracy"] == 1.0
+    assert m["invalid_citation_count"] == 0
+
+
+def test_score_hallucination_into_patches_a_written_run(tmp_path):
+    # simulate a grid cell that wrote predictions + non-NLI metrics but whose
+    # NLI pass OOM'd -> rescore standalone from predictions.jsonl
+    from src.config import load_config as _lc
+    from src.eval.results import write_run
+
+    recs = [
+        _baseline_record("q1", "A", "A", entailed_cite=False),  # ungrounded
+        _baseline_record("q2", "B", "B", entailed_cite=True),
+    ]
+    m = score_run(recs, dataset="medqa", compute_hallucination=False)
+    run_dir = write_run(
+        run_id="medqa_V1_deadbeef_20260908T000000Z",
+        cfg=_lc(CONFIG),
+        dataset="medqa",
+        variant="V1",
+        split="test",
+        limit=2,
+        seed=42,
+        predictions=[r.model_dump(mode="json") for r in recs],
+        metrics=m,
+        results_dir=tmp_path,
+    )
+    doc = json.loads((run_dir / "metrics.json").read_text(encoding="utf-8"))
+    assert doc["metrics"]["hallucination_pending"] is True
+
+    hall = score_hallucination_into(run_dir, nli_scorer=lambda p, h: 0.9)
+    assert hall is not None
+    doc2 = json.loads((run_dir / "metrics.json").read_text(encoding="utf-8"))
+    assert doc2["metrics"]["hallucination_pending"] is False
+    # q1's claim is uncited -> ungrounded; q2's is entailed -> grounded -> 1/2
+    assert doc2["metrics"]["hallucination_rate"] == 0.5
+    assert doc2["metrics"]["accuracy"] == 1.0  # untouched
