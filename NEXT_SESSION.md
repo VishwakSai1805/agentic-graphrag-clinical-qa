@@ -1,15 +1,55 @@
 # Next session — start here
 
-**Done:** Phases 0–6, all committed to `master`. Phase 6 harness `ca8f8df`
-(sha recorded `79ee599`); pre-Phase-7 fixes `82ea3d9` (hallucination control),
-`cf3e757` (BM25), `26141cd` (B3 prompt-sensitivity + §6.8 bootstrap index),
-`f469618` (§6.5 KG cache stem-binding). 459 tests pass, ruff clean.
+**Done:** Phases 0–6 + all pre-Phase-7 fixes, committed to `master`. Phase 6
+`ca8f8df`; pre-Phase-7 `82ea3d9`/`cf3e757`/`26141cd`/`f469618`/`be8ad82`;
+B3-in-grid + V4−conflict wiring `d7d3c21`/`a394291`; grid runner `6a44edf`/
+`8f37955`. 461 tests pass, ruff clean.
 
-**The MedQA grid can launch.** Every pre-Phase-7 gate is closed (see below).
-Command: `python -m src.eval.harness --config <cfg> --dataset medqa --split test
---limit 500 --variant <V>` per variant — sequential, no concurrency layer
-(cut, ADR-029). Cut grid (`docs/SCHEDULE.md`): **V1, V3, V5, V4−audit,
-V4−conflict on MedQA test-500, seed 42.** PubMedQA/MedMCQA are cut.
+## THE PHASE 7 GRID IS RUNNING (launched 2026-09-08 13:17Z from `8f37955`)
+
+`scripts/run_phase7_grid.ps1` — 5 cells, MedQA test n=500, seed 42, sequential:
+**V1 → V3 → B3 → V5 → V4−conflict**. Logs in `logs/phase7_<cell>_*.log`;
+`results/phase7_grid/manifest.json` records the launch SHA + per-cell outcomes.
+V4−audit is **deferred** (ADR-036 — needs the binary-audit prompt).
+
+**When the grid finishes — do these, in order, and touch nothing else first:**
+1. Check `results/phase7_grid/manifest.json` — every cell `ExitCode 0`. If a
+   cell failed, read its log before trusting any number.
+2. **Derive the post-hoc-binary analysis** (ADR-036 Constraint B, zero GPU):
+   read the V5 run's `predictions.jsonl`, map each matrix's `SUPPORT`→SUPPORTED
+   / `CONTRADICT`∪`NEUTRAL`→NOT_SUPPORTED, set `s⁻=0`, re-rank with the v5.yaml
+   weights (`α·s⁺ + γ·kg + δ·rerank`), score, write
+   `results/phase7_posthoc_binary_audit/metrics.json`. New script
+   `scripts/analysis/posthoc_binary_audit.py`.
+3. `python -m scripts.report` → `paper/tables/results_grid.{md,tex}`.
+4. **The confirmatory test:** V3 vs V5, accuracy, paired bootstrap 10k seed 42,
+   two-sided (`docs/04` §1.0). Report the verdict — **a null is the finding**.
+5. **Exploratory family** (m=35, `docs/04` §1.0 pairs a,b,d,e,g,h,i,j): paired
+   bootstrap each, Holm-correct across the 35, report. Pairs i/j use the
+   post-hoc-binary from step 2.
+6. Fill `docs/04` §5 grid + §5.1 from `results/` (via `scripts.report`, never
+   by hand). Update `docs/00` §3 C1–C4 from the real numbers.
+
+## Still owed (NOT blocking anything the grid produces)
+
+- **V4−audit implementation** (ADR-036) — binary-audit prompt version
+  (`prompt_versions.audit = "binary_v1"`), `src/agents/audit.py` 2-label
+  parser, `configs/v4_no_audit.yaml`, `harness.VARIANTS["V4-audit"]`, scoring
+  path that zeros `s⁻` and labels the row. Then run it as a **later grid slot**
+  and **re-register** its family pairs in `docs/04` §1.0 *before* that run
+  (V4−audit vs V5, vs V4−conflict, vs post-hoc-binary).
+- **One ambiguity to confirm with the user** (ADR-036): the label mapping was
+  resolved to `SUPPORTED = SUPPORT`, `NOT_SUPPORTED = CONTRADICT∪NEUTRAL` (the
+  B3-analogue reading). The instruction's prose also said "non-NEUTRAL collapses
+  to SUPPORT" which conflicts; ADR-036 flags this.
+- Docs-half MINOR sweep, `models_used` in call-stats (§4.5), ADR-024 status
+  line (§2.2), KG-cache per-phase provenance (ADR-034), §0.6 Gemini Flash.
+
+## Frozen until the grid completes
+
+Do **not** touch prompts, retrieval config, or scoring code while the grid
+runs (per the launch instruction). The launch commit SHA is `8f37955`, logged
+in `results/phase7_grid/manifest.json`.
 
 ---
 
