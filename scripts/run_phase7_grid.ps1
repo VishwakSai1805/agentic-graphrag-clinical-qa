@@ -1,6 +1,6 @@
 # scripts/run_phase7_grid.ps1
 #
-# Phase 7 ablation grid — MedQA test n=500, seed 42 (docs/SCHEDULE.md cut +
+# Phase 7 ablation grid -- MedQA test n=500, seed 42 (docs/SCHEDULE.md cut +
 # ADR-035/036). Sequential; no concurrency layer (ADR-029). Each cell logs to
 # logs/phase7_<cell>_<stamp>.log AND streams to console; a failed cell does not
 # abort the rest. Writes results/phase7_grid/manifest.json recording the launch
@@ -10,14 +10,14 @@
 #   .\scripts\run_phase7_grid.ps1
 #
 # Cells, in run order (essentials first; V4-conflict last so it is the one that
-# gets cut if the machine runs out of overnight — ADR-035 budget contingency):
+# gets cut if the machine runs out of overnight -- ADR-035 budget contingency):
 #   V1  = base.yaml,           --variant V1           (~1 call/q,  fast)
 #   V3  = base.yaml,           --variant V3           (~1 call/q,  fast)
 #   B3  = run_baselines.py --baselines B3             (~3-5 call/q, the prior-work comparison)
 #   V5  = v5.yaml                                     (~5-6 call/q, agents + calibration)
 #   V4-conflict = v4_no_conflict.yaml --variant V4-conflict  (~5-6 call/q; drop first if needed)
 #
-# V4-audit is deferred (ADR-036 — needs the binary-audit prompt). The post-hoc
+# V4-audit is deferred (ADR-036 -- needs the binary-audit prompt). The post-hoc
 # binary variant is derived from the V5 run afterwards (zero GPU).
 
 $ErrorActionPreference = "Continue"
@@ -86,7 +86,7 @@ $manifest = [ordered]@{
     cells_run             = @("V1", "V3", "B3", "V5", "V4-conflict")
     cells_deferred        = @("V4-audit (ADR-036)")
     derived_analyses      = @("post-hoc-binary from the V5 run (ADR-036 Constraint B)")
-    pre_registration      = "docs/04_EVALUATION.md §1.0 (m=35), committed before this run"
+    pre_registration      = "docs/04_EVALUATION.md section 1.0 (m=35), committed before this run"
     cell_outcomes         = $Results
 }
 $manifestPath = Join-Path $OutDir "manifest.json"
@@ -101,7 +101,7 @@ Write-Host "====================================================================
 $Results | Format-Table -AutoSize
 $failed = $Results | Where-Object { $_.ExitCode -ne 0 }
 if ($failed) {
-    Write-Host "[phase7_grid] $($failed.Count) cell(s) FAILED — inspect the logs before running scripts.report or trusting any number."
+    Write-Host "[phase7_grid] $($failed.Count) cell(s) FAILED -- inspect the logs before running scripts.report or trusting any number."
     exit 1
 } else {
     Write-Host "[phase7_grid] all cells OK. Next: derive the post-hoc-binary analysis, then scripts.report."
