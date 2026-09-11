@@ -24,6 +24,7 @@ $ErrorActionPreference = "Continue"
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 Set-Location $RepoRoot
 $env:PYTHONIOENCODING = "utf-8"
+$env:PYTHONUNBUFFERED = "1"   # ADR-044: stdout reaches the log as it is printed
 $env:OLLAMA_KEEP_ALIVE = "-1"
 
 $LogDir = Join-Path $RepoRoot "logs"
@@ -57,7 +58,12 @@ function Invoke-Cell {
     "[phase7_grid] STUB   $Name started $((Get-Date).ToString('u'))`ncmd: $Command" |
         Set-Content -Path $LogPath -Encoding utf8
     $start = Get-Date
-    Invoke-Expression $Command 2>&1 | Tee-Object -FilePath $LogPath -Append
+    # ADR-044: PowerShell 5.1 drops a native command's stderr from
+    # `Invoke-Expression $Command 2>&1 | Tee-Object` -- the Python traceback
+    # never reaches the log (PYTHONUNBUFFERED does not change that). cmd
+    # merges stderr into stdout at the OS level first, so the traceback is
+    # logged; $LASTEXITCODE still carries the command's exit code.
+    cmd /c "$Command 2>&1" | Tee-Object -FilePath $LogPath -Append
     $exit = $LASTEXITCODE
     $elapsed = (Get-Date) - $start
     $status = if ($exit -eq 0) { "OK" } else { "FAILED (exit $exit)" }

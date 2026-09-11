@@ -2983,3 +2983,101 @@ parity with V5 for no change in w/T.
 `scripts/run_phase7_v0_v2.ps1` (`-Only`, one cell per launch);
 `scripts/report.py` and `tests/test_report.py` (the V5-refit row); `docs/04`
 §1.0b, §5, §5.0a (d).
+
+## ADR-044 — V0/V2 completed; V2's exit 1 was a transient CUDA OOM, fixed by a clean retry (not by `expandable_segments`); launchers now actually log the traceback
+Date: 2026-09-11 · Phase: 7 · Status: accepted (runs complete; tooling fix applied and verified)
+
+**Context.** `scripts/run_phase7_v0_v2.ps1` (launch 07:58:20Z) ran V0 to
+completion (`medqa_V0_b24015a-dirty_20260911T080323Z`, 5.1 min). V2 exited 1
+after 0.5 min. `results/phase7_grid/v0_v2_launch.json` records exactly that:
+V2 `ExitCode 1`, `run_dirs.V2 = null`. Its log,
+`logs/phase7_V2_20260911_132820.log`, ends at `[harness] loading dense /
+bm25 / reranker ...` with **no traceback**.
+
+**Diagnosis: a transient CUDA OOM in the reranker.** The error was
+fragmentation, not exhaustion: a 498 MB allocation failed with about 9 GB
+free, immediately after V0 had left Ollama's model resident
+(`OLLAMA_KEEP_ALIVE=-1`). This comes from the operator's console
+diagnosis. **No artifact in the repo captures the traceback**, for the
+reason fixed below. **No code changed.** V2 completed on a clean retry:
+`medqa_V2_b24015a-dirty_20260911T104513Z`, 500/500 `ok`, hallucination
+scored.
+
+**`PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` is not the fix.** It
+was set for the retry, and PyTorch reported it unsupported on this platform
+(Windows), so it had no effect. The retry's success must not be credited to
+it. The likeliest explanation, not verified, is a cleaner GPU memory state
+at relaunch.
+
+**The retry's provenance.** It was launched outside the runner: there is no
+`logs/phase7_V2_*` file for it, and no launch manifest. `v0_v2_launch.json`
+therefore still shows V2 as failed. It is left as written, because results/
+is never hand-edited, and it is an accurate record of that launch. The
+retry's eligibility rests on its own `metrics.json`, and every check below
+passed:
+- `git_sha7 = b24015a-dirty`, and `git_dirty_files` lists only untracked
+  `results/` paths (ADR-038's pattern).
+- `b24015a` is byte-identical to `41f7e14` on `src/`, `configs/`,
+  `pyproject.toml` and `uv.lock` (`scripts.report.code_matches_launch_commit`).
+- Variant V2, split test, limit 500, `n_evaluated` 500, seed 42, not
+  superseded, hallucination scored. All re-checked by
+  `scripts/analysis/unplanned_v0_v2_family.py`'s `validate_run` before U4/U5
+  were computed.
+
+A 3-question V2 run also exists (`medqa_V2_b24015a-dirty_20260911T081145Z`,
+`limit = 3`), made between the failed attempt and the retry. It is not
+superseded but is ineligible everywhere: `scripts/report.py` requires
+`limit == 500`, and `validate_run` requires `n_evaluated == 500`. It is left
+in place.
+
+**Why the traceback vanished: PowerShell, not Python's buffer.** Reproduced
+on this machine (Windows PowerShell 5.1.26100) with a script that prints two
+stdout lines and then raises. Run through the launchers' pattern,
+`Invoke-Expression $Command 2>&1 | Tee-Object -FilePath $LogPath -Append`,
+both stdout lines reach the log and **the traceback never does, with or
+without `PYTHONUNBUFFERED=1`**. The native command's stderr never enters the
+pipeline. (Python 3.9+ line-buffers stderr even when piped, so buffering was
+never the cause of a lost traceback.) The same script run as
+`cmd /c "$Command 2>&1" | Tee-Object ...` logs the full traceback. Also
+checked: through `uv run`, `$LASTEXITCODE` still carries the command's exit
+code (1 for the raise, 0 for a clean run), and a missing command's
+"is not recognized" message is logged too.
+
+**Fix applied (tooling only; `scripts/` is not a run-affecting path, so the
+`41f7e14` pin is untouched).** In all three launchers
+(`run_phase7_grid.ps1`, `run_phase7_v0_v2.ps1`, `run_phase7_v5_refit.ps1`):
+1. `$env:PYTHONUNBUFFERED = "1"`, so stdout reaches the log as it is
+   printed, and a hard kill loses no buffered progress lines.
+2. The invocation is `cmd /c "$Command 2>&1" | Tee-Object`, so the traceback
+   is logged. This is the change that actually recovers tracebacks; (1)
+   alone does not.
+
+All three scripts stay ASCII-only (8f37955) and parse cleanly, and
+`run_phase7_v0_v2.ps1 -DryRun` passes its pin check. Caveat: a `$Command`
+that contains double quotes would need escaping for `cmd /c`. None of the
+current commands does.
+
+**Refines ADR-039, does not overturn it.** ADR-039's repro (a stderr-only
+failure leaves no log) is explained by the same stderr drop. Its
+zero-stdout reading of V5/V4−conflict still points to a failure before the
+first stdout flush, but any traceback those cells printed would have been
+lost regardless.
+
+**Known, not fixed.** Launcher logs are mixed-encoding: the stub is written
+UTF-8 by `Set-Content`, and PowerShell 5.1's `Tee-Object -Append` writes
+UTF-16LE. A plain `grep Traceback` on a log therefore misses. Read them with
+`Get-Content`, or strip the NULs first.
+
+**Alternatives considered.** (1) `PYTHONUNBUFFERED` alone, as first
+proposed: verified insufficient above. (2) `Start-Process
+-RedirectStandardError` to a second file: splits the log in two and loses
+the interleaving. (3) Moving the launchers to PowerShell 7, which changes
+native stderr handling: not installed here, and a runtime change for the
+grid's tooling mid-phase.
+
+**Consequences.** `scripts/run_phase7_grid.ps1`,
+`scripts/run_phase7_v0_v2.ps1`, `scripts/run_phase7_v5_refit.ps1`. The
+unplanned family ran on V0 `...080323Z`, V2 `...104513Z` and V5-refit
+`...074318Z` (`results/phase7_grid/unplanned_v0_v2_family.json`, m_U = 18
+of 18). `scripts/report.py` tabulates all three, and its per-row status
+prose is now derived from which rows have runs (`tests/test_report.py`).

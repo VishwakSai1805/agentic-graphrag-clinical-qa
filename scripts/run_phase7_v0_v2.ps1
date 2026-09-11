@@ -35,6 +35,7 @@ $ErrorActionPreference = "Continue"
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 Set-Location $RepoRoot
 $env:PYTHONIOENCODING = "utf-8"
+$env:PYTHONUNBUFFERED = "1"   # ADR-044: stdout reaches the log as it is printed
 $env:OLLAMA_KEEP_ALIVE = "-1"
 
 $PinnedCommit = "41f7e14"
@@ -108,7 +109,9 @@ function Invoke-Cell {
     "[phase7_v0_v2] STUB   $Name started $((Get-Date).ToString('u'))`ncmd: $Command" |
         Set-Content -Path $LogPath -Encoding utf8
     $start = Get-Date
-    Invoke-Expression $Command 2>&1 | Tee-Object -FilePath $LogPath -Append
+    # ADR-044: cmd merges the traceback (stderr) into stdout before PowerShell
+    # sees it; `Invoke-Expression $Command 2>&1 | Tee-Object` dropped it.
+    cmd /c "$Command 2>&1" | Tee-Object -FilePath $LogPath -Append
     $exit = $LASTEXITCODE
     $elapsed = (Get-Date) - $start
     $status = if ($exit -eq 0) { "OK" } else { "FAILED (exit $exit)" }
@@ -132,7 +135,7 @@ foreach ($name in $Cells.Keys) {
 
 # --- rescore sweep (ADR-037) ----------------------------------------------------
 # Relative paths: an absolute path under "AI Project" contains a space and
-# would split inside Invoke-Expression.
+# would split inside the cmd /c command line.
 $pending = @(
     foreach ($name in $RunDirs.Keys) {
         $rd = $RunDirs[$name]

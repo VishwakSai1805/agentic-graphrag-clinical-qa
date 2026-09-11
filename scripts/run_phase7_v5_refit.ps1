@@ -34,6 +34,7 @@ $ErrorActionPreference = "Continue"
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 Set-Location $RepoRoot
 $env:PYTHONIOENCODING = "utf-8"
+$env:PYTHONUNBUFFERED = "1"   # ADR-044: stdout reaches the log as it is printed
 
 $PinnedCommit = "41f7e14"
 $RunPaths = @("src", "configs", "pyproject.toml", "uv.lock")
@@ -125,7 +126,9 @@ Write-Host "====================================================================
 "[phase7_v5_refit] STUB   V5-refit started $((Get-Date).ToString('u'))`ncmd: $Command" |
     Set-Content -Path $LogPath -Encoding utf8
 $start = Get-Date
-Invoke-Expression $Command 2>&1 | Tee-Object -FilePath $LogPath -Append
+# ADR-044: cmd merges the traceback (stderr) into stdout before PowerShell
+# sees it; `Invoke-Expression $Command 2>&1 | Tee-Object` dropped it.
+cmd /c "$Command 2>&1" | Tee-Object -FilePath $LogPath -Append
 $exit = $LASTEXITCODE
 $minutes = [math]::Round(((Get-Date) - $start).TotalMinutes, 1)
 
