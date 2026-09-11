@@ -3125,3 +3125,60 @@ retrieval-step effect this project did not detect.
 C1–C4 statuses) and `docs/04_EVALUATION.md` §5.0a (U1–U8 table, tier
 structure, grounding vs accuracy). Paper prose must use these forms. Any
 stronger wording needs a new test first, not new adjectives.
+
+## ADR-046 — A post-hoc tier-boundary family (m=7): test the step the central claim rests on, labelled as post-hoc
+Date: 2026-09-11 · Phase: 7 · Status: accepted (registered and committed before its p-values were computed; results appended below)
+
+**Context.** ADR-045 frames the Phase 7 result as two tiers separated by one
+significant step. That step was established only by cross-tier pairs
+against V5 / V5-refit (U3, e, confirmatory, h, U8). The boundary step on the
+nested component chain, **V3 (0.546) → V4−conflict (0.358)**, appears in no
+family: not the pre-registered m=35, not the unplanned U1–U8. §5.0a admits
+this ("No test places V4−conflict directly against a retrieval-tier
+variant"), and ADR-045 lists V0 vs V4−conflict and V0 vs B3 as untested.
+The paper's central claim therefore rests partly on inference from adjacent
+pairs.
+
+**Decision.** Run a separate **post-hoc** family, `docs/04` §1.0c:
+- X1: V3 vs V4−conflict, on accuracy, Macro-F1 and halluc-rate.
+- X2: V0 vs V4−conflict, on accuracy and Macro-F1.
+- X3: V0 vs B3, on accuracy and Macro-F1.
+
+m_X = 7. Paired bootstrap, 10k resamples, seed 42, Holm within the 7 only.
+`scripts/analysis/posthoc_boundary_family.py` →
+`results/phase7_grid/posthoc_boundary_family.json`. The script, its test,
+§1.0c and this ADR are committed before the script is run, so the family's
+composition verifiably predates its p-values. **Its pairs do not predate
+their point estimates.** That is exactly why the family is post-hoc.
+
+**Labelling rules.** Identified after the tier structure was visible,
+therefore post-hoc, therefore:
+1. Reported in its own table under the post-hoc label.
+2. Never pooled with the m=35 or U1–U8 families, and never used to
+   re-threshold or reinterpret them.
+3. **Never cited as pre-registered support.** The paper may say the
+   boundary step "was also tested post hoc", with the result. It may not
+   list X1 among the planned tests.
+
+**Why run it rather than leave it.** An untested central step is the worse
+failure. The alternative is a claim that rests on "V4−conflict ties V5, and
+V5 loses to V3", which is inference through a third cell and is not a test
+of the step itself. A post-hoc test with an honest label adds information
+and costs nothing in validity, provided the label holds. The selection risk
+post-hoc testing usually carries, choosing pairs because they look
+significant, is bounded here. X1 was chosen *because* §5.0a and ADR-045 had
+already named it as the missing test, not by scanning for the largest gap.
+And all three pairs are fixed before any p-value is computed.
+
+**Alternatives rejected.** (1) Add X1–X3 to U1–U8: that family's thresholds
+were fixed before its outcomes, and adding cells now moves them after the
+fact (the same reason U1–U8 never merged into m=35). (2) Leave the step
+untested and keep the "inference from adjacent pairs" caveat: the caveat
+would sit on the paper's headline. (3) Also add V0 vs V2 and B3 vs
+V4−conflict: not requested when the family was specified, and adding pairs
+now would widen the family on reasoning formed after the tier structure was
+visible. Both stay listed as untested in §1.0c.
+
+**Consequences.** `scripts/analysis/posthoc_boundary_family.py`,
+`tests/test_posthoc_boundary_family.py`, `docs/04` §1.0c. Results go to
+§5.0a and below.

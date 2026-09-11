@@ -278,6 +278,35 @@ code, ADR-043 and this table are committed); then
 scripts.analysis.unplanned_v0_v2_family --v0 <V0 run dir> --v2 <V2 run dir>
 --v5-refit <V5-refit run dir>` → `results/phase7_grid/unplanned_v0_v2_family.json`.
 
+### 1.0c POST-HOC tier-boundary family (identified 2026-09-11 after the grid's two-tier structure was visible; ADR-046)
+
+**This family is post-hoc.** Its pairs were chosen after every Phase 7 point
+estimate, and the two-tier structure in §5.0a, were already known. It is
+reported separately. It is never pooled with the m=35 family or the U1–U8
+family, never used to reinterpret either, and **never cited as
+pre-registered support**. It exists because §5.0a's central claim, one
+significant step at the retrieval/agent boundary, otherwise rests on
+inference. The boundary step on the component chain, V3 → V4−conflict,
+appears in no earlier family. The drop was established only by cross-tier
+pairs against V5 / V5-refit.
+
+| # | Pair | Metrics tested | count |
+|---|---|---|---|
+| X1 | **V3 vs V4−conflict** | Acc, Macro-F1, halluc-rate | 3 |
+| X2 | V0 vs V4−conflict | Acc, Macro-F1 | 2 |
+| X3 | V0 vs B3 | Acc, Macro-F1 | 2 |
+
+**m_X = 7**, fixed, together with the script
+(`scripts/analysis/posthoc_boundary_family.py`), and committed before any of
+its p-values was computed. Holm–Bonferroni within these 7 only; same method
+as §1.0 / §1.0b (paired bootstrap, 10k resamples, seed 42, two-sided). There
+is no halluc-rate cell for a V0 pair (by construction, §1.0b), and B3 has no
+claim-level NLI data. Holm decides "significant". An unadjusted CI that
+excludes zero is reported as "not significant after Holm", never as a
+finding. Not in the family, and still untested: V0 vs V2, and B3 vs
+V4−conflict. They were not added after the fact.
+Output: `results/phase7_grid/posthoc_boundary_family.json`.
+
 ## 2. Factual fidelity
 - **RAGAS faithfulness** — fraction of generated claims entailed by the retrieved
   context. Pin the RAGAS version; run with a fixed judge model recorded in config.
