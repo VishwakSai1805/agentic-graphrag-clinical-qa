@@ -69,10 +69,15 @@ FAMILY_M = 7
 COMPARATORS = ("V3", "V4-conflict", "B3")
 
 
-def _verdict(res: dict, side_a: str, side_b: str) -> str:
-    """Family-level verdict: Holm decides "significant", the raw CI never does."""
+LOWER_IS_BETTER = frozenset({"halluc_rate"})
+
+
+def _verdict(res: dict, side_a: str, side_b: str, metric: str) -> str:
+    """Family-level verdict: Holm decides "significant", the raw CI never does.
+    "Better" respects the metric's direction (lower halluc-rate is better)."""
     if res["holm_reject"]:
-        winner = side_a if res["ci_lo"] > 0 else side_b
+        a_higher = res["ci_lo"] > 0
+        winner = side_a if a_higher != (metric in LOWER_IS_BETTER) else side_b
         return f"{winner} significantly better (Holm, post-hoc family)"
     if res["ci_lo"] > 0 or res["ci_hi"] < 0:
         return "not significant after Holm (unadjusted 95% CI excludes 0)"
@@ -124,7 +129,7 @@ def run_family(run_dirs: dict[str, Path], out_path: Path) -> dict:
     for key, h in holm_bonferroni(p_values, alpha=ALPHA).items():
         r = results[key]
         r.update(holm_rank=h["rank"], holm_threshold=h["threshold"], holm_reject=h["reject"])
-        r["verdict"] = _verdict(r, r["side_a"], r["side_b"])
+        r["verdict"] = _verdict(r, r["side_a"], r["side_b"], r["metric"])
 
     out = {
         "family": "POST-HOC -- tier-boundary pairs untested by any earlier family (ADR-046)",

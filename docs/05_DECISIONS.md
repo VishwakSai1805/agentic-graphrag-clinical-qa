@@ -3182,3 +3182,36 @@ visible. Both stay listed as untested in §1.0c.
 **Consequences.** `scripts/analysis/posthoc_boundary_family.py`,
 `tests/test_posthoc_boundary_family.py`, `docs/04` §1.0c. Results go to
 §5.0a and below.
+
+**Results (appended after the run; the registration above was committed as
+`d53b40f` before `posthoc_boundary_family.json` existed).** All 7 cells
+reject under Holm within the family:
+- **X1:** V3 > V4−conflict by +0.188 accuracy (95% CI [+0.132, +0.244],
+  p < 0.0001) and +0.204 macro-F1. V4−conflict's halluc-rate is
+  significantly lower (0.725 vs 0.883). **The boundary step is now tested
+  directly, post-hoc.**
+- **X2:** V0 > V4−conflict by +0.224 accuracy and +0.238 macro-F1.
+- **X3:** V0 > B3 by +0.044 accuracy (CI [+0.014, +0.076], p = 0.0054) and
+  +0.042 macro-F1. This was not the expected direction for a
+  "flat retrieval tier". It is the first within-tier pair to survive
+  correction in any family.
+
+**Amends ADR-045's wording, not its decision.** ADR-045's "every tested pair
+inside the retrieval tier ties" now needs the qualifier "in the planned and
+unplanned families". Post-hoc, zero-shot beats B3. That is the tier's
+highest cell against its lowest, under m = 7 (p = 0.0054 would not clear
+U1–U8's m = 18 rank-1 threshold of 0.00278; stated to calibrate the
+result, not to re-threshold). "Retrieval hurts" therefore stays
+unsupported by any planned or unplanned test. It now has one post-hoc
+signal, recorded as the motivation for a pre-registered V0-vs-B3 and
+V0-vs-V3 test on MedMCQA, not as a MedQA claim. The step at the boundary
+is unchanged and is now directly tested: 0.19–0.27 accuracy across all
+cross-tier pairs.
+
+**A labelling bug, caught and fixed before any doc used the output.** The
+first run's `verdict` string called X1's halluc-rate "V3 significantly
+better", because it read the sign of A − B as "better" for a
+lower-is-better metric. `_verdict` now respects metric direction
+(`LOWER_IS_BETTER`, with a test case), and the family was re-run. The
+p-values, CIs and Holm decisions are identical, since only the label
+changed. The family's composition is unchanged from `d53b40f`.

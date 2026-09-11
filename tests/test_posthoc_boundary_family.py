@@ -18,16 +18,18 @@ def test_family_size_is_fixed_at_seven_with_no_v0_halluc_cell():
 
 
 @pytest.mark.parametrize(
-    "res, expect",
+    "res, metric, expect",
     [
-        ({"holm_reject": True, "ci_lo": 0.1, "ci_hi": 0.2}, "A significantly better"),
-        ({"holm_reject": True, "ci_lo": -0.2, "ci_hi": -0.1}, "B significantly better"),
-        ({"holm_reject": False, "ci_lo": 0.01, "ci_hi": 0.2}, "not significant after Holm"),
-        ({"holm_reject": False, "ci_lo": -0.01, "ci_hi": 0.2}, "tie"),
+        ({"holm_reject": True, "ci_lo": 0.1, "ci_hi": 0.2}, "accuracy", "A significantly better"),
+        ({"holm_reject": True, "ci_lo": -0.2, "ci_hi": -0.1}, "accuracy", "B significantly better"),
+        # A's halluc-rate is significantly HIGHER -> B is the better side
+        ({"holm_reject": True, "ci_lo": 0.1, "ci_hi": 0.2}, "halluc_rate", "B significantly"),
+        ({"holm_reject": False, "ci_lo": 0.01, "ci_hi": 0.2}, "accuracy", "not significant after"),
+        ({"holm_reject": False, "ci_lo": -0.01, "ci_hi": 0.2}, "accuracy", "tie"),
     ],
 )
-def test_verdict_is_decided_by_holm_not_by_the_raw_ci(res, expect):
-    assert fam._verdict(res, "A", "B").startswith(expect)
+def test_verdict_is_decided_by_holm_and_respects_metric_direction(res, metric, expect):
+    assert fam._verdict(res, "A", "B", metric).startswith(expect)
 
 
 def _write(run_dir, preds, per_claim=None):

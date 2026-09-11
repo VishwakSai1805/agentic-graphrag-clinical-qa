@@ -792,7 +792,8 @@ one large step:**
 - **Retrieval tier: {V0, V1, V2, V3, B3}, accuracy 0.538–0.582.** Every
   tested pair inside the tier ties after correction: U1 V0–V1, U5 V1–V2, U4
   V2–V3, pair a V1–V3, pair g V3–B3, and U2 V0–V3 (unadjusted only). At
-  n = 500 the within-tier decline cannot be told apart from zero.
+  n = 500 no adjacent within-tier step can be told apart from zero. (The
+  post-hoc X3, V0 vs B3, below, is the one within-tier exception.)
 - **Agent tier: {V4−conflict, V5, V5-refit}, accuracy 0.292–0.358.** Every
   tested pair inside the tier ties after correction: pair d V4−conflict–V5,
   U6 V5–V5-refit, and U7 V4−conflict–V5-refit (unadjusted only).
@@ -801,13 +802,65 @@ one large step:**
   +0.266), V1 > V5 (pair e, +0.250), V3 > V5 (confirmatory, +0.230),
   B3 > V5 (pair h, +0.222) and V3 > V5-refit (U8, +0.254).
 
-No test places V4−conflict directly against a retrieval-tier variant. Its
-lower-tier placement rests on its point estimate (0.358) and its tie with V5
-(pair d), not on a V3-vs-V4−conflict test. **Stated plainly: the entire
-measurable accuracy loss arrives with the graded audit-and-rank stack.**
-Adding retrieval modalities moves accuracy by amounts this sample cannot
-resolve. Zero-shot has the highest point estimate in the grid, but it is
-significantly better only than the agent tier.
+*(Superseded in part by the post-hoc family directly below.)* When the
+paragraphs above were written, no test placed V4−conflict directly against a
+retrieval-tier variant, and its lower-tier placement rested on inference
+through V5. §1.0c's post-hoc family now tests the boundary step directly.
+
+**Post-hoc tier-boundary family results: X1–X3 (§1.0c, ADR-046).**
+**POST-HOC. The pairs were identified after the tier structure above was
+visible.** The family (m_X = 7) was committed before its p-values were
+computed (`d53b40f`). It is Holm-corrected within these 7 only, never pooled
+with the m=35 or U1–U8 families, and **never cited as pre-registered
+support.** `scripts/analysis/posthoc_boundary_family.py` →
+`results/phase7_grid/posthoc_boundary_family.json`. Rows are generated from
+the JSON (diff = A − B):
+
+| pair | A vs B | metric | A | B | diff | 95% CI | p | Holm rank | Holm thr. | Holm reject |
+|---|---|---|---|---|---|---|---|---|---|---|
+| X1 | V3 vs V4-conflict | accuracy | 0.546 | 0.358 | +0.188 | [+0.132,+0.244] | <0.0001 | 1 | 0.00714 | **yes** |
+| X1 | V3 vs V4-conflict | macro-F1 | 0.545 | 0.342 | +0.204 | [+0.149,+0.258] | <0.0001 | 2 | 0.00833 | **yes** |
+| X1 | V3 vs V4-conflict | halluc-rate | 0.883 | 0.725 | +0.158 | [+0.119,+0.198] | <0.0001 | 3 | 0.01000 | **yes** (V4−conflict lower) |
+| X2 | V0 vs V4-conflict | accuracy | 0.582 | 0.358 | +0.224 | [+0.170,+0.280] | <0.0001 | 4 | 0.01250 | **yes** |
+| X2 | V0 vs V4-conflict | macro-F1 | 0.579 | 0.342 | +0.238 | [+0.184,+0.292] | <0.0001 | 5 | 0.01667 | **yes** |
+| X3 | V0 vs B3 | accuracy | 0.582 | 0.538 | +0.044 | [+0.014,+0.076] | 0.0054 | 6 | 0.02500 | **yes** |
+| X3 | V0 vs B3 | macro-F1 | 0.579 | 0.537 | +0.042 | [+0.011,+0.073] | 0.0058 | 7 | 0.05000 | **yes** |
+
+All 7 cells reject. What each pair adds, with its label attached:
+
+- **X1: the boundary step, tested directly (post-hoc), is significant.** V3
+  scores +0.188 accuracy above V4−conflict (95% CI [+0.132, +0.244]). The
+  step no longer rests on inference through V5. As in pair b,
+  V4−conflict's halluc-rate is significantly *lower* (0.725 vs 0.883,
+  relative-only per §3 / ADR-031). The accuracy loss and the halluc-rate
+  reduction arrive at the same boundary.
+- **X2:** zero-shot beats the agent tier's best cell by +0.224 (post-hoc).
+- **X3 qualifies the retrieval tier: post-hoc, zero-shot significantly
+  beats B3** (+0.044, CI [+0.014, +0.076], p = 0.0054). B3 is V3's
+  tri-modal retrieval plus the binary verifier. This is the first
+  within-tier pair to survive correction in any family, so "every pair
+  inside the retrieval tier ties" no longer holds without a qualifier. Read
+  it at its real weight. It is post-hoc. Its correction is m = 7, looser
+  than U1–U8's m = 18: p = 0.0054 would not clear m = 18's rank-1
+  threshold of 0.00278, and that comparison is stated only to calibrate the
+  result, never to re-threshold either family. It sits at the extremes of
+  the tier (its highest and lowest cells). It joins U2 (V0 vs V3, +0.036,
+  unadjusted only) in pointing the same direction.
+
+**Revised statement of the structure.** One large step at the
+retrieval/agent boundary: 0.19–0.27 accuracy, significant in every
+cross-tier test run, and now tested at the boundary step itself (X1,
+post-hoc). Inside the retrieval tier there is a small decline. Adjacent
+pairs cannot resolve it (U1, U5, U4, a, g all tie). It becomes detectable
+only between the tier's extremes, and only post-hoc (X3) or unadjusted
+(U2). **Stated plainly: nearly all the measurable accuracy loss arrives with
+the graded audit-and-rank stack.** Within retrieval, "retrieval does not
+help" is established. "Retrieval hurts" still has no support from any
+planned or unplanned test. It has one post-hoc signal: zero-shot over the
+retrieval + binary-verifier baseline B3, by 0.044. That signal is a reason
+for a pre-registered test in the next dataset (MedMCQA), not a claim for
+this one. Zero-shot has the highest point estimate in the grid. It is
+significantly better than the whole agent tier, and, post-hoc, than B3.
 
 **Grounding vs. accuracy: a trade-off, stated as one.** Accuracy and
 `grounded_rate` per cell, from each run's `metrics.json` (also the `Grounded`

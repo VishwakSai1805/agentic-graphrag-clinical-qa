@@ -50,19 +50,30 @@ plus the binary verifier) at 0.538 and V5-refit (V5 re-scored) at 0.292.
 grid.** The significance tests resolve that monotone sequence into two tiers
 (`docs/04` §5.0a):
 
-- **Retrieval tier, {V0, V1, V2, V3, B3}: no tested difference survives
-  correction.** That includes **V0 vs V1, a tie** (+0.016, 95% CI [−0.008,
-  +0.042], p = 0.2308, U1). V0 vs V3 (+0.036) clears an unadjusted CI but
-  not Holm (U2).
+- **Retrieval tier, {V0, V1, V2, V3, B3}: no planned or unplanned
+  difference survives correction.** That includes **V0 vs V1, a tie**
+  (+0.016, 95% CI [−0.008, +0.042], p = 0.2308, U1). V0 vs V3 (+0.036)
+  clears an unadjusted CI but not Holm (U2). **One post-hoc exception:**
+  zero-shot beats B3 (tri-modal retrieval plus the binary verifier) by
+  +0.044, 95% CI [+0.014, +0.076], p = 0.0054. That is X3, significant
+  within the post-hoc m=7 family (`docs/04` §1.0c, ADR-046), and
+  identified after the tier structure was visible.
 - **Agent tier, {V4−conflict, V5, V5-refit}: no tested difference survives
-  correction either** (pair d, U6, U7).
-- **Between the tiers: a 0.22–0.27 accuracy drop, significant in every
-  cross-tier test run.** V0 > V5 (U3), V1 > V5 (pair e), V3 > V5 (the
-  confirmatory test), B3 > V5 (pair h), V3 > V5-refit (U8).
+  correction** (pair d, U6, U7).
+- **Between the tiers: a 0.19–0.27 accuracy drop, significant in every
+  cross-tier test run.** The pairs are V0 > V5 (U3), V1 > V5 (pair e),
+  V3 > V5 (the confirmatory test), B3 > V5 (pair h) and V3 > V5-refit (U8).
+  The boundary step itself was tested post-hoc: **V3 > V4−conflict, +0.188,
+  CI [+0.132, +0.244] (X1)**, and V0 > V4−conflict, +0.224 (X2). Before
+  X1 the step rested on inference through V5. X1 tests it directly, with
+  the post-hoc label attached.
 
 **What the data support.** Retrieval does not improve accuracy over
-zero-shot. **"Retrieval hurts" is not supported:** the one direct test is a
-tie. The graded audit-and-rank stack, this project's own contribution,
+zero-shot. **"Retrieval hurts" is not supported by any planned or unplanned
+test:** the one direct test, U1, is a tie. The only signal in that
+direction is post-hoc (X3: zero-shot over B3). It sits between the tier's
+extreme cells, under a looser m=7 correction. It motivates a pre-registered
+test on MedMCQA and is not a claim for MedQA. The graded audit-and-rank stack, this project's own contribution,
 significantly hurts accuracy against zero-shot and against every
 retrieval-tier variant it was tested against, and correcting its scoring
 rule does not change that. C1–C3 each now have n=500 test evidence against
@@ -91,7 +102,8 @@ work adds, stated only as strongly as the data allow:
    generator.
 2. **It locates where a real, significant loss does occur, and gives its
    mechanism.** The loss is not at the retrieval step. It is at the graded
-   audit-and-rank layer: 0.22–0.27 accuracy. ADR-041 explains it: V5's
+   audit-and-rank layer: 0.19–0.27 accuracy, including the boundary step
+   itself (X1, post-hoc). ADR-041 explains it: V5's
    calibrated score is functionally a "fewest CONTRADICT cells" rule, and
    that rule cannot separate the gold option from options the audit never
    examined. In MEGA-RAG's Table 2 the full system recovers above the plain
@@ -249,10 +261,11 @@ test-set runs (V0, V1, V2, V3, B3, V5, V4−conflict, code identical to
 and every MedMCQA/PubMedQA row remains `TBD` (never run: C4's
 empirical-study scope is still only one-third delivered).** The delivered
 third's headline is the two-tier step above. Retrieval does not beat
-zero-shot, and the agent stack sits 0.22–0.27 accuracy below both. Every
-adjacent step of the component chain that was tested is a tie. The one step
-where the drop sits, V3 → V4−conflict, was never tested directly. The drop
-is established by the cross-tier pairs listed in the headline.
+zero-shot, and the agent stack sits 0.19–0.27 accuracy below both. Every
+adjacent step of the component chain is a tie except V3 → V4−conflict,
+where the drop sits. That step was tested only post-hoc (X1, +0.188,
+significant), and it is reported under that label, never as a planned
+test.
 The one pre-registered confirmatory comparison is done: **V3 significantly
 beats V5 on accuracy** (0.546 vs 0.316, paired bootstrap 10k resamples seed
 42, 95% CI [+0.172, +0.288], p<0.0001, `docs/04` §5.0a) — not the null the
