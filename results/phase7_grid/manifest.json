@@ -1,0 +1,139 @@
+{
+  "phase": 7,
+  "rebuilt_by": "scripts/analysis/rebuild_phase7_manifest.py",
+  "launch_commit": "41f7e14df845b1fcfa256141da41a03ba0ff8720",
+  "launch_commit_short": "41f7e14",
+  "dataset": "medqa",
+  "split": "test",
+  "n": 500,
+  "seed": 42,
+  "cells_run": [
+    "V1",
+    "V3",
+    "B3",
+    "V5",
+    "V4-conflict"
+  ],
+  "cells_deferred": [
+    "V4-audit (ADR-036)"
+  ],
+  "derived_analyses": [
+    "post-hoc-binary from the V5 run (ADR-036 Constraint B) -- results/phase7_posthoc_binary_audit/"
+  ],
+  "pre_registration": "docs/04_EVALUATION.md section 1.0 (m=35), committed before this run",
+  "dirty_stamp_resolution": "Four of five cells carry a '-dirty' git_sha7 suffix. Resolved in docs/05_DECISIONS.md ADR-038: every run's own git_dirty_files list names only untracked results/ output directories from earlier cells in this same grid (plus results/phase7_grid/ itself), never a tracked src/, configs/, or scripts/ path. No tracked file differed from 41f7e14 at any point during the grid; the launch commit is authoritative for all five cells.",
+  "cell_outcomes": [
+    {
+      "cell": "V1",
+      "run_id": "medqa_V1_41f7e14_20260908T212655Z",
+      "git_sha7": "41f7e14-dirty",
+      "launched_by": "runner",
+      "runner_attempt": {
+        "exit_code": 0,
+        "minutes": 50.7,
+        "log": "C:\\Claude\\AI Project\\logs\\phase7_V1_20260909_020855.log",
+        "log_written": true
+      },
+      "n_evaluated": 500,
+      "accuracy": 0.566,
+      "status_counts": {
+        "ok": 499,
+        "parse_error": 1
+      },
+      "hallucination_pending": false
+    },
+    {
+      "cell": "V3",
+      "run_id": "medqa_V3_41f7e14-dirty_20260908T230633Z",
+      "git_sha7": "41f7e14-dirty",
+      "launched_by": "runner",
+      "runner_attempt": {
+        "exit_code": 0,
+        "minutes": 99.7,
+        "log": "C:\\Claude\\AI Project\\logs\\phase7_V3_20260909_020855.log",
+        "log_written": true
+      },
+      "n_evaluated": 500,
+      "accuracy": 0.546,
+      "status_counts": {
+        "ok": 500
+      },
+      "hallucination_pending": false
+    },
+    {
+      "cell": "B3",
+      "run_id": "medqa_B3_41f7e14-dirty_20260909T023658Z",
+      "git_sha7": "41f7e14-dirty",
+      "launched_by": "runner",
+      "runner_attempt": {
+        "exit_code": 0,
+        "minutes": 207.7,
+        "log": "C:\\Claude\\AI Project\\logs\\phase7_B3_20260909_020855.log",
+        "log_written": true
+      },
+      "n_evaluated": 500,
+      "accuracy": 0.538,
+      "status_counts": {
+        "ok": 500
+      },
+      "hallucination_pending": null
+    },
+    {
+      "cell": "V5",
+      "run_id": "medqa_V5_41f7e14-dirty_20260909T103452Z",
+      "git_sha7": "41f7e14-dirty",
+      "launched_by": "manual",
+      "runner_attempt": {
+        "exit_code": 2,
+        "minutes": 0.0,
+        "log": "C:\\Claude\\AI Project\\logs\\phase7_V5_20260909_020855.log",
+        "log_written": false
+      },
+      "n_evaluated": 500,
+      "accuracy": 0.316,
+      "status_counts": {
+        "agent_error": 4,
+        "insufficient_evidence": 37,
+        "ok": 459
+      },
+      "hallucination_pending": false,
+      "manual_run_note": "Runner's Invoke-Expression attempt exited 2 with no log written (see 'investigation' below). Run manually afterward from the same launch commit (41f7e14); duration not captured -- config.yaml/predictions.jsonl/metrics.json are all written together at completion by write_run(), so file mtimes record completion time only, not a start time, and no independent stopwatch exists for a manual invocation."
+    },
+    {
+      "cell": "V4-conflict",
+      "run_id": "medqa_V4-conflict_41f7e14-dirty_20260909T220306Z",
+      "git_sha7": "41f7e14-dirty",
+      "launched_by": "manual",
+      "runner_attempt": {
+        "exit_code": 2,
+        "minutes": 0.0,
+        "log": "C:\\Claude\\AI Project\\logs\\phase7_V4-conflict_20260909_020855.log",
+        "log_written": false
+      },
+      "n_evaluated": 500,
+      "accuracy": 0.358,
+      "status_counts": {
+        "agent_error": 4,
+        "insufficient_evidence": 37,
+        "ok": 459
+      },
+      "hallucination_pending": false,
+      "manual_run_note": "Runner's Invoke-Expression attempt exited 2 with no log written (see 'investigation' below). Run manually afterward from the same launch commit (41f7e14); duration not captured -- config.yaml/predictions.jsonl/metrics.json are all written together at completion by write_run(), so file mtimes record completion time only, not a start time, and no independent stopwatch exists for a manual invocation."
+    }
+  ],
+  "investigation": {
+    "question": "Why did Invoke-Cell in run_phase7_grid.ps1 never launch V5 and V4-conflict?",
+    "confirmed": [
+      "No log file exists for either cell at the grid's launch stamp (no logs/phase7_V5_20260909_020855.log, no logs/phase7_V4-conflict_20260909_020855.log), even though Invoke-Cell unconditionally appends to $script:Results after every attempt -- the manifest entry with ExitCode=2 proves the function body ran to completion for both cells.",
+      "Empirically reproduced on this machine (Windows PowerShell 5.1, the version this repo runs on): `Invoke-Expression <cmd> 2>&1 | Tee-Object -FilePath $LogPath` creates $LogPath only once it receives at least one pipeline object. A native command that exits non-zero after producing ZERO stdout -- even if it writes to stderr, which 2>&1 nominally merges in -- causes Tee-Object to receive nothing and never create the file. Verified directly: `python -c \"import sys; print(1,file=sys.stderr); sys.exit(2)\"` run through the exact Invoke-Cell pattern leaves no log, exit=2 -- reproducing V5/V4-conflict's signature exactly.",
+      "src/eval/harness.py's main() only emits its first stdout line (`torch.cuda.is_available() = ...`) AFTER argparse.parse_args() succeeds. Zero stdout is therefore consistent with a failure at or before argument parsing / Python startup -- not a crash mid-run (mid-run would have flushed at least the cuda-status line and any harness prints before dying, and Minutes would not read 0.0)."
+    ],
+    "ruled_out": [
+      "argparse rejecting --variant V4-conflict as an invalid choice: VARIANTS in src/eval/harness.py already registers 'V4-conflict' (used for resolve_variant / scoring), so it is a valid --variant value. Also would not explain V5's failure, which passes no --variant flag at all.",
+      "A PowerShell parse error in the command STRING itself: both commands are plain space-separated CLI invocations, structurally identical to V1/V3's (which succeeded from the same $H template) and V4-conflict's own --variant token, differing only in the config path / trailing --variant value."
+    ],
+    "leading_hypothesis": "Resource exhaustion on the 15 GB machine (ADR-037's own documented OOM history), not a code defect in either cell. B3 (the immediately preceding cell) ran 207.7 minutes with OLLAMA_KEEP_ALIVE=-1, so Ollama's 7B model stayed resident the entire time; V5 and V4-conflict are the two heaviest remaining cells (agents + calibration, agents alone) and need to load the retrieval stack (dense/BM25/cross-encoder models) on top of that resident model. Python's stdout is block-buffered (not line-buffered) when piped rather than attached to a real console, exactly Invoke-Cell's situation -- so an abrupt process kill (OS-level OOM) before the buffer's first flush would lose ALL buffered output, including the cuda-status line, leaving zero stdout: consistent with the confirmed Tee-Object behavior above, the zero-stdout evidence from harness.py's print ordering, and the fact that only the two most memory-hungry cells, run back-to-back right after the longest prior cell, were the ones affected.",
+    "not_certain": "The OOM hypothesis is not independently verified (no OS-level crash log was captured at the time, and it cannot be reproduced now without repeating the exact memory conditions of that night, which would mean rerunning scoring code -- out of scope here). It is reported as the leading, evidence-consistent hypothesis, not a confirmed root cause.",
+    "fix_applied": "run_phase7_grid.ps1's Invoke-Cell now writes a one-line stub log (cell name, command, timestamp) via Set-Content BEFORE invoking the command, so a future zero-stdout failure still leaves a log file to inspect, and a follow-up 'child process was terminated' probe ($LASTEXITCODE plus $Error[0] if the pipeline itself faulted) is appended after the attempt. See docs/05_DECISIONS.md ADR-039."
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "run_id": "medqa_V5_41f7e14-dirty_20260909T103452Z",
+  "n": 500,
+  "diagnostic_a_hypothesis_answer_accuracy": {
+    "requested": "Accuracy of the Hypothesis agent's own stated answer, before the support-based ranking is applied.",
+    "computable": false,
+    "why_not": "The Hypothesis agent never states a candidate answer. Its schema (src/agents/schemas.py: HypothesisOut(options: list[HypothesisClaimSet])) and its documented contract (docs/01_ARCHITECTURE.md #HypothesisAgent: 'Out: [{option_id, claims, required_evidence_types}]') both confirm it only decomposes each option into atomic claims -- there is no ranking or answer signal from Hypothesis, in the spec or in the implementation, to measure the accuracy of.",
+    "closest_real_substitute": {
+      "description": "V5's own SupportMatrices, re-ranked by the raw uncalibrated (s+ - s-) margin instead of the calibrated softmax -- same underlying Hypothesis+Audit evidence V5 used, isolating whether the calibration/softmax step itself is where accuracy is lost.",
+      "n": 500,
+      "accuracy": 0.358,
+      "v5_calibrated_softmax_accuracy": 0.316,
+      "v4_conflict_accuracy_for_reference": 0.358,
+      "reading": "If this raw-margin accuracy is close to V5's calibrated 0.316, the defect is upstream of calibration (in the audit evidence itself, or in retrieval). If it is close to V4-conflict's 0.358 (the same uncalibrated-margin mechanism from an independent run), that corroborates the margin mechanism as the honest floor and implicates calibration as a further, separate loss on top of it."
+    }
+  },
+  "diagnostic_b_ok_only_vs_all": {
+    "n_total": 500,
+    "status_counts": {
+      "ok": 459,
+      "insufficient_evidence": 37,
+      "agent_error": 4
+    },
+    "accuracy_all_500": 0.316,
+    "macro_f1_all_500": 0.311126899719834,
+    "accuracy_ok_only_459": 0.3115468409586057,
+    "macro_f1_ok_only_459": 0.3108773912007736,
+    "accuracy_not_ok_41": 0.36585365853658536,
+    "not_ok_breakdown": {
+      "insufficient_evidence": 0.3783783783783784,
+      "agent_error": 0.25
+    }
+  },
+  "diagnostic_c_grounded_rate_explanation": {
+    "grounded_rate": 0.756,
+    "n_grounded": 378,
+    "n_ungrounded": 122,
+    "n_total": 500,
+    "comparison": {
+      "V1": 1.0,
+      "V3": 0.984,
+      "V5": 0.756
+    },
+    "ungrounded_by_status": {
+      "ok": 83,
+      "insufficient_evidence": 37,
+      "agent_error": 2
+    },
+    "ungrounded_where_predicted_option_has_zero_SUPPORT_cells": 122,
+    "of_those_where_some_OTHER_option_did_have_SUPPORT": 68,
+    "ungrounded_and_abstained": 122,
+    "explanation": "grounded = pred_option has >=1 SUPPORT cell (its citation set is non-empty). V1/V3 emit a single generation pass and virtually always cite something (0.984-1.0). V5's pred_option is instead chosen by softmax(alpha*s+ - beta*s- + gamma*kg + delta*rerank, T) over PER-OPTION features -- when the calibrated top-ranked option has zero SUPPORT cells (the audit layer never produced a SUPPORT verdict for it, e.g. because it only accumulated NEUTRAL/CONTRADICT cells, or none at all on an insufficient_evidence question), citations.get(pred_option) is empty by construction (src/calibration/citations.py: cite() only draws from SUPPORT cells) and the row scores ungrounded regardless of whether OTHER options on the same question did have supporting evidence. This is a structural consequence of ranking on a fitted multi-feature logit rather than always picking whichever option the audit most directly supported."
+  }
+}

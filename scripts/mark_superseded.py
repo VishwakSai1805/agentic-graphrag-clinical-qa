@@ -69,6 +69,94 @@ _PHASE2_TEST_SPLIT: list[tuple[str, str]] = [
 ]
 
 
+# 2026-09-10 launch instruction: "results/ also holds nine older run dirs
+# from commits d5e3af5, b1e355e, 1388904, a714fe0, aa73199, d7d3c21, a394291
+# ... mark the nine older dirs superseded." These are exactly the pre-grid
+# dirs whose `variant` field collides with a current or future Phase 7 §5
+# grid row name (V4, V4-conflict, V5, B3) plus the shadowed older B2eq
+# duplicate -- the set capable of being mistaken for a grid result by
+# name-based selection. `superseded` here means "never auto-tabulate as a
+# grid headline", not "invalid" -- several of these remain the cited,
+# authoritative provenance for their own phase (§5.4/§5.5/§5.6/§5.7), exactly
+# as the phase3-num-ctx preset above already established for this project.
+# Two (medqa_V5_a394291_..., medqa_B2eq_aa73199-dirty_...) were already
+# stamped superseded in an earlier session for independent, still-correct
+# reasons; only their `superseded_by` is filled in here now that a real
+# replacement exists (V5) or already existed (B2eq).
+_PHASE7_PRE_GRID: list[tuple[str, str, str | None]] = [
+    (
+        "medqa_V4-conflict_d7d3c21-dirty_20260908T074028Z",
+        "Pre-grid V4-conflict run (commit d7d3c21, ADR-035 prep/wiring). "
+        "Superseded by the real Phase 7 grid cell at n=500 test, commit "
+        "41f7e14.",
+        "medqa_V4-conflict_41f7e14-dirty_20260909T220306Z",
+    ),
+    (
+        "medqa_V5_aa73199-dirty_20260907T170604Z",
+        "Phase 6 harness exit-test dev-20 run (commit aa73199). Remains the "
+        "cited artifact for docs/04_EVALUATION.md §5.7's hallucination-rate "
+        "control and ADR-031 -- retained, not invalid -- but must never be "
+        "auto-tabulated as the V5 grid row now that the real n=500 test-set "
+        "cell exists.",
+        "medqa_V5_41f7e14-dirty_20260909T103452Z",
+    ),
+    (
+        "medqa_B3_d5e3af5_20260906T102134Z",
+        "Phase 3 dev-20 baseline plumbing check (commit d5e3af5, num_ctx=8192 "
+        "post-fix batch). Remains the cited artifact for "
+        "docs/04_EVALUATION.md §5.4's B3/verifier_decision_rate discussion -- "
+        "retained, not invalid -- but must never be auto-tabulated as the B3 "
+        "grid row now that the real n=500 test-set cell exists (report.py's "
+        "latest-by-timestamp selection already prefers the real cell "
+        "regardless; this stamp makes that explicit rather than incidental).",
+        "medqa_B3_41f7e14-dirty_20260909T023658Z",
+    ),
+    (
+        "medqa_V4_1388904_20260906T115020Z",
+        "Phase 4 multi-agent consensus dev-20 plumbing check (commit "
+        "1388904). Remains the cited artifact for docs/04_EVALUATION.md "
+        "§5.5's Findings 1-3 -- retained, not invalid -- but must never be "
+        "auto-tabulated as the V4 grid row (still TBD -- no Phase 7 V4 cell "
+        "has run) if scripts/report.py's variant matching would otherwise "
+        "pick it up.",
+        None,
+    ),
+    (
+        "medqa_V4_a714fe0-dirty_20260907T121703Z",
+        "Phase 5 calibration fit-set run (commit a714fe0, disjoint 120-q "
+        "MedQA train slice). Remains the cited artifact for "
+        "docs/04_EVALUATION.md §5.6 and configs/v5.yaml's fit provenance "
+        "comment -- retained, not invalid -- but must never be "
+        "auto-tabulated as the V4 grid row (still TBD).",
+        None,
+    ),
+    (
+        "medqa_V4_b1e355e_20260906T111821Z",
+        "Earlier duplicate V4 attempt (commit b1e355e), superseded in "
+        "practice by the same-day medqa_V4_1388904_... run that "
+        "docs/04_EVALUATION.md §5.5 actually cites. Never used as evidence "
+        "anywhere; stamped so it cannot be silently selected as the V4 grid "
+        "row.",
+        "medqa_V4_1388904_20260906T115020Z",
+    ),
+    (
+        "medqa_V4_b1e355e_20260906T112332Z",
+        "Earlier duplicate V4 attempt (commit b1e355e), superseded in "
+        "practice by the same-day medqa_V4_1388904_... run that "
+        "docs/04_EVALUATION.md §5.5 actually cites. Never used as evidence "
+        "anywhere; stamped so it cannot be silently selected as the V4 grid "
+        "row.",
+        "medqa_V4_1388904_20260906T115020Z",
+    ),
+]
+
+# Already-superseded dirs from this same pre-grid set that only need their
+# `superseded_by` filled in now that a real replacement exists.
+_PHASE7_PRE_GRID_BACKFILL_SUPERSEDED_BY: list[tuple[str, str]] = [
+    ("medqa_V5_a394291_20260908T074445Z", "medqa_V5_41f7e14-dirty_20260909T103452Z"),
+]
+
+
 def stamp_probe(filename: str, reason: str, superseded_by: str | None) -> bool:
     """Stamp a `results/phase2_kg_probe/*.json` artifact. These are probe
     outputs, not run directories, so they have no `metrics.json` -- the same
@@ -110,14 +198,40 @@ def stamp(run_id: str, reason: str, superseded_by: str | None) -> bool:
     return True
 
 
+def backfill_superseded_by(run_id: str, superseded_by: str) -> bool:
+    """For a run already stamped `superseded: true` with a correct reason:
+    fill in `superseded_by` without touching the existing reason. Errors if
+    the run is not already superseded (use `stamp` for that case)."""
+    path = RESULTS_DIR / run_id / "metrics.json"
+    if not path.exists():
+        print(f"[mark_superseded] ERROR: {path} not found", file=sys.stderr)
+        sys.exit(2)
+    doc = json.loads(path.read_text(encoding="utf-8"))
+    if not doc.get("superseded"):
+        print(
+            f"[mark_superseded] ERROR: {run_id} is not superseded -- use stamp(), not backfill",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+    if doc.get("superseded_by") == superseded_by:
+        print(f"[mark_superseded] {run_id}: superseded_by already {superseded_by!r}, unchanged")
+        return False
+    doc["superseded_by"] = superseded_by
+    path.write_text(json.dumps(doc, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    print(f"[mark_superseded] {run_id}: superseded_by backfilled to {superseded_by!r}")
+    return True
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument(
         "--preset",
-        choices=["phase3-num-ctx", "phase2-kg-probe-test-split"],
+        choices=["phase3-num-ctx", "phase2-kg-probe-test-split", "phase7-pre-grid"],
         help="stamp a known-invalid batch. phase3-num-ctx: the four pre-num_ctx-fix B runs. "
         "phase2-kg-probe-test-split: the four test-split Phase 2 KG probe artifacts "
-        "superseded by the train-500 re-run (AUDIT §3.1).",
+        "superseded by the train-500 re-run (AUDIT §3.1). phase7-pre-grid: the nine "
+        "older MedQA run dirs whose variant name collides with a Phase 7 §5 grid row "
+        "(2026-09-10 launch instruction).",
     )
     ap.add_argument("--run-id", help="single run to stamp")
     ap.add_argument("--reason", help="required with --run-id")
@@ -133,6 +247,14 @@ def main() -> None:
             stamp_probe(f, _TEST_SPLIT_PROBE_REASON, by) for f, by in _PHASE2_TEST_SPLIT
         )
         print(f"[mark_superseded] preset phase2-kg-probe-test-split: {changed} file(s) changed")
+        return
+    if args.preset == "phase7-pre-grid":
+        changed = sum(stamp(rid, reason, by) for rid, reason, by in _PHASE7_PRE_GRID)
+        changed += sum(
+            backfill_superseded_by(rid, by)
+            for rid, by in _PHASE7_PRE_GRID_BACKFILL_SUPERSEDED_BY
+        )
+        print(f"[mark_superseded] preset phase7-pre-grid: {changed} file(s) changed")
         return
     if not args.run_id or not args.reason:
         ap.error("give --preset, or both --run-id and --reason")

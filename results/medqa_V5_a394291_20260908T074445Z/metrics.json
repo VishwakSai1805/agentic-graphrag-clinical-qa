@@ -215,7 +215,7 @@
   "seed": 42,
   "split": "test",
   "superseded": true,
-  "superseded_by": null,
+  "superseded_by": "medqa_V5_41f7e14-dirty_20260909T103452Z",
   "superseded_reason": "Throwaway n=3 test-split smoke to de-risk the Phase 7 grid launch (verify the harness test-split path works end to end before the overnight run). Not a result; superseded by the n=500 Phase 7 V5 grid cell.",
   "variant": "V5"
 }

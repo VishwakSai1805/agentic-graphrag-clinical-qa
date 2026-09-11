@@ -786,8 +786,8 @@
   "run_id": "medqa_V4-conflict_d7d3c21-dirty_20260908T074028Z",
   "seed": 42,
   "split": "train",
-  "superseded": false,
-  "superseded_by": null,
-  "superseded_reason": null,
+  "superseded": true,
+  "superseded_by": "medqa_V4-conflict_41f7e14-dirty_20260909T220306Z",
+  "superseded_reason": "Pre-grid V4-conflict run (commit d7d3c21, ADR-035 prep/wiring). Superseded by the real Phase 7 grid cell at n=500 test, commit 41f7e14.",
   "variant": "V4-conflict"
 }

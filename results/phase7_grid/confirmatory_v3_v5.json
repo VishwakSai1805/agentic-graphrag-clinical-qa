@@ -1,0 +1,23 @@
+{
+  "test": "confirmatory (docs/04_EVALUATION.md \u00a71.0, pre-registered 2026-09-07)",
+  "comparison": "V3 vs V5",
+  "metric": "accuracy",
+  "dataset": "medqa",
+  "split": "test",
+  "n": 500,
+  "seed": 42,
+  "n_resamples": 10000,
+  "alpha": 0.05,
+  "two_sided": true,
+  "accuracy_v3": 0.546,
+  "accuracy_v5": 0.316,
+  "point_diff_v3_minus_v5": 0.23000000000000004,
+  "mean_diff_v3_minus_v5": 0.23,
+  "ci_lo": 0.172,
+  "ci_hi": 0.288,
+  "p_value": 0.0,
+  "significant": true,
+  "verdict": "V3 significantly > V5",
+  "v3_run_id": "medqa_V3_41f7e14-dirty_20260908T230633Z",
+  "v5_run_id": "medqa_V5_41f7e14-dirty_20260909T103452Z"
+}

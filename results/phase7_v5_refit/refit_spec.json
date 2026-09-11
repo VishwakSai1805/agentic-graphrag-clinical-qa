@@ -1,0 +1,504 @@
+{
+  "spec_version": 1,
+  "variant": "V5-refit",
+  "adr": "ADR-043",
+  "status": "frozen on the train slice before any test-set evaluation of V5-refit; apply only via scripts/run_phase7_v5_refit.ps1",
+  "rule": {
+    "logit": "z = alpha*s_pos - beta*s_neg + gamma*kg_support_count + delta*rerank_c",
+    "s_pos_s_neg_source": "counted from SupportMatrix.cells (not option_support; ADR-042)",
+    "rerank_c": "mean MedCPT rerank score over the option's SUPPORT+CONTRADICT cells minus rerank_reference; 0.0 (= the reference) for an option with no such cell",
+    "rerank_reference": 5.892607629299164,
+    "rerank_reference_definition": "median raw mean_rerank_score over the fit half's options with >= 1 SUPPORT/CONTRADICT cell",
+    "probabilities": "softmax(z / temperature)",
+    "bounds": {
+      "alpha": [
+        0.0,
+        10.0
+      ],
+      "beta": [
+        0.0,
+        10.0
+      ],
+      "gamma": [
+        0.0,
+        10.0
+      ],
+      "delta": [
+        -10.0,
+        10.0
+      ],
+      "log_t": [
+        -2.995732273553991,
+        2.995732273553991
+      ]
+    },
+    "optimizer": "src.calibration.softmax_rank.fit_weights verbatim (Adam, lr/betas/eps/500 iterations/init/L2 unchanged), projection onto `bounds` each step",
+    "tie_break": {
+      "method": "seeded uniform shuffle, then stable sort on p",
+      "seed": 42,
+      "rng_key": "v5-refit-tiebreak:<seed>:<question_id>"
+    },
+    "abstention": "choose_abstention_threshold on the held-out half, target_risk=0.1"
+  },
+  "weights": {
+    "alpha": 0.005935326110206106,
+    "beta": 0.07415413622207706,
+    "gamma": 0.26957062462976267,
+    "delta": 0.01351250599836146,
+    "temperature": 0.18504984617186618
+  },
+  "abstention_tau": 0.4756586761159263,
+  "evidential_weight_at_zero_bound": {
+    "alpha": false,
+    "beta": false,
+    "gamma": false
+  },
+  "fit_source_run": "medqa_V4_a714fe0-dirty_20260907T121703Z",
+  "fit_question_ids": [
+    "train_00106",
+    "train_00410",
+    "train_00436",
+    "train_00491",
+    "train_00524",
+    "train_00529",
+    "train_00715",
+    "train_00754",
+    "train_00775",
+    "train_00920",
+    "train_01088",
+    "train_01143",
+    "train_01173",
+    "train_01295",
+    "train_01311",
+    "train_01429",
+    "train_01494",
+    "train_01524",
+    "train_01541",
+    "train_01590",
+    "train_01660",
+    "train_01681",
+    "train_01686",
+    "train_01803",
+    "train_01832",
+    "train_02053",
+    "train_02274",
+    "train_02295",
+    "train_02296",
+    "train_02349",
+    "train_02513",
+    "train_02556",
+    "train_02624",
+    "train_02630",
+    "train_02673",
+    "train_02686",
+    "train_02812",
+    "train_03159",
+    "train_03266",
+    "train_03441",
+    "train_03465",
+    "train_03492",
+    "train_03536",
+    "train_03592",
+    "train_03603",
+    "train_03608",
+    "train_03621",
+    "train_03668",
+    "train_03744",
+    "train_03763",
+    "train_03823",
+    "train_03826",
+    "train_04023",
+    "train_04025",
+    "train_04053",
+    "train_04317",
+    "train_04346",
+    "train_04352",
+    "train_04387",
+    "train_04399"
+  ],
+  "held_out_question_ids": [
+    "train_04435",
+    "train_04520",
+    "train_04566",
+    "train_04568",
+    "train_04571",
+    "train_04755",
+    "train_04817",
+    "train_05169",
+    "train_05182",
+    "train_05327",
+    "train_05528",
+    "train_05588",
+    "train_05649",
+    "train_05834",
+    "train_05895",
+    "train_05939",
+    "train_05944",
+    "train_05991",
+    "train_06079",
+    "train_06215",
+    "train_06230",
+    "train_06238",
+    "train_06241",
+    "train_06496",
+    "train_06557",
+    "train_06586",
+    "train_06887",
+    "train_06927",
+    "train_06931",
+    "train_06939",
+    "train_07034",
+    "train_07374",
+    "train_07443",
+    "train_07532",
+    "train_07542",
+    "train_07588",
+    "train_08100",
+    "train_08194",
+    "train_08295",
+    "train_08364",
+    "train_08767",
+    "train_08801",
+    "train_08846",
+    "train_08945",
+    "train_08952",
+    "train_09061",
+    "train_09142",
+    "train_09213",
+    "train_09215",
+    "train_09310",
+    "train_09477",
+    "train_09578",
+    "train_09595",
+    "train_09672",
+    "train_09693",
+    "train_09790",
+    "train_09883",
+    "train_09911",
+    "train_10000",
+    "train_10153"
+  ],
+  "v5_reproduction": {
+    "weights_reproduced_exactly": true,
+    "v5_weights": {
+      "alpha": -0.013896237159311542,
+      "beta": 0.10976837687736825,
+      "gamma": 0.2948559455824592,
+      "delta": 0.007722670183812638,
+      "temperature": 0.21447181570951504
+    },
+    "note": "softmax_rank.fit_weights and fit_weights_bounded(_BOUNDS) both reproduce configs/v5.yaml bit-for-bit from the fit half"
+  },
+  "descriptive_not_used": {
+    "unconstrained_equals_refit": true,
+    "effective_coefficients_w_over_T": {
+      "V5": {
+        "alpha": -0.06479283589473074,
+        "beta": 0.5118079338967352,
+        "gamma": 1.3748004352320962,
+        "delta": 0.036007855662826944
+      },
+      "refit": {
+        "alpha": 0.03207420180556992,
+        "beta": 0.400725197864828,
+        "gamma": 1.4567460076643204,
+        "delta": 0.0730208983033233
+      },
+      "refit_5000_iterations": {
+        "alpha": 0.03025011184040312,
+        "beta": 0.40360266067935363,
+        "gamma": 1.4937043612713705,
+        "delta": 0.07637990215516595
+      },
+      "unconstrained_refit_same_features": {
+        "alpha": 0.03207420180556992,
+        "beta": 0.400725197864828,
+        "gamma": 1.4567460076643204,
+        "delta": 0.0730208983033233
+      }
+    },
+    "effective_coefficients_note": "softmax(z/T) depends on (alpha..delta)/T only. The L2 penalty acts on alpha..delta but not T, so the weights' overall scale and T trade off: 500 and 5000 iterations can differ in scale while agreeing in w/T",
+    "unconstrained_refit_same_features": {
+      "alpha": 0.005935326110206106,
+      "beta": 0.07415413622207706,
+      "gamma": 0.26957062462976267,
+      "delta": 0.01351250599836146,
+      "temperature": 0.18504984617186618
+    },
+    "unconstrained_objective": 1.342629021464259,
+    "refit_objective": 1.342629021464259,
+    "refit_5000_iterations": {
+      "alpha": 0.0033162165103085787,
+      "beta": 0.04424558209935885,
+      "gamma": 0.16374971076146733,
+      "delta": 0.008373267970679334,
+      "temperature": 0.10962658676452636
+    },
+    "refit_5000_iterations_objective": 1.3421127717596895,
+    "weight_bootstrap_under_refit_bounds": {
+      "alpha": {
+        "mean": 0.023307045746540987,
+        "std": 0.04281486300394079,
+        "min": 0.0,
+        "max": 0.24388124260718377,
+        "fraction_at_zero_bound": 0.495
+      },
+      "beta": {
+        "mean": 0.09557970039791064,
+        "std": 0.074274316520798,
+        "min": 0.0,
+        "max": 0.26384694966109484,
+        "fraction_at_zero_bound": 0.135
+      },
+      "gamma": {
+        "mean": 0.24295389990122074,
+        "std": 0.1432492429896779,
+        "min": 0.0,
+        "max": 0.550586985643035,
+        "fraction_at_zero_bound": 0.175
+      },
+      "delta": {
+        "mean": 0.02358789825218051,
+        "std": 0.045934023333882176,
+        "min": -0.17179671653407821,
+        "max": 0.2527754897329499
+      },
+      "temperature": {
+        "mean": 0.3574875152286427,
+        "std": 0.4401175610483567,
+        "min": 0.07753299087387663,
+        "max": 2.33840620371791
+      },
+      "n_resamples": 200,
+      "seed": 42
+    },
+    "coverage_risk_curve_held_out": [
+      {
+        "tau": 0.25,
+        "coverage": 1.0,
+        "risk": 0.75,
+        "n_covered": 60
+      },
+      {
+        "tau": 0.2876097793526544,
+        "coverage": 0.75,
+        "risk": 0.7333333333333334,
+        "n_covered": 45
+      },
+      {
+        "tau": 0.3252195587053088,
+        "coverage": 0.26666666666666666,
+        "risk": 0.6875,
+        "n_covered": 16
+      },
+      {
+        "tau": 0.36282933805796314,
+        "coverage": 0.1,
+        "risk": 0.5,
+        "n_covered": 6
+      },
+      {
+        "tau": 0.40043911741061755,
+        "coverage": 0.08333333333333333,
+        "risk": 0.4,
+        "n_covered": 5
+      },
+      {
+        "tau": 0.43804889676327197,
+        "coverage": 0.06666666666666667,
+        "risk": 0.25,
+        "n_covered": 4
+      },
+      {
+        "tau": 0.4756586761159263,
+        "coverage": 0.05,
+        "risk": 0.0,
+        "n_covered": 3
+      },
+      {
+        "tau": 0.5132684554685807,
+        "coverage": 0.05,
+        "risk": 0.0,
+        "n_covered": 3
+      },
+      {
+        "tau": 0.5508782348212351,
+        "coverage": 0.05,
+        "risk": 0.0,
+        "n_covered": 3
+      },
+      {
+        "tau": 0.5884880141738895,
+        "coverage": 0.03333333333333333,
+        "risk": 0.0,
+        "n_covered": 2
+      },
+      {
+        "tau": 0.6260977935265439,
+        "coverage": 0.03333333333333333,
+        "risk": 0.0,
+        "n_covered": 2
+      },
+      {
+        "tau": 0.6637075728791982,
+        "coverage": 0.016666666666666666,
+        "risk": 0.0,
+        "n_covered": 1
+      },
+      {
+        "tau": 0.7013173522318527,
+        "coverage": 0.016666666666666666,
+        "risk": 0.0,
+        "n_covered": 1
+      },
+      {
+        "tau": 0.738927131584507,
+        "coverage": 0.016666666666666666,
+        "risk": 0.0,
+        "n_covered": 1
+      },
+      {
+        "tau": 0.7765369109371614,
+        "coverage": 0.016666666666666666,
+        "risk": 0.0,
+        "n_covered": 1
+      },
+      {
+        "tau": 0.8141466902898158,
+        "coverage": 0.016666666666666666,
+        "risk": 0.0,
+        "n_covered": 1
+      },
+      {
+        "tau": 0.8517564696424702,
+        "coverage": 0.016666666666666666,
+        "risk": 0.0,
+        "n_covered": 1
+      },
+      {
+        "tau": 0.8893662489951246,
+        "coverage": 0.016666666666666666,
+        "risk": 0.0,
+        "n_covered": 1
+      },
+      {
+        "tau": 0.9269760283477789,
+        "coverage": 0.016666666666666666,
+        "risk": 0.0,
+        "n_covered": 1
+      },
+      {
+        "tau": 0.9645858077004333,
+        "coverage": 0.016666666666666666,
+        "risk": 0.0,
+        "n_covered": 1
+      }
+    ],
+    "rule_diagnostics": {
+      "fit_half": {
+        "V5_rule": {
+          "n": 60,
+          "accuracy": 0.26666666666666666,
+          "tie_aware_expected_accuracy": 0.2597222222222222,
+          "mean_gold_nll": 1.3470600520258473,
+          "ece_equal_mass_5_bins": 0.08286235660597817,
+          "n_top_exactly_tied": 22,
+          "tied_top_pick_by_letter": {
+            "A": 13,
+            "B": 5,
+            "C": 4
+          }
+        },
+        "V5_refit_rule": {
+          "n": 60,
+          "accuracy": 0.2,
+          "tie_aware_expected_accuracy": 0.2791666666666667,
+          "mean_gold_nll": 1.341845171729294,
+          "ece_equal_mass_5_bins": 0.09655077681654728,
+          "n_top_exactly_tied": 21,
+          "tied_top_pick_by_letter": {
+            "A": 3,
+            "B": 7,
+            "C": 6,
+            "D": 5
+          }
+        }
+      },
+      "held_out_half": {
+        "V5_rule": {
+          "n": 60,
+          "accuracy": 0.26666666666666666,
+          "tie_aware_expected_accuracy": 0.27638888888888885,
+          "mean_gold_nll": 1.3283277130693656,
+          "ece_equal_mass_5_bins": 0.07240090114900431,
+          "n_top_exactly_tied": 14,
+          "tied_top_pick_by_letter": {
+            "A": 12,
+            "B": 2
+          }
+        },
+        "V5_refit_rule": {
+          "n": 60,
+          "accuracy": 0.25,
+          "tie_aware_expected_accuracy": 0.2652777777777778,
+          "mean_gold_nll": 1.3259080920711506,
+          "ece_equal_mass_5_bins": 0.07720589771765168,
+          "n_top_exactly_tied": 15,
+          "tied_top_pick_by_letter": {
+            "A": 3,
+            "B": 4,
+            "C": 2,
+            "D": 6
+          }
+        }
+      }
+    }
+  },
+  "generated_at_utc": "2026-09-10T21:27:36.434958+00:00",
+  "git": {
+    "git_sha7": "41f7e14-dirty",
+    "git_dirty": true,
+    "git_diff_sha256": "7ab2b79ed305e43f151500232a3fa2071582f98b43d0a1123487061e212268e8",
+    "git_dirty_files": [
+      "docs/00_RESEARCH_SPEC.md",
+      "docs/04_EVALUATION.md",
+      "docs/05_DECISIONS.md",
+      "paper/tables/results_grid.md",
+      "paper/tables/results_grid.tex",
+      "results/medqa_B3_41f7e14-dirty_20260909T023658Z/",
+      "results/medqa_B3_d5e3af5_20260906T102134Z/metrics.json",
+      "results/medqa_V1_41f7e14_20260908T212655Z/",
+      "results/medqa_V3_41f7e14-dirty_20260908T230633Z/",
+      "results/medqa_V4-conflict_41f7e14-dirty_20260909T220306Z/",
+      "results/medqa_V4-conflict_d7d3c21-dirty_20260908T074028Z/metrics.json",
+      "results/medqa_V4_1388904_20260906T115020Z/metrics.json",
+      "results/medqa_V4_a714fe0-dirty_20260907T121703Z/metrics.json",
+      "results/medqa_V4_b1e355e_20260906T111821Z/metrics.json",
+      "results/medqa_V4_b1e355e_20260906T112332Z/metrics.json",
+      "results/medqa_V5_41f7e14-dirty_20260909T103452Z/",
+      "results/medqa_V5_a394291_20260908T074445Z/metrics.json",
+      "results/medqa_V5_aa73199-dirty_20260907T170604Z/metrics.json",
+      "results/phase7_grid/",
+      "results/phase7_posthoc_binary_audit/",
+      "results/phase7_v5_refit/",
+      "scripts/analysis/calibration_decomposition.py",
+      "scripts/analysis/confirmatory_v3_v5.py",
+      "scripts/analysis/exploratory_family.py",
+      "scripts/analysis/posthoc_binary.py",
+      "scripts/analysis/random_baseline.py",
+      "scripts/analysis/rebuild_phase7_manifest.py",
+      "scripts/analysis/spos_consistency.py",
+      "scripts/analysis/unplanned_v0_v2_family.py",
+      "scripts/analysis/v5_diagnostics.py",
+      "scripts/analysis/v5_refit.py",
+      "scripts/mark_superseded.py",
+      "scripts/report.py",
+      "scripts/run_phase7_grid.ps1",
+      "scripts/run_phase7_v0_v2.ps1",
+      "scripts/run_phase7_v5_refit.ps1",
+      "tests/test_report.py",
+      "tests/test_v5_refit.py"
+    ]
+  },
+  "spec_sha256": "29936369e689105e059a2cff731ba77633de2e61ab53a339847fce7b8944aff7"
+}

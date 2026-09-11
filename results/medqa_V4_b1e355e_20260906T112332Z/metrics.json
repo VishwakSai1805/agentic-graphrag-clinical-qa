@@ -35,5 +35,8 @@
   "run_id": "medqa_V4_b1e355e_20260906T112332Z",
   "seed": 42,
   "split": "train",
+  "superseded": true,
+  "superseded_by": "medqa_V4_1388904_20260906T115020Z",
+  "superseded_reason": "Earlier duplicate V4 attempt (commit b1e355e), superseded in practice by the same-day medqa_V4_1388904_... run that docs/04_EVALUATION.md \u00a75.5 actually cites. Never used as evidence anywhere; stamped so it cannot be silently selected as the V4 grid row.",
   "variant": "V4"
 }

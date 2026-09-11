@@ -1,0 +1,60 @@
+{
+  "config_hash": "c6e5466de6701b64f4993a4a7b293595c0ec676af8d4c5caf4f44da50aad864c",
+  "dataset": "medqa",
+  "git_diff_sha256": "b9c0c88c7492e4b734916fcd5192b691f6a860dbaa436a2bb79e19d3d1aa0ce9",
+  "git_dirty": true,
+  "git_dirty_files": [
+    "results/medqa_B3_41f7e14-dirty_20260909T023658Z/",
+    "results/medqa_V1_41f7e14_20260908T212655Z/",
+    "results/medqa_V3_41f7e14-dirty_20260908T230633Z/"
+  ],
+  "git_sha7": "41f7e14-dirty",
+  "limit": 500,
+  "metrics": {
+    "accuracy": 0.538,
+    "contamination_assertion": {
+      "applies": false,
+      "check": "medqa_stem_vs_retrieved_chunk_ngram_overlap",
+      "checked": true,
+      "flag_threshold": 0.5,
+      "max_overlap": 0.031914893617021274,
+      "mean_overlap": 0.00029859028876500046,
+      "median_overlap": 0.0,
+      "n_flagged": 0,
+      "n_questions": 500,
+      "n_questions_with_any_shared_ngram": 11,
+      "ngram_n": 8,
+      "note": "Executed check: fraction of each question stem's 8-grams appearing verbatim in any passage retrieved for that question. MedQA has no source-abstract blocklist (blocklisted_pmids('medqa') raises by design); the 18 USMLE textbooks are in the corpus disclosed under ADR-009, so non-zero overlap is expected and is reported as a distribution. `applies` is True iff >=1 question reaches 0.5 verbatim overlap, which would indicate a stem reproduced inside a retrieved chunk.",
+      "p95_overlap": 0.0,
+      "retrieved_passages_per_question": 12
+    },
+    "equal_budget": false,
+    "grounded_rate": 0.972,
+    "invalid_citation_count": 45,
+    "llm_cache_hits": 407,
+    "llm_calls_total": 2407,
+    "macro_f1": 0.5374517925918028,
+    "macro_f1_note": "position-bias check, NOT a skill metric for 4-option MCQ; Accuracy is the headline",
+    "mean_llm_calls": 4.814,
+    "n_evaluated": 500,
+    "n_supported_distribution": {
+      "0": 321,
+      "1": 93,
+      "2": 40,
+      "3": 27,
+      "4": 19
+    },
+    "status_counts": {
+      "ok": 500
+    },
+    "verifier_decision_rate": 0.186,
+    "verifier_decision_rate_note": "fraction of questions where exactly one option verified SUPPORTED (verifier decided) vs. fell back to B2-style generation. A high fallback rate is direct evidence for the binary bottleneck C2 targets, not a defect of this run."
+  },
+  "run_id": "medqa_B3_41f7e14-dirty_20260909T023658Z",
+  "seed": 42,
+  "split": "test",
+  "superseded": false,
+  "superseded_by": null,
+  "superseded_reason": null,
+  "variant": "B3"
+}

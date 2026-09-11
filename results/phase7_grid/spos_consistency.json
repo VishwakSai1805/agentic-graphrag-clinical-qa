@@ -1,0 +1,320 @@
+{
+  "adr": "ADR-042",
+  "identity_checked": "option_support[o].s_pos == #SUPPORT cells of o and option_support[o].s_neg == #CONTRADICT cells of o, for every option of every question",
+  "runs": {
+    "V5": {
+      "run_dir": "medqa_V5_41f7e14-dirty_20260909T103452Z",
+      "n_questions": 500,
+      "n_options": 2000,
+      "status_counts": {
+        "ok": 459,
+        "insufficient_evidence": 37,
+        "agent_error": 4
+      },
+      "n_questions_disagreeing": 2,
+      "n_options_disagreeing": 5,
+      "disagreeing_status_counts": {
+        "agent_error": 2
+      },
+      "questions": [
+        {
+          "question_id": "test_00421",
+          "status": "agent_error",
+          "n_option_support_rows": 0,
+          "pred_option": "A",
+          "gold_option": "C",
+          "options_disagreeing": [
+            {
+              "option_id": "A",
+              "stored_s_pos": null,
+              "stored_s_neg": null,
+              "cell_s_pos": 1,
+              "cell_s_neg": 1
+            },
+            {
+              "option_id": "B",
+              "stored_s_pos": null,
+              "stored_s_neg": null,
+              "cell_s_pos": 1,
+              "cell_s_neg": 1
+            }
+          ],
+          "last_note": "audit parse fail C: AuditOut failed validation after one repair attempt. first error: 1 validation error for AuditOut\ncells\n  Field required [type=missing, inpu"
+        },
+        {
+          "question_id": "test_01043",
+          "status": "agent_error",
+          "n_option_support_rows": 0,
+          "pred_option": "A",
+          "gold_option": "D",
+          "options_disagreeing": [
+            {
+              "option_id": "A",
+              "stored_s_pos": null,
+              "stored_s_neg": null,
+              "cell_s_pos": 1,
+              "cell_s_neg": 0
+            },
+            {
+              "option_id": "B",
+              "stored_s_pos": null,
+              "stored_s_neg": null,
+              "cell_s_pos": 2,
+              "cell_s_neg": 1
+            },
+            {
+              "option_id": "C",
+              "stored_s_pos": null,
+              "stored_s_neg": null,
+              "cell_s_pos": 2,
+              "cell_s_neg": 0
+            }
+          ],
+          "last_note": "audit parse fail D: AuditOut failed validation after one repair attempt. first error: 1 validation error for AuditOut\ncells\n  Field required [type=missing, inpu"
+        }
+      ]
+    },
+    "V4-conflict": {
+      "run_dir": "medqa_V4-conflict_41f7e14-dirty_20260909T220306Z",
+      "n_questions": 500,
+      "n_options": 2000,
+      "status_counts": {
+        "ok": 459,
+        "insufficient_evidence": 37,
+        "agent_error": 4
+      },
+      "n_questions_disagreeing": 2,
+      "n_options_disagreeing": 5,
+      "disagreeing_status_counts": {
+        "agent_error": 2
+      },
+      "questions": [
+        {
+          "question_id": "test_00421",
+          "status": "agent_error",
+          "n_option_support_rows": 0,
+          "pred_option": "A",
+          "gold_option": "C",
+          "options_disagreeing": [
+            {
+              "option_id": "A",
+              "stored_s_pos": null,
+              "stored_s_neg": null,
+              "cell_s_pos": 1,
+              "cell_s_neg": 1
+            },
+            {
+              "option_id": "B",
+              "stored_s_pos": null,
+              "stored_s_neg": null,
+              "cell_s_pos": 1,
+              "cell_s_neg": 1
+            }
+          ],
+          "last_note": "audit parse fail C: AuditOut failed validation after one repair attempt. first error: 1 validation error for AuditOut\ncells\n  Field required [type=missing, inpu"
+        },
+        {
+          "question_id": "test_01043",
+          "status": "agent_error",
+          "n_option_support_rows": 0,
+          "pred_option": "A",
+          "gold_option": "D",
+          "options_disagreeing": [
+            {
+              "option_id": "A",
+              "stored_s_pos": null,
+              "stored_s_neg": null,
+              "cell_s_pos": 1,
+              "cell_s_neg": 0
+            },
+            {
+              "option_id": "B",
+              "stored_s_pos": null,
+              "stored_s_neg": null,
+              "cell_s_pos": 2,
+              "cell_s_neg": 1
+            },
+            {
+              "option_id": "C",
+              "stored_s_pos": null,
+              "stored_s_neg": null,
+              "cell_s_pos": 2,
+              "cell_s_neg": 0
+            }
+          ],
+          "last_note": "audit parse fail D: AuditOut failed validation after one repair attempt. first error: 1 validation error for AuditOut\ncells\n  Field required [type=missing, inpu"
+        }
+      ]
+    },
+    "phase5_fit_run_train": {
+      "run_dir": "medqa_V4_a714fe0-dirty_20260907T121703Z",
+      "n_questions": 120,
+      "n_options": 480,
+      "status_counts": {
+        "ok": 112,
+        "insufficient_evidence": 8
+      },
+      "n_questions_disagreeing": 0,
+      "n_options_disagreeing": 0,
+      "disagreeing_status_counts": {},
+      "questions": []
+    }
+  },
+  "rerank_impact_on_grid": [
+    {
+      "variant": "V5",
+      "run_dir": "medqa_V5_41f7e14-dirty_20260909T103452Z",
+      "stored_rankings_reproduced": "500/500",
+      "n_rankings_changed": 2,
+      "n_pred_option_changed": 1,
+      "changed": [
+        {
+          "question_id": "test_00421",
+          "gold_option": "C",
+          "stored_ranked": [
+            "A",
+            "B",
+            "C",
+            "D"
+          ],
+          "corrected_ranked": [
+            "C",
+            "D",
+            "A",
+            "B"
+          ],
+          "stored_correct": false,
+          "corrected_correct": true
+        },
+        {
+          "question_id": "test_01043",
+          "gold_option": "D",
+          "stored_ranked": [
+            "A",
+            "B",
+            "C",
+            "D"
+          ],
+          "corrected_ranked": [
+            "A",
+            "C",
+            "D",
+            "B"
+          ],
+          "stored_correct": false,
+          "corrected_correct": false
+        }
+      ],
+      "stored": {
+        "accuracy": 0.316,
+        "macro_f1": 0.311126899719834,
+        "p_at_1": 0.316,
+        "p_at_2": 0.582,
+        "mrr": 0.5713333333333338
+      },
+      "corrected": {
+        "accuracy": 0.318,
+        "macro_f1": 0.3133530472628612,
+        "p_at_1": 0.318,
+        "p_at_2": 0.584,
+        "mrr": 0.5728333333333339
+      },
+      "delta_corrected_minus_stored": {
+        "accuracy": 0.0020000000000000018,
+        "macro_f1": 0.0022261475430271904,
+        "p_at_1": 0.0020000000000000018,
+        "p_at_2": 0.0020000000000000018,
+        "mrr": 0.0015000000000000568
+      }
+    },
+    {
+      "variant": "V4-conflict",
+      "run_dir": "medqa_V4-conflict_41f7e14-dirty_20260909T220306Z",
+      "stored_rankings_reproduced": "500/500",
+      "n_rankings_changed": 1,
+      "n_pred_option_changed": 1,
+      "changed": [
+        {
+          "question_id": "test_01043",
+          "gold_option": "D",
+          "stored_ranked": [
+            "A",
+            "B",
+            "C",
+            "D"
+          ],
+          "corrected_ranked": [
+            "C",
+            "A",
+            "B",
+            "D"
+          ],
+          "stored_correct": false,
+          "corrected_correct": false
+        }
+      ],
+      "stored": {
+        "accuracy": 0.358,
+        "macro_f1": 0.3416873078830528,
+        "p_at_1": 0.358,
+        "p_at_2": 0.606,
+        "mrr": 0.5980000000000003
+      },
+      "corrected": {
+        "accuracy": 0.358,
+        "macro_f1": 0.3416404663017028,
+        "p_at_1": 0.358,
+        "p_at_2": 0.606,
+        "mrr": 0.5980000000000003
+      },
+      "delta_corrected_minus_stored": {
+        "accuracy": 0.0,
+        "macro_f1": -4.684158134998784e-05,
+        "p_at_1": 0.0,
+        "p_at_2": 0.0,
+        "mrr": 0.0
+      }
+    },
+    {
+      "variant": "post-hoc-binary",
+      "run_dir": "phase7_posthoc_binary_audit",
+      "stored_rankings_reproduced": "500/500",
+      "n_rankings_changed": 0,
+      "n_pred_option_changed": 0,
+      "changed": [],
+      "stored": {
+        "accuracy": 0.218,
+        "macro_f1": 0.20486136589788076,
+        "p_at_1": 0.218,
+        "p_at_2": 0.458,
+        "mrr": 0.49400000000000105
+      },
+      "corrected": {
+        "accuracy": 0.218,
+        "macro_f1": 0.20486136589788076,
+        "p_at_1": 0.218,
+        "p_at_2": 0.458,
+        "mrr": 0.49400000000000105
+      },
+      "delta_corrected_minus_stored": {
+        "accuracy": 0.0,
+        "macro_f1": 0.0,
+        "p_at_1": 0.0,
+        "p_at_2": 0.0,
+        "mrr": 0.0
+      }
+    }
+  ],
+  "v5_support_based_counts": {
+    "stored_features": {
+      "pred_option_has_no_signal": 118,
+      "zero_support_wins": 68,
+      "v5_z_top_exactly_tied": 170
+    },
+    "cell_derived_features": {
+      "pred_option_has_no_signal": 117,
+      "zero_support_wins": 69,
+      "v5_z_top_exactly_tied": 169
+    }
+  }
+}

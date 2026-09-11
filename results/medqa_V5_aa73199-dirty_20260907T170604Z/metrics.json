@@ -839,8 +839,8 @@
   "run_id": "medqa_V5_aa73199-dirty_20260907T170604Z",
   "seed": 42,
   "split": "train",
-  "superseded": false,
-  "superseded_by": null,
-  "superseded_reason": null,
+  "superseded": true,
+  "superseded_by": "medqa_V5_41f7e14-dirty_20260909T103452Z",
+  "superseded_reason": "Phase 6 harness exit-test dev-20 run (commit aa73199). Remains the cited artifact for docs/04_EVALUATION.md \u00a75.7's hallucination-rate control and ADR-031 -- retained, not invalid -- but must never be auto-tabulated as the V5 grid row now that the real n=500 test-set cell exists.",
   "variant": "V5"
 }

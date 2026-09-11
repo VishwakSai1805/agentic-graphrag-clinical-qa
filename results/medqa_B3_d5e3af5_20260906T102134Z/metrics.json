@@ -32,5 +32,8 @@
   "run_id": "medqa_B3_d5e3af5_20260906T102134Z",
   "seed": 42,
   "split": "train",
+  "superseded": true,
+  "superseded_by": "medqa_B3_41f7e14-dirty_20260909T023658Z",
+  "superseded_reason": "Phase 3 dev-20 baseline plumbing check (commit d5e3af5, num_ctx=8192 post-fix batch). Remains the cited artifact for docs/04_EVALUATION.md \u00a75.4's B3/verifier_decision_rate discussion -- retained, not invalid -- but must never be auto-tabulated as the B3 grid row now that the real n=500 test-set cell exists (report.py's latest-by-timestamp selection already prefers the real cell regardless; this stamp makes that explicit rather than incidental).",
   "variant": "B3"
 }

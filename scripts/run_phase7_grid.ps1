@@ -50,8 +50,14 @@ function Invoke-Cell {
     Write-Host "[phase7_grid] cmd:   $Command"
     Write-Host "[phase7_grid] log:   $LogPath"
     Write-Host "========================================================================"
+    # ADR-039: a native command that exits non-zero after producing ZERO
+    # stdout leaves Tee-Object with nothing to write, so no log file is ever
+    # created (Windows PowerShell 5.1 -- confirmed empirically). Write a stub
+    # first so a repeat of that failure mode still leaves a trace.
+    "[phase7_grid] STUB   $Name started $((Get-Date).ToString('u'))`ncmd: $Command" |
+        Set-Content -Path $LogPath -Encoding utf8
     $start = Get-Date
-    Invoke-Expression $Command 2>&1 | Tee-Object -FilePath $LogPath
+    Invoke-Expression $Command 2>&1 | Tee-Object -FilePath $LogPath -Append
     $exit = $LASTEXITCODE
     $elapsed = (Get-Date) - $start
     $status = if ($exit -eq 0) { "OK" } else { "FAILED (exit $exit)" }

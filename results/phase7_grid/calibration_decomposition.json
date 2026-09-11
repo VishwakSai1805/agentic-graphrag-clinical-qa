@@ -1,0 +1,2835 @@
+{
+  "run_id": "medqa_V5_41f7e14-dirty_20260909T103452Z",
+  "n": 500,
+  "reproduction_check": "V5's stored ranked + p_vector reproduced from agent_matrix + weights on 500/500 questions (exact order, |dp| < 1e-12)",
+  "i_fitted_weights": {
+    "alpha": -0.013896237159311542,
+    "beta": 0.10976837687736825,
+    "gamma": 0.2948559455824592,
+    "delta": 0.007722670183812638,
+    "temperature": 0.21447181570951504,
+    "source": "configs/v5.yaml, equal field-by-field to the V5 run's config.yaml",
+    "logit": "z = alpha*s_pos - beta*s_neg + gamma*kg_support_count + delta*mean_rerank_score"
+  },
+  "feature_ranges": {
+    "mean_rerank_score_nonzero_rows": {
+      "n_option_rows_with_non_neutral_cells": 1448,
+      "n_option_rows_without": 552,
+      "fraction_negative": 0.06353591160220995,
+      "min": -4.814899921417236,
+      "median": 6.159438371658325,
+      "max": 15.824007034301758,
+      "mean": 6.14024598430448
+    }
+  },
+  "ii_variance_decomposition": {
+    "within_question": {
+      "scope": "within-question (each term demeaned per question -- the ranking-relevant decomposition, softmax is shift-invariant per question)",
+      "n_option_rows": 2000,
+      "var_z": 0.004440914615524284,
+      "terms": {
+        "alpha_s_pos": {
+          "var_term": 8.115254737068545e-05,
+          "sd_term": 0.009008470867504954,
+          "cov_with_z": -0.00022118119952328156,
+          "share_of_var_z": -0.04980532585564459,
+          "mean_within_question_range": 0.018120693255742358
+        },
+        "neg_beta_s_neg": {
+          "var_term": 0.0026010987203848013,
+          "sd_term": 0.05100096783772639,
+          "cov_with_z": 0.0023128910138337246,
+          "share_of_var_z": 0.5208141146754901,
+          "mean_within_question_range": 0.08737562799438534
+        },
+        "gamma_kg": {
+          "var_term": 0.0024669233128111275,
+          "sd_term": 0.04966813176284294,
+          "cov_with_z": 0.0023383605002665524,
+          "share_of_var_z": 0.5265493040762935,
+          "mean_within_question_range": 0.020050204299607226
+        },
+        "delta_rerank": {
+          "var_term": 0.0002859765874061301,
+          "sd_term": 0.01691084230327189,
+          "cov_with_z": 1.0844300947277471e-05,
+          "share_of_var_z": 0.0024419071038584285,
+          "mean_within_question_range": 0.030590917410568075
+        }
+      },
+      "share_sum_check": 0.9999999999999974,
+      "covariance_matrix": {
+        "alpha_s_pos": {
+          "alpha_s_pos": 8.115254737068545e-05,
+          "neg_beta_s_neg": -0.0001601635767564625,
+          "gamma_kg": -9.014253924823201e-05,
+          "delta_rerank": -5.2027630889272656e-05
+        },
+        "neg_beta_s_neg": {
+          "alpha_s_pos": -0.0001601635767564625,
+          "neg_beta_s_neg": 0.0026010987203848013,
+          "gamma_kg": 2.8320126239324648e-05,
+          "delta_rerank": -0.0001563642560339109
+        },
+        "gamma_kg": {
+          "alpha_s_pos": -9.014253924823201e-05,
+          "neg_beta_s_neg": 2.8320126239324648e-05,
+          "gamma_kg": 0.0024669233128111275,
+          "delta_rerank": -6.674039953566912e-05
+        },
+        "delta_rerank": {
+          "alpha_s_pos": -5.2027630889272656e-05,
+          "neg_beta_s_neg": -0.0001563642560339109,
+          "gamma_kg": -6.674039953566912e-05,
+          "delta_rerank": 0.0002859765874061301
+        }
+      }
+    },
+    "pooled": {
+      "scope": "pooled over all option rows",
+      "n_option_rows": 2000,
+      "var_z": 0.006817700216120675,
+      "terms": {
+        "alpha_s_pos": {
+          "var_term": 0.00014874446062701374,
+          "sd_term": 0.0121960838233842,
+          "cov_with_z": -0.00031910752652493027,
+          "share_of_var_z": -0.046805743345885185,
+          "mean_within_question_range": 0.018120693255742358
+        },
+        "neg_beta_s_neg": {
+          "var_term": 0.004338804365227744,
+          "sd_term": 0.06586960122262578,
+          "cov_with_z": 0.0036873365230250363,
+          "share_of_var_z": 0.5408475594609174,
+          "mean_within_question_range": 0.08737562799438534
+        },
+        "gamma_kg": {
+          "var_term": 0.00332056571907249,
+          "sd_term": 0.05762435005336277,
+          "cov_with_z": 0.0030870168532640555,
+          "share_of_var_z": 0.4527944549343345,
+          "mean_within_question_range": 0.020050204299607226
+        },
+        "delta_rerank": {
+          "var_term": 0.001128476793424322,
+          "sd_term": 0.03359280865638242,
+          "cov_with_z": 0.00036245436635655724,
+          "share_of_var_z": 0.0531637289506397,
+          "mean_within_question_range": 0.030590917410568075
+        }
+      },
+      "share_sum_check": 1.0000000000000064,
+      "covariance_matrix": {
+        "alpha_s_pos": {
+          "alpha_s_pos": 0.00014874446062701374,
+          "neg_beta_s_neg": -0.0001880396659490749,
+          "gamma_kg": -0.00011650923197834122,
+          "delta_rerank": -0.0001633030892245274
+        },
+        "neg_beta_s_neg": {
+          "alpha_s_pos": -0.0001880396659490749,
+          "neg_beta_s_neg": 0.004338804365227744,
+          "gamma_kg": 1.1125763879734955e-05,
+          "delta_rerank": -0.0004745539401334618
+        },
+        "gamma_kg": {
+          "alpha_s_pos": -0.00011650923197834122,
+          "neg_beta_s_neg": 1.1125763879734955e-05,
+          "gamma_kg": 0.00332056571907249,
+          "delta_rerank": -0.0001281653977097673
+        },
+        "delta_rerank": {
+          "alpha_s_pos": -0.0001633030892245274,
+          "neg_beta_s_neg": -0.0004745539401334618,
+          "gamma_kg": -0.0001281653977097673,
+          "delta_rerank": 0.001128476793424322
+        }
+      }
+    }
+  },
+  "iii_argmax_comparisons": {
+    "n_questions": 500,
+    "requested_alpha_s_pos_alone": {
+      "note": "argmax of alpha*s_pos alone. alpha is fitted NEGATIVE, so this is argmin s_pos -- the option with the FEWEST SUPPORT cells.",
+      "argmax_differs_from_argmax_z_same_tiebreak": 341,
+      "argmax_differs_rate": 0.682,
+      "v5_pred_not_among_tied_maximisers": 288,
+      "v5_pred_not_among_tied_maximisers_rate": 0.576,
+      "questions_where_all_options_tie_on_this_score": 88,
+      "accuracy_letter_order_tiebreak": 0.224,
+      "accuracy_tie_aware": 0.2113333333333331
+    },
+    "s_pos_alone_sign_free": {
+      "note": "argmax s_pos: the option with the MOST SUPPORT cells (the evidential direction)",
+      "argmax_differs_from_argmax_z_same_tiebreak": 259,
+      "argmax_differs_rate": 0.518,
+      "v5_pred_not_among_tied_maximisers": 183,
+      "v5_pred_not_among_tied_maximisers_rate": 0.366,
+      "questions_where_all_options_tie_on_this_score": 88,
+      "accuracy_letter_order_tiebreak": 0.348,
+      "accuracy_tie_aware": 0.3320000000000001
+    },
+    "each_term_alone": {
+      "alpha_s_pos": {
+        "argmax_differs_from_argmax_z_same_tiebreak": 341,
+        "argmax_differs_rate": 0.682,
+        "v5_pred_not_among_tied_maximisers": 288,
+        "v5_pred_not_among_tied_maximisers_rate": 0.576,
+        "questions_where_all_options_tie_on_this_score": 88,
+        "accuracy_letter_order_tiebreak": 0.224,
+        "accuracy_tie_aware": 0.2113333333333331
+      },
+      "neg_beta_s_neg": {
+        "argmax_differs_from_argmax_z_same_tiebreak": 194,
+        "argmax_differs_rate": 0.388,
+        "v5_pred_not_among_tied_maximisers": 7,
+        "v5_pred_not_among_tied_maximisers_rate": 0.014,
+        "questions_where_all_options_tie_on_this_score": 184,
+        "accuracy_letter_order_tiebreak": 0.34,
+        "accuracy_tie_aware": 0.31633333333333336
+      },
+      "gamma_kg": {
+        "argmax_differs_from_argmax_z_same_tiebreak": 283,
+        "argmax_differs_rate": 0.566,
+        "v5_pred_not_among_tied_maximisers": 0,
+        "v5_pred_not_among_tied_maximisers_rate": 0.0,
+        "questions_where_all_options_tie_on_this_score": 479,
+        "accuracy_letter_order_tiebreak": 0.278,
+        "accuracy_tie_aware": 0.2455
+      },
+      "delta_rerank": {
+        "argmax_differs_from_argmax_z_same_tiebreak": 231,
+        "argmax_differs_rate": 0.462,
+        "v5_pred_not_among_tied_maximisers": 174,
+        "v5_pred_not_among_tied_maximisers_rate": 0.348,
+        "questions_where_all_options_tie_on_this_score": 58,
+        "accuracy_letter_order_tiebreak": 0.272,
+        "accuracy_tie_aware": 0.25866666666666643
+      }
+    },
+    "leave_one_term_out": {
+      "alpha_s_pos": {
+        "pred_changes_when_term_removed": 61,
+        "accuracy_without_term_letter_order_tiebreak": 0.33
+      },
+      "neg_beta_s_neg": {
+        "pred_changes_when_term_removed": 225,
+        "accuracy_without_term_letter_order_tiebreak": 0.218
+      },
+      "gamma_kg": {
+        "pred_changes_when_term_removed": 20,
+        "accuracy_without_term_letter_order_tiebreak": 0.324
+      },
+      "delta_rerank": {
+        "pred_changes_when_term_removed": 186,
+        "accuracy_without_term_letter_order_tiebreak": 0.28
+      }
+    },
+    "full_z": {
+      "accuracy_letter_order_tiebreak": 0.316,
+      "accuracy_tie_aware": 0.327
+    },
+    "top_z_ties": {
+      "n_questions_top_z_tied": 170,
+      "of_which_tied_max_is_exactly_zero": 92,
+      "tied_pred_letter_counts": {
+        "A": 120,
+        "B": 35,
+        "C": 15
+      },
+      "tied_gold_letter_counts": {
+        "A": 38,
+        "B": 47,
+        "C": 48,
+        "D": 37
+      },
+      "tied_accuracy_letter_order_tiebreak": 0.21764705882352942,
+      "tied_accuracy_tie_aware": 0.25
+    },
+    "pred_option_has_no_support_and_no_contradict_cells": 118
+  },
+  "iv_zero_support_wins": {
+    "definition": "pred option has s_pos == 0 while >= 1 other option has s_pos > 0 (identical to v5_diagnostics.json (c) 'of_those_where_some_OTHER_option_did_have_SUPPORT'). Compared against S* = the supported option with the highest z (V5's own tie-break) -- the hardest supported competitor P had to beat. winning_term = the term with the largest positive (P - S*) contribution to the margin; decisive_terms = terms whose removal alone flips P vs S*.",
+    "n_cases": 68,
+    "winning_term_counts": {
+      "alpha_s_pos": 38,
+      "neg_beta_s_neg": 26,
+      "delta_rerank": 4
+    },
+    "decisive_term_counts": {
+      "alpha_s_pos": 28,
+      "neg_beta_s_neg": 20,
+      "gamma_kg": 0,
+      "delta_rerank": 0
+    },
+    "cases_with_no_single_decisive_term": 20,
+    "mean_term_delta_pred_minus_supported": {
+      "alpha_s_pos": 0.019618217166086884,
+      "neg_beta_s_neg": 0.041970261747229044,
+      "gamma_kg": 0.0,
+      "delta_rerank": -0.015122660308576567
+    },
+    "pred_has_no_non_neutral_cells_z_exactly_zero": 63,
+    "pred_has_contradict_cells": 5,
+    "best_supported_z_negative": 68,
+    "best_supported_has_contradict_cells": 30,
+    "best_supported_s_pos_counts": {
+      "1": 43,
+      "2": 23,
+      "3": 1,
+      "4": 1
+    },
+    "pred_is_gold": 10,
+    "best_supported_is_gold": 14,
+    "status_counts": {
+      "ok": 68
+    },
+    "cases": [
+      {
+        "question_id": "test_00001",
+        "status": "ok",
+        "gold": "D",
+        "pred_zero_support": "B",
+        "best_supported": "A",
+        "pred_features": {
+          "option_id": "B",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 1,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "A",
+          "s_pos": 1,
+          "s_neg": 0,
+          "s_neu": 1,
+          "kg_support_count": 0,
+          "mean_rerank_score": -2.644733428955078,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.03432064115523548,
+        "margin": 0.03432064115523548,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": 0.02042440399592394
+        },
+        "winning_term": "delta_rerank",
+        "decisive_terms": []
+      },
+      {
+        "question_id": "test_00004",
+        "status": "ok",
+        "gold": "B",
+        "pred_zero_support": "A",
+        "best_supported": "D",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "D",
+          "s_pos": 2,
+          "s_neg": 0,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": -3.938003182411194,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.05820437407918929,
+        "margin": 0.05820437407918929,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.027792474318623084,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": 0.030411899760566206
+        },
+        "winning_term": "delta_rerank",
+        "decisive_terms": []
+      },
+      {
+        "question_id": "test_00013",
+        "status": "ok",
+        "gold": "D",
+        "pred_zero_support": "C",
+        "best_supported": "A",
+        "pred_features": {
+          "option_id": "C",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "A",
+          "s_pos": 1,
+          "s_neg": 0,
+          "s_neu": 1,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.18471167981624603,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.012469769776992672,
+        "margin": 0.012469769776992672,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.0014264673823188698
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": [
+          "alpha_s_pos"
+        ]
+      },
+      {
+        "question_id": "test_00036",
+        "status": "ok",
+        "gold": "D",
+        "pred_zero_support": "D",
+        "best_supported": "C",
+        "pred_features": {
+          "option_id": "D",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "C",
+          "s_pos": 2,
+          "s_neg": 0,
+          "s_neu": 1,
+          "kg_support_count": 0,
+          "mean_rerank_score": -2.520128011703491,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.04725459177399666,
+        "margin": 0.04725459177399666,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.027792474318623084,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": 0.019462117455373577
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": []
+      },
+      {
+        "question_id": "test_00106",
+        "status": "ok",
+        "gold": "B",
+        "pred_zero_support": "B",
+        "best_supported": "C",
+        "pred_features": {
+          "option_id": "B",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "C",
+          "s_pos": 1,
+          "s_neg": 0,
+          "s_neu": 1,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.5144445300102234,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.009923351726176085,
+        "margin": 0.009923351726176085,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.003972885433135458
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": [
+          "alpha_s_pos"
+        ]
+      },
+      {
+        "question_id": "test_00124",
+        "status": "ok",
+        "gold": "B",
+        "pred_zero_support": "B",
+        "best_supported": "A",
+        "pred_features": {
+          "option_id": "B",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 1,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "A",
+          "s_pos": 1,
+          "s_neg": 1,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 5.343547582626343,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.08239815844454723,
+        "margin": 0.08239815844454723,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.10976837687736825,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.04126645559213256
+        },
+        "winning_term": "neg_beta_s_neg",
+        "decisive_terms": [
+          "neg_beta_s_neg"
+        ]
+      },
+      {
+        "question_id": "test_00131",
+        "status": "ok",
+        "gold": "B",
+        "pred_zero_support": "A",
+        "best_supported": "B",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "B",
+          "s_pos": 1,
+          "s_neg": 1,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": -0.5891880244016647,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.128214718825386,
+        "margin": 0.128214718825386,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.10976837687736825,
+          "gamma_kg": 0.0,
+          "delta_rerank": 0.004550104788706209
+        },
+        "winning_term": "neg_beta_s_neg",
+        "decisive_terms": []
+      },
+      {
+        "question_id": "test_00134",
+        "status": "ok",
+        "gold": "A",
+        "pred_zero_support": "D",
+        "best_supported": "A",
+        "pred_features": {
+          "option_id": "D",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 1,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "A",
+          "s_pos": 4,
+          "s_neg": 0,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.15931828320026398,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.05435458608183927,
+        "margin": 0.05435458608183927,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.05558494863724617,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.0012303625554068965
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": [
+          "alpha_s_pos"
+        ]
+      },
+      {
+        "question_id": "test_00137",
+        "status": "ok",
+        "gold": "D",
+        "pred_zero_support": "A",
+        "best_supported": "C",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "C",
+          "s_pos": 1,
+          "s_neg": 1,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 12.68453598022461,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.025706126226700585,
+        "margin": 0.025706126226700585,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.10976837687736825,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.0979584878099792
+        },
+        "winning_term": "neg_beta_s_neg",
+        "decisive_terms": [
+          "neg_beta_s_neg"
+        ]
+      },
+      {
+        "question_id": "test_00178",
+        "status": "ok",
+        "gold": "D",
+        "pred_zero_support": "C",
+        "best_supported": "A",
+        "pred_features": {
+          "option_id": "C",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "A",
+          "s_pos": 1,
+          "s_neg": 0,
+          "s_neu": 1,
+          "kg_support_count": 0,
+          "mean_rerank_score": -1.1592159271240234,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.022848479436312963,
+        "margin": 0.022848479436312963,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": 0.00895224227700142
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": []
+      },
+      {
+        "question_id": "test_00189",
+        "status": "ok",
+        "gold": "C",
+        "pred_zero_support": "A",
+        "best_supported": "B",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "B",
+          "s_pos": 2,
+          "s_neg": 0,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 2.8733108043670654,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.0056028426409108385,
+        "margin": 0.0056028426409108385,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.027792474318623084,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.022189631677712245
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": [
+          "alpha_s_pos"
+        ]
+      },
+      {
+        "question_id": "test_00191",
+        "status": "ok",
+        "gold": "C",
+        "pred_zero_support": "A",
+        "best_supported": "D",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "D",
+          "s_pos": 1,
+          "s_neg": 1,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 1.3413853645324707,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.11330553727700224,
+        "margin": 0.11330553727700224,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.10976837687736825,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.010359076759677557
+        },
+        "winning_term": "neg_beta_s_neg",
+        "decisive_terms": []
+      },
+      {
+        "question_id": "test_00194",
+        "status": "ok",
+        "gold": "C",
+        "pred_zero_support": "A",
+        "best_supported": "D",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "D",
+          "s_pos": 1,
+          "s_neg": 1,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 6.621158123016357,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.07253159361775252,
+        "margin": 0.07253159361775252,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.10976837687736825,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.051133020418927276
+        },
+        "winning_term": "neg_beta_s_neg",
+        "decisive_terms": [
+          "neg_beta_s_neg"
+        ]
+      },
+      {
+        "question_id": "test_00227",
+        "status": "ok",
+        "gold": "C",
+        "pred_zero_support": "A",
+        "best_supported": "B",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "B",
+          "s_pos": 1,
+          "s_neg": 1,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 4.464552402496338,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.08918634831385225,
+        "margin": 0.08918634831385225,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.10976837687736825,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.03447826572282755
+        },
+        "winning_term": "neg_beta_s_neg",
+        "decisive_terms": [
+          "neg_beta_s_neg"
+        ]
+      },
+      {
+        "question_id": "test_00250",
+        "status": "ok",
+        "gold": "A",
+        "pred_zero_support": "D",
+        "best_supported": "A",
+        "pred_features": {
+          "option_id": "D",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "A",
+          "s_pos": 1,
+          "s_neg": 0,
+          "s_neu": 1,
+          "kg_support_count": 0,
+          "mean_rerank_score": 1.5679954290390015,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.0017871256111175408,
+        "margin": 0.0017871256111175408,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.012109111548194001
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": [
+          "alpha_s_pos"
+        ]
+      },
+      {
+        "question_id": "test_00254",
+        "status": "ok",
+        "gold": "A",
+        "pred_zero_support": "C",
+        "best_supported": "A",
+        "pred_features": {
+          "option_id": "C",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "A",
+          "s_pos": 1,
+          "s_neg": 0,
+          "s_neu": 1,
+          "kg_support_count": 0,
+          "mean_rerank_score": -1.4808300733566284,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.02533219941411586,
+        "margin": 0.02533219941411586,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": 0.011435962254804316
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": []
+      },
+      {
+        "question_id": "test_00285",
+        "status": "ok",
+        "gold": "C",
+        "pred_zero_support": "A",
+        "best_supported": "D",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "D",
+          "s_pos": 2,
+          "s_neg": 0,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 3.5252978801727295,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.0005677614903552494,
+        "margin": 0.0005677614903552494,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.027792474318623084,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.027224712828267834
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": [
+          "alpha_s_pos"
+        ]
+      },
+      {
+        "question_id": "test_00317",
+        "status": "ok",
+        "gold": "A",
+        "pred_zero_support": "A",
+        "best_supported": "D",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "D",
+          "s_pos": 1,
+          "s_neg": 1,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": -2.016817808151245,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.13923983278987176,
+        "margin": 0.13923983278987176,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.10976837687736825,
+          "gamma_kg": 0.0,
+          "delta_rerank": 0.015575218753191978
+        },
+        "winning_term": "neg_beta_s_neg",
+        "decisive_terms": []
+      },
+      {
+        "question_id": "test_00330",
+        "status": "ok",
+        "gold": "B",
+        "pred_zero_support": "A",
+        "best_supported": "C",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 1,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "C",
+          "s_pos": 2,
+          "s_neg": 0,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 2.9208890795707703,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.0052354113135979555,
+        "margin": 0.0052354113135979555,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.027792474318623084,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.02255706300502513
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": [
+          "alpha_s_pos"
+        ]
+      },
+      {
+        "question_id": "test_00334",
+        "status": "ok",
+        "gold": "B",
+        "pred_zero_support": "C",
+        "best_supported": "B",
+        "pred_features": {
+          "option_id": "C",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "B",
+          "s_pos": 1,
+          "s_neg": 0,
+          "s_neu": 1,
+          "kg_support_count": 0,
+          "mean_rerank_score": -4.3458943367004395,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.04745814577534822,
+        "margin": 0.04745814577534822,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": 0.03356190861603668
+        },
+        "winning_term": "delta_rerank",
+        "decisive_terms": []
+      },
+      {
+        "question_id": "test_00340",
+        "status": "ok",
+        "gold": "D",
+        "pred_zero_support": "A",
+        "best_supported": "C",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "C",
+          "s_pos": 1,
+          "s_neg": 1,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 9.189236640930176,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.05269917021776972,
+        "margin": 0.05269917021776972,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.10976837687736825,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.07096544381891007
+        },
+        "winning_term": "neg_beta_s_neg",
+        "decisive_terms": [
+          "neg_beta_s_neg"
+        ]
+      },
+      {
+        "question_id": "test_00351",
+        "status": "ok",
+        "gold": "A",
+        "pred_zero_support": "D",
+        "best_supported": "A",
+        "pred_features": {
+          "option_id": "D",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "A",
+          "s_pos": 2,
+          "s_neg": 0,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.39542463421821594,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.024738740286001048,
+        "margin": 0.024738740286001048,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.027792474318623084,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.0030537340326220346
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": [
+          "alpha_s_pos"
+        ]
+      },
+      {
+        "question_id": "test_00362",
+        "status": "ok",
+        "gold": "D",
+        "pred_zero_support": "C",
+        "best_supported": "B",
+        "pred_features": {
+          "option_id": "C",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 1,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "B",
+          "s_pos": 1,
+          "s_neg": 0,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 1.191353678703308,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.004695805626414003,
+        "margin": 0.004695805626414003,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.009200431532897539
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": [
+          "alpha_s_pos"
+        ]
+      },
+      {
+        "question_id": "test_00391",
+        "status": "ok",
+        "gold": "A",
+        "pred_zero_support": "C",
+        "best_supported": "B",
+        "pred_features": {
+          "option_id": "C",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "B",
+          "s_pos": 2,
+          "s_neg": 0,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 1.50827157497406,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.016144590397478783,
+        "margin": 0.016144590397478783,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.027792474318623084,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.011647883921144301
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": [
+          "alpha_s_pos"
+        ]
+      },
+      {
+        "question_id": "test_00394",
+        "status": "ok",
+        "gold": "C",
+        "pred_zero_support": "A",
+        "best_supported": "B",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "B",
+          "s_pos": 1,
+          "s_neg": 1,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 3.930750846862793,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.09330872167161622,
+        "margin": 0.09330872167161622,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.10976837687736825,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.03035589236506357
+        },
+        "winning_term": "neg_beta_s_neg",
+        "decisive_terms": [
+          "neg_beta_s_neg"
+        ]
+      },
+      {
+        "question_id": "test_00408",
+        "status": "ok",
+        "gold": "A",
+        "pred_zero_support": "B",
+        "best_supported": "C",
+        "pred_features": {
+          "option_id": "B",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "C",
+          "s_pos": 1,
+          "s_neg": 1,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 2.775577425956726,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.10222974500638035,
+        "margin": 0.10222974500638035,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.10976837687736825,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.02143486903029944
+        },
+        "winning_term": "neg_beta_s_neg",
+        "decisive_terms": [
+          "neg_beta_s_neg"
+        ]
+      },
+      {
+        "question_id": "test_00416",
+        "status": "ok",
+        "gold": "C",
+        "pred_zero_support": "A",
+        "best_supported": "D",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 1,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "D",
+          "s_pos": 1,
+          "s_neg": 0,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": -0.31126952171325684,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.01630006901377613,
+        "margin": 0.01630006901377613,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": 0.002403831854464589
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": []
+      },
+      {
+        "question_id": "test_00440",
+        "status": "ok",
+        "gold": "D",
+        "pred_zero_support": "A",
+        "best_supported": "C",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "C",
+          "s_pos": 3,
+          "s_neg": 0,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 2.529022216796875,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.02215790701007766,
+        "margin": 0.02215790701007766,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.041688711477934626,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.019530804467856967
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": [
+          "alpha_s_pos"
+        ]
+      },
+      {
+        "question_id": "test_00446",
+        "status": "ok",
+        "gold": "A",
+        "pred_zero_support": "B",
+        "best_supported": "C",
+        "pred_features": {
+          "option_id": "B",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "C",
+          "s_pos": 1,
+          "s_neg": 1,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 7.725715398788452,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.06400146207783405,
+        "margin": 0.06400146207783405,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.10976837687736825,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.05966315195884574
+        },
+        "winning_term": "neg_beta_s_neg",
+        "decisive_terms": [
+          "neg_beta_s_neg"
+        ]
+      },
+      {
+        "question_id": "test_00481",
+        "status": "ok",
+        "gold": "A",
+        "pred_zero_support": "C",
+        "best_supported": "B",
+        "pred_features": {
+          "option_id": "C",
+          "s_pos": 0,
+          "s_neg": 1,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 11.74993896484375,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "B",
+          "s_pos": 1,
+          "s_neg": 1,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 11.74993896484375,
+          "resolved": true
+        },
+        "z_pred": -0.019027473571951087,
+        "z_best_supported": -0.03292371073126263,
+        "margin": 0.013896237159311542,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": 0.0
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": [
+          "alpha_s_pos"
+        ]
+      },
+      {
+        "question_id": "test_00484",
+        "status": "ok",
+        "gold": "C",
+        "pred_zero_support": "B",
+        "best_supported": "A",
+        "pred_features": {
+          "option_id": "B",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "A",
+          "s_pos": 1,
+          "s_neg": 1,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 2.5074219703674316,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.10430062114788649,
+        "margin": 0.10430062114788649,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.10976837687736825,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.0193639928887933
+        },
+        "winning_term": "neg_beta_s_neg",
+        "decisive_terms": [
+          "neg_beta_s_neg"
+        ]
+      },
+      {
+        "question_id": "test_00490",
+        "status": "ok",
+        "gold": "C",
+        "pred_zero_support": "B",
+        "best_supported": "A",
+        "pred_features": {
+          "option_id": "B",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "A",
+          "s_pos": 1,
+          "s_neg": 0,
+          "s_neu": 1,
+          "kg_support_count": 0,
+          "mean_rerank_score": -0.014681265689432621,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.014009615732111954,
+        "margin": 0.014009615732111954,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": 0.0001133785728004128
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": []
+      },
+      {
+        "question_id": "test_00501",
+        "status": "ok",
+        "gold": "D",
+        "pred_zero_support": "A",
+        "best_supported": "B",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 1,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "B",
+          "s_pos": 2,
+          "s_neg": 0,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 2.8057358264923096,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.006124701907716017,
+        "margin": 0.006124701907716017,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.027792474318623084,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.021667772410907067
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": [
+          "alpha_s_pos"
+        ]
+      },
+      {
+        "question_id": "test_00520",
+        "status": "ok",
+        "gold": "B",
+        "pred_zero_support": "B",
+        "best_supported": "D",
+        "pred_features": {
+          "option_id": "B",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "D",
+          "s_pos": 1,
+          "s_neg": 1,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 8.93971562385559,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.05462613873656623,
+        "margin": 0.05462613873656623,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.10976837687736825,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.06903847530011356
+        },
+        "winning_term": "neg_beta_s_neg",
+        "decisive_terms": [
+          "neg_beta_s_neg"
+        ]
+      },
+      {
+        "question_id": "test_00598",
+        "status": "ok",
+        "gold": "B",
+        "pred_zero_support": "B",
+        "best_supported": "A",
+        "pred_features": {
+          "option_id": "B",
+          "s_pos": 0,
+          "s_neg": 1,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 7.191783428192139,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "A",
+          "s_pos": 1,
+          "s_neg": 2,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 7.191783428192139,
+          "resolved": true
+        },
+        "z_pred": -0.054228605428030985,
+        "z_best_supported": -0.17789321946471076,
+        "margin": 0.12366461403667978,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.10976837687736825,
+          "gamma_kg": 0.0,
+          "delta_rerank": 0.0
+        },
+        "winning_term": "neg_beta_s_neg",
+        "decisive_terms": []
+      },
+      {
+        "question_id": "test_00609",
+        "status": "ok",
+        "gold": "D",
+        "pred_zero_support": "A",
+        "best_supported": "B",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "B",
+          "s_pos": 2,
+          "s_neg": 1,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": -2.6596948305765786,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.15810079716212566,
+        "margin": 0.15810079716212566,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.027792474318623084,
+          "neg_beta_s_neg": 0.10976837687736825,
+          "gamma_kg": 0.0,
+          "delta_rerank": 0.02053994596613435
+        },
+        "winning_term": "neg_beta_s_neg",
+        "decisive_terms": []
+      },
+      {
+        "question_id": "test_00638",
+        "status": "ok",
+        "gold": "A",
+        "pred_zero_support": "A",
+        "best_supported": "C",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "C",
+          "s_pos": 1,
+          "s_neg": 1,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 6.004027843475342,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.07729748722709187,
+        "margin": 0.07729748722709187,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.10976837687736825,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.04636712680958791
+        },
+        "winning_term": "neg_beta_s_neg",
+        "decisive_terms": [
+          "neg_beta_s_neg"
+        ]
+      },
+      {
+        "question_id": "test_00687",
+        "status": "ok",
+        "gold": "A",
+        "pred_zero_support": "D",
+        "best_supported": "A",
+        "pred_features": {
+          "option_id": "D",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "A",
+          "s_pos": 1,
+          "s_neg": 0,
+          "s_neu": 1,
+          "kg_support_count": 0,
+          "mean_rerank_score": 1.1037648916244507,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.005372224940824209,
+        "margin": 0.005372224940824209,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.008524012218487333
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": [
+          "alpha_s_pos"
+        ]
+      },
+      {
+        "question_id": "test_00692",
+        "status": "ok",
+        "gold": "C",
+        "pred_zero_support": "A",
+        "best_supported": "D",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "D",
+          "s_pos": 2,
+          "s_neg": 0,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 2.588389217853546,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.007803198081803388,
+        "margin": 0.007803198081803388,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.027792474318623084,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.019989276236819696
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": [
+          "alpha_s_pos"
+        ]
+      },
+      {
+        "question_id": "test_00741",
+        "status": "ok",
+        "gold": "A",
+        "pred_zero_support": "B",
+        "best_supported": "A",
+        "pred_features": {
+          "option_id": "B",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "A",
+          "s_pos": 2,
+          "s_neg": 0,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 1.5031088292598724,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.016184460579872346,
+        "margin": 0.016184460579872346,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.027792474318623084,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.011608013738750738
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": [
+          "alpha_s_pos"
+        ]
+      },
+      {
+        "question_id": "test_00746",
+        "status": "ok",
+        "gold": "B",
+        "pred_zero_support": "A",
+        "best_supported": "D",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "D",
+          "s_pos": 1,
+          "s_neg": 1,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 3.0890908241271973,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.09980858443410348,
+        "margin": 0.09980858443410348,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.10976837687736825,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.023856029602576316
+        },
+        "winning_term": "neg_beta_s_neg",
+        "decisive_terms": [
+          "neg_beta_s_neg"
+        ]
+      },
+      {
+        "question_id": "test_00752",
+        "status": "ok",
+        "gold": "C",
+        "pred_zero_support": "A",
+        "best_supported": "B",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "B",
+          "s_pos": 2,
+          "s_neg": 0,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 2.577556848526001,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.00788685289742927,
+        "margin": 0.00788685289742927,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.027792474318623084,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.019905621421193814
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": [
+          "alpha_s_pos"
+        ]
+      },
+      {
+        "question_id": "test_00759",
+        "status": "ok",
+        "gold": "C",
+        "pred_zero_support": "B",
+        "best_supported": "C",
+        "pred_features": {
+          "option_id": "B",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "C",
+          "s_pos": 1,
+          "s_neg": 1,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 4.3335031270980835,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.0901983986455806,
+        "margin": 0.0901983986455806,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.10976837687736825,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.033466215391099195
+        },
+        "winning_term": "neg_beta_s_neg",
+        "decisive_terms": [
+          "neg_beta_s_neg"
+        ]
+      },
+      {
+        "question_id": "test_00769",
+        "status": "ok",
+        "gold": "C",
+        "pred_zero_support": "C",
+        "best_supported": "A",
+        "pred_features": {
+          "option_id": "C",
+          "s_pos": 0,
+          "s_neg": 1,
+          "s_neu": 1,
+          "kg_support_count": 0,
+          "mean_rerank_score": 7.1539082527160645,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "A",
+          "s_pos": 1,
+          "s_neg": 1,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 7.495450258255005,
+          "resolved": true
+        },
+        "z_pred": -0.05452110291638673,
+        "z_best_supported": -0.06577972381300312,
+        "margin": 0.01125862089661639,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.0026376162626951458
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": [
+          "alpha_s_pos"
+        ]
+      },
+      {
+        "question_id": "test_00798",
+        "status": "ok",
+        "gold": "C",
+        "pred_zero_support": "B",
+        "best_supported": "A",
+        "pred_features": {
+          "option_id": "B",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "A",
+          "s_pos": 2,
+          "s_neg": 0,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 2.272470474243164,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.010242934343590835,
+        "margin": 0.010242934343590835,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.027792474318623084,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.01754953997503225
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": [
+          "alpha_s_pos"
+        ]
+      },
+      {
+        "question_id": "test_00821",
+        "status": "ok",
+        "gold": "C",
+        "pred_zero_support": "A",
+        "best_supported": "B",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "B",
+          "s_pos": 1,
+          "s_neg": 1,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 2.134767532348633,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.10717850846523973,
+        "margin": 0.10717850846523973,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.10976837687736825,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.016486105571440066
+        },
+        "winning_term": "neg_beta_s_neg",
+        "decisive_terms": [
+          "neg_beta_s_neg"
+        ]
+      },
+      {
+        "question_id": "test_00864",
+        "status": "ok",
+        "gold": "D",
+        "pred_zero_support": "A",
+        "best_supported": "B",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "B",
+          "s_pos": 2,
+          "s_neg": 0,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 2.9179608821868896,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.00525802481622677,
+        "margin": 0.00525802481622677,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.027792474318623084,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.022534449502396314
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": [
+          "alpha_s_pos"
+        ]
+      },
+      {
+        "question_id": "test_00865",
+        "status": "ok",
+        "gold": "C",
+        "pred_zero_support": "A",
+        "best_supported": "B",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "B",
+          "s_pos": 1,
+          "s_neg": 1,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 4.596958160400391,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.0881638223151215,
+        "margin": 0.0881638223151215,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.10976837687736825,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.03550079172155829
+        },
+        "winning_term": "neg_beta_s_neg",
+        "decisive_terms": [
+          "neg_beta_s_neg"
+        ]
+      },
+      {
+        "question_id": "test_00877",
+        "status": "ok",
+        "gold": "B",
+        "pred_zero_support": "A",
+        "best_supported": "C",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 1,
+          "s_neu": 1,
+          "kg_support_count": 0,
+          "mean_rerank_score": -1.6999229192733765,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "C",
+          "s_pos": 1,
+          "s_neg": 1,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": -0.676911786198616,
+          "resolved": true
+        },
+        "z_pred": -0.12289632092082049,
+        "z_best_supported": -0.1288921805050272,
+        "margin": 0.005995859584206717,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.007900377575104835
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": [
+          "alpha_s_pos"
+        ]
+      },
+      {
+        "question_id": "test_00902",
+        "status": "ok",
+        "gold": "C",
+        "pred_zero_support": "B",
+        "best_supported": "C",
+        "pred_features": {
+          "option_id": "B",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "C",
+          "s_pos": 1,
+          "s_neg": 1,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 3.05717533826828,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.10005505720514803,
+        "margin": 0.10005505720514803,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.10976837687736825,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.02360955683153176
+        },
+        "winning_term": "neg_beta_s_neg",
+        "decisive_terms": [
+          "neg_beta_s_neg"
+        ]
+      },
+      {
+        "question_id": "test_00917",
+        "status": "ok",
+        "gold": "D",
+        "pred_zero_support": "A",
+        "best_supported": "B",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "B",
+          "s_pos": 1,
+          "s_neg": 1,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 10.522594928741455,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.04240208392415008,
+        "margin": 0.04240208392415008,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.10976837687736825,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.08126253011252971
+        },
+        "winning_term": "neg_beta_s_neg",
+        "decisive_terms": [
+          "neg_beta_s_neg"
+        ]
+      },
+      {
+        "question_id": "test_00919",
+        "status": "ok",
+        "gold": "B",
+        "pred_zero_support": "A",
+        "best_supported": "D",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 1,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "D",
+          "s_pos": 2,
+          "s_neg": 0,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": -2.932983875274658,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.05044294144180993,
+        "margin": 0.05044294144180993,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.027792474318623084,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": 0.022650467123186847
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": []
+      },
+      {
+        "question_id": "test_00931",
+        "status": "ok",
+        "gold": "A",
+        "pred_zero_support": "B",
+        "best_supported": "C",
+        "pred_features": {
+          "option_id": "B",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "C",
+          "s_pos": 2,
+          "s_neg": 0,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 2.9157891273498535,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.005274796562553301,
+        "margin": 0.005274796562553301,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.027792474318623084,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.022517677756069783
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": [
+          "alpha_s_pos"
+        ]
+      },
+      {
+        "question_id": "test_00940",
+        "status": "ok",
+        "gold": "A",
+        "pred_zero_support": "B",
+        "best_supported": "C",
+        "pred_features": {
+          "option_id": "B",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "C",
+          "s_pos": 2,
+          "s_neg": 0,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 2.231637120246887,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.010558276869002948,
+        "margin": 0.010558276869002948,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.027792474318623084,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.017234197449620136
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": [
+          "alpha_s_pos"
+        ]
+      },
+      {
+        "question_id": "test_00947",
+        "status": "ok",
+        "gold": "B",
+        "pred_zero_support": "A",
+        "best_supported": "C",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 1,
+          "s_neu": 1,
+          "kg_support_count": 0,
+          "mean_rerank_score": 8.362717628479004,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "C",
+          "s_pos": 1,
+          "s_neg": 1,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 7.775059938430786,
+          "resolved": true
+        },
+        "z_pred": -0.045185866792269117,
+        "z_best_supported": -0.06362039047280424,
+        "margin": 0.018434523680535123,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": 0.004538286521223574
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": []
+      },
+      {
+        "question_id": "test_00973",
+        "status": "ok",
+        "gold": "B",
+        "pred_zero_support": "B",
+        "best_supported": "A",
+        "pred_features": {
+          "option_id": "B",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "A",
+          "s_pos": 1,
+          "s_neg": 1,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": -0.7633200883865356,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.12955948332396772,
+        "margin": 0.12955948332396772,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.10976837687736825,
+          "gamma_kg": 0.0,
+          "delta_rerank": 0.005894869287287927
+        },
+        "winning_term": "neg_beta_s_neg",
+        "decisive_terms": []
+      },
+      {
+        "question_id": "test_00987",
+        "status": "ok",
+        "gold": "B",
+        "pred_zero_support": "A",
+        "best_supported": "B",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "B",
+          "s_pos": 2,
+          "s_neg": 0,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 3.520658493041992,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.0006035899470209563,
+        "margin": 0.0006035899470209563,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.027792474318623084,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.027188884371602128
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": [
+          "alpha_s_pos"
+        ]
+      },
+      {
+        "question_id": "test_01000",
+        "status": "ok",
+        "gold": "C",
+        "pred_zero_support": "D",
+        "best_supported": "B",
+        "pred_features": {
+          "option_id": "D",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 1,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "B",
+          "s_pos": 1,
+          "s_neg": 1,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 4.080058574676514,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.09215566733381639,
+        "margin": 0.09215566733381639,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.10976837687736825,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.0315089467028634
+        },
+        "winning_term": "neg_beta_s_neg",
+        "decisive_terms": [
+          "neg_beta_s_neg"
+        ]
+      },
+      {
+        "question_id": "test_01003",
+        "status": "ok",
+        "gold": "D",
+        "pred_zero_support": "A",
+        "best_supported": "B",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "B",
+          "s_pos": 2,
+          "s_neg": 0,
+          "s_neu": 1,
+          "kg_support_count": 0,
+          "mean_rerank_score": 1.6716258525848389,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.014883059188375769,
+        "margin": 0.014883059188375769,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.027792474318623084,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.012909415130247315
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": [
+          "alpha_s_pos"
+        ]
+      },
+      {
+        "question_id": "test_01080",
+        "status": "ok",
+        "gold": "C",
+        "pred_zero_support": "A",
+        "best_supported": "D",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "D",
+          "s_pos": 1,
+          "s_neg": 0,
+          "s_neu": 1,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.14473044872283936,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.012778531638269846,
+        "margin": 0.012778531638269846,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.0011177055210416953
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": [
+          "alpha_s_pos"
+        ]
+      },
+      {
+        "question_id": "test_01085",
+        "status": "ok",
+        "gold": "A",
+        "pred_zero_support": "B",
+        "best_supported": "A",
+        "pred_features": {
+          "option_id": "B",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 1,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "A",
+          "s_pos": 2,
+          "s_neg": 0,
+          "s_neu": 1,
+          "kg_support_count": 0,
+          "mean_rerank_score": -0.7801899909973145,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.03381762429980709,
+        "margin": 0.03381762429980709,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.027792474318623084,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": 0.00602514998118401
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": []
+      },
+      {
+        "question_id": "test_01124",
+        "status": "ok",
+        "gold": "D",
+        "pred_zero_support": "C",
+        "best_supported": "A",
+        "pred_features": {
+          "option_id": "C",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "A",
+          "s_pos": 1,
+          "s_neg": 1,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 7.08809494972229,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.06892559450842653,
+        "margin": 0.06892559450842653,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.10976837687736825,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.05473901952825327
+        },
+        "winning_term": "neg_beta_s_neg",
+        "decisive_terms": [
+          "neg_beta_s_neg"
+        ]
+      },
+      {
+        "question_id": "test_01129",
+        "status": "ok",
+        "gold": "C",
+        "pred_zero_support": "A",
+        "best_supported": "D",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "D",
+          "s_pos": 1,
+          "s_neg": 0,
+          "s_neu": 1,
+          "kg_support_count": 0,
+          "mean_rerank_score": -0.44981399178504944,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.017370002261931687,
+        "margin": 0.017370002261931687,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": 0.0034737651026201443
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": []
+      },
+      {
+        "question_id": "test_01144",
+        "status": "ok",
+        "gold": "C",
+        "pred_zero_support": "A",
+        "best_supported": "B",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 1,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "B",
+          "s_pos": 1,
+          "s_neg": 0,
+          "s_neu": 1,
+          "kg_support_count": 0,
+          "mean_rerank_score": -1.2710976600646973,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.02371250515940719,
+        "margin": 0.02371250515940719,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": 0.009816268000095649
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": []
+      },
+      {
+        "question_id": "test_01149",
+        "status": "ok",
+        "gold": "B",
+        "pred_zero_support": "A",
+        "best_supported": "C",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "C",
+          "s_pos": 2,
+          "s_neg": 0,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 1.7308670282363892,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.014425559127517534,
+        "margin": 0.014425559127517534,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.027792474318623084,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.01336691519110555
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": [
+          "alpha_s_pos"
+        ]
+      },
+      {
+        "question_id": "test_01204",
+        "status": "ok",
+        "gold": "A",
+        "pred_zero_support": "A",
+        "best_supported": "B",
+        "pred_features": {
+          "option_id": "A",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "B",
+          "s_pos": 1,
+          "s_neg": 1,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 7.672505140304565,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.06441238735450053,
+        "margin": 0.06441238735450053,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.013896237159311542,
+          "neg_beta_s_neg": 0.10976837687736825,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.05925222668217927
+        },
+        "winning_term": "neg_beta_s_neg",
+        "decisive_terms": [
+          "neg_beta_s_neg"
+        ]
+      },
+      {
+        "question_id": "test_01205",
+        "status": "ok",
+        "gold": "D",
+        "pred_zero_support": "B",
+        "best_supported": "D",
+        "pred_features": {
+          "option_id": "B",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "D",
+          "s_pos": 2,
+          "s_neg": 0,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": 1.427714079618454,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.01676670936494415,
+        "margin": 0.01676670936494415,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.027792474318623084,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": -0.011025764953678937
+        },
+        "winning_term": "alpha_s_pos",
+        "decisive_terms": [
+          "alpha_s_pos"
+        ]
+      },
+      {
+        "question_id": "test_01252",
+        "status": "ok",
+        "gold": "B",
+        "pred_zero_support": "C",
+        "best_supported": "B",
+        "pred_features": {
+          "option_id": "C",
+          "s_pos": 0,
+          "s_neg": 0,
+          "s_neu": 2,
+          "kg_support_count": 0,
+          "mean_rerank_score": 0.0,
+          "resolved": true
+        },
+        "best_supported_features": {
+          "option_id": "B",
+          "s_pos": 2,
+          "s_neg": 0,
+          "s_neu": 0,
+          "kg_support_count": 0,
+          "mean_rerank_score": -4.624732971191406,
+          "resolved": true
+        },
+        "z_pred": 0.0,
+        "z_best_supported": -0.06350776174333819,
+        "margin": 0.06350776174333819,
+        "term_deltas_pred_minus_supported": {
+          "alpha_s_pos": 0.027792474318623084,
+          "neg_beta_s_neg": 0.0,
+          "gamma_kg": 0.0,
+          "delta_rerank": 0.0357152874247151
+        },
+        "winning_term": "delta_rerank",
+        "decisive_terms": []
+      }
+    ]
+  }
+}

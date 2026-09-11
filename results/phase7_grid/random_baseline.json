@@ -1,0 +1,152 @@
+{
+  "k_options": 4,
+  "analytic": {
+    "accuracy": 0.25,
+    "p_at_1": 0.25,
+    "p_at_2": 0.5,
+    "mrr": 0.5208333333333334,
+    "mrr_exact_fraction": "25/48"
+  },
+  "monte_carlo_check": {
+    "trials": 200000,
+    "seed": 42,
+    "p_at_1": 0.25218,
+    "p_at_2": 0.49932,
+    "mrr": 0.5217737499997063
+  },
+  "vs_chance_post_hoc": {
+    "status": "post-hoc descriptive display: NOT pre-registered, NOT in the m=35 exploratory family or the unplanned V0/V2 family; one-sample bootstrap of the per-question excess over the exact chance expectation, Holm-corrected within this display set only",
+    "n_resamples": 10000,
+    "seed": 42,
+    "alpha": 0.05,
+    "display_set_size": 9,
+    "comparisons": {
+      "V5:p_at_1": {
+        "variant": "V5",
+        "metric": "p_at_1",
+        "n": 500,
+        "observed": 0.316,
+        "chance": 0.25,
+        "excess_over_chance": 0.066,
+        "ci_lo": 0.026,
+        "ci_hi": 0.106,
+        "p_value": 0.0018,
+        "holm_rank": 6,
+        "holm_reject": true,
+        "verdict": "above chance (Holm, this display set)"
+      },
+      "V5:p_at_2": {
+        "variant": "V5",
+        "metric": "p_at_2",
+        "n": 500,
+        "observed": 0.582,
+        "chance": 0.5,
+        "excess_over_chance": 0.082,
+        "ci_lo": 0.04,
+        "ci_hi": 0.124,
+        "p_value": 0.0,
+        "holm_rank": 1,
+        "holm_reject": true,
+        "verdict": "above chance (Holm, this display set)"
+      },
+      "V5:mrr": {
+        "variant": "V5",
+        "metric": "mrr",
+        "n": 500,
+        "observed": 0.5713333333333337,
+        "chance": 0.5208333333333334,
+        "excess_over_chance": 0.05050000000000031,
+        "ci_lo": 0.023833333333333116,
+        "ci_hi": 0.07683333333333321,
+        "p_value": 0.0004,
+        "holm_rank": 5,
+        "holm_reject": true,
+        "verdict": "above chance (Holm, this display set)"
+      },
+      "V4-conflict:p_at_1": {
+        "variant": "V4-conflict",
+        "metric": "p_at_1",
+        "n": 500,
+        "observed": 0.358,
+        "chance": 0.25,
+        "excess_over_chance": 0.108,
+        "ci_lo": 0.066,
+        "ci_hi": 0.15,
+        "p_value": 0.0,
+        "holm_rank": 2,
+        "holm_reject": true,
+        "verdict": "above chance (Holm, this display set)"
+      },
+      "V4-conflict:p_at_2": {
+        "variant": "V4-conflict",
+        "metric": "p_at_2",
+        "n": 500,
+        "observed": 0.606,
+        "chance": 0.5,
+        "excess_over_chance": 0.106,
+        "ci_lo": 0.062,
+        "ci_hi": 0.148,
+        "p_value": 0.0,
+        "holm_rank": 3,
+        "holm_reject": true,
+        "verdict": "above chance (Holm, this display set)"
+      },
+      "V4-conflict:mrr": {
+        "variant": "V4-conflict",
+        "metric": "mrr",
+        "n": 500,
+        "observed": 0.5980000000000001,
+        "chance": 0.5208333333333334,
+        "excess_over_chance": 0.07716666666666668,
+        "ci_lo": 0.0501666666666668,
+        "ci_hi": 0.10449999999999969,
+        "p_value": 0.0,
+        "holm_rank": 4,
+        "holm_reject": true,
+        "verdict": "above chance (Holm, this display set)"
+      },
+      "post-hoc-binary:p_at_1": {
+        "variant": "post-hoc-binary",
+        "metric": "p_at_1",
+        "n": 500,
+        "observed": 0.218,
+        "chance": 0.25,
+        "excess_over_chance": -0.032,
+        "ci_lo": -0.068,
+        "ci_hi": 0.006,
+        "p_value": 0.0988,
+        "holm_rank": 9,
+        "holm_reject": false,
+        "verdict": "not distinguishable from chance (Holm, this display set)"
+      },
+      "post-hoc-binary:p_at_2": {
+        "variant": "post-hoc-binary",
+        "metric": "p_at_2",
+        "n": 500,
+        "observed": 0.458,
+        "chance": 0.5,
+        "excess_over_chance": -0.042,
+        "ci_lo": -0.086,
+        "ci_hi": 0.002,
+        "p_value": 0.0664,
+        "holm_rank": 8,
+        "holm_reject": false,
+        "verdict": "not distinguishable from chance (Holm, this display set)"
+      },
+      "post-hoc-binary:mrr": {
+        "variant": "post-hoc-binary",
+        "metric": "mrr",
+        "n": 500,
+        "observed": 0.494,
+        "chance": 0.5208333333333334,
+        "excess_over_chance": -0.026833333333333403,
+        "ci_lo": -0.051833333333332926,
+        "ci_hi": -0.0016666666666666687,
+        "p_value": 0.0364,
+        "holm_rank": 7,
+        "holm_reject": false,
+        "verdict": "not distinguishable from chance (Holm, this display set)"
+      }
+    }
+  }
+}

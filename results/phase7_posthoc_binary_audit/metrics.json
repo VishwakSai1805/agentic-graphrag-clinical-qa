@@ -1,0 +1,46 @@
+{
+  "run_id": "phase7_posthoc_binary_audit",
+  "dataset": "medqa",
+  "variant": "post-hoc-binary",
+  "derived_from": "medqa_V5_41f7e14-dirty_20260909T103452Z",
+  "derivation": "ADR-036 Constraint B",
+  "git_sha7": "41f7e14-dirty",
+  "split": "test",
+  "limit": 500,
+  "seed": 42,
+  "superseded": false,
+  "superseded_by": null,
+  "superseded_reason": null,
+  "metrics": {
+    "n_evaluated": 500,
+    "dataset": "medqa",
+    "accuracy": 0.218,
+    "macro_f1": 0.20486136589788076,
+    "p_at_1": 0.218,
+    "p_at_2": 0.458,
+    "mrr": 0.49400000000000105,
+    "ranking_source": "posthoc_binary_softmax",
+    "invalid_citation_count": 0,
+    "grounded_rate": 0.596,
+    "abstention_rate": 0.972,
+    "status_counts": {
+      "ok": 459,
+      "insufficient_evidence": 37,
+      "agent_error": 4
+    },
+    "hallucination": {
+      "primary": "hallucination_rate_predicted_option",
+      "hallucination_rate_predicted_option": 0.7380952380952381,
+      "n_claims_predicted_option": 378,
+      "n_ungrounded_predicted_option": 279,
+      "n_uncited_predicted_option": 0,
+      "hallucination_rate_all_support_cells": 0.7362995116657624,
+      "n_claims_all_support_cells": 1843,
+      "n_ungrounded_all_support_cells": 1357,
+      "n_uncited_all_support_cells": 0,
+      "note": "Re-aggregated from V5's own already-scored per_claim NLI judgements (same evidence/claim pairs -- the binary label collapse does not change any SUPPORT cell). Only the predicted_option flag is recomputed against post-hoc-binary's own ranking. Zero new NLI calls."
+    },
+    "hallucination_rate": 0.7380952380952381,
+    "n_pred_option_changed_vs_v5": 225
+  }
+}

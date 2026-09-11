@@ -187,6 +187,97 @@ tests the V3/V5 runs also report halluc-rate at 0.3 / 0.5 / 0.7 as a
 robustness display — not a paired test, not in the Holm family, there to show
 the V3-vs-V5 *ordering* on halluc-rate does not flip with the threshold.
 
+**Post-grid accounting (added 2026-09-10, ADR-040 — an audit of the
+registration above, not a change to it).** Pre-registered family size
+**m = 35**; actually tested **m = 31**. Four cells are untested, each for a
+reason fixed by the data's structure rather than by any outcome:
+- **g / h halluc-rate (2) — not computable.** B3 has no claim-level NLI data
+  (§5 table note §).
+- **b P@2 and b MRR (2) — not applicable.** V3 is `ranking_source:
+  single_prediction`: a 1-item list on all 500 questions. So its P@2 =
+  P(gold in a 1-item list) = accuracy = 0.546, and its MRR = 1 × accuracy + 0
+  = 0.546. Against V5's 4-item ranking (P@2 0.582, MRR 0.571) the comparison
+  scores list length, not ranking quality. The contingency rule above ("P@K/MRR
+  appear only where both sides produce a ranking") already excludes both
+  cells; the b row contradicted the rule it sits under.
+
+Holm is re-run over the 31. **No significance verdict changes under either
+m.** The same 18 cells are rejected at m = 35 (the two not-computable cells
+entered as p = 1.0 placeholders, the most conservative placement), at m = 33
+(the previous reading, which tested the not-applicable cells) and at m = 31.
+All 18 rejections have bootstrap p = 0 — none of 10,000 resamples crossed
+zero; the smallest attainable non-zero p is 0.0002 — which clears even the
+strictest threshold either family size imposes (Bonferroni 0.05/35 =
+0.00143). The smallest p not rejected is 0.0476 (d MRR), above every threshold
+it faces under both m. Source: `results/phase7_grid/exploratory_family.json` →
+`holm_sensitivity`. b P@1 stays: top-1 is well-defined for a single
+prediction. But it is the same per-question comparison as the confirmatory
+accuracy test, so it adds no independent evidence (dropping it as well,
+m = 30, leaves the other 17 rejections unchanged).
+
+### 1.0b Unplanned exploratory family — V0, V2 and V5-refit (V0/V2 registered 2026-09-10, ADR-040; V5-refit added 2026-09-11, ADR-043 — each before any run of this family exists)
+
+V0 (zero-shot, no retrieval) and V2 (`{dense, lexical}`, no KG) are
+**pre-specified grid rows** — §0.3's full 8-variant MedQA ablation — that the
+`docs/SCHEDULE.md` cut left unrun. **Their tests were never pre-registered**:
+the m=35 family above was registered without them. Their comparisons therefore
+form a **separate, explicitly unplanned exploratory family**, registered here
+before either run exists, Holm-corrected **within itself**, and **never merged
+into the m=35 family** (merging would move that family's thresholds after its
+outcomes are known). The distinction is the point: the *rows* were planned;
+the *tests* were not. They answer two questions the paper cannot omit — does
+retrieval help at all (V0), and does the KG add anything over `{dense,
+lexical}` (V2 vs V3, the isolation C1 has always needed and never had; the
+m=35 family's pair a, V1 vs V3, changes two modalities at once).
+
+**V5-refit (added 2026-09-11, ADR-043).** V5-refit is the disclosed
+post-hoc correction of V5's scoring rule: α, β, γ ≥ 0; a neutral no-signal
+rerank value; a seeded tie-break; s⁺ / s⁻ counted from the cell list
+(ADR-042). It was refit on the Phase 5 train slice and frozen in
+`results/phase7_v5_refit/refit_spec.json` before any test evaluation. Its
+three comparisons join this family, not the m=35 one. U6 asks whether
+correcting the rule changes V5; U7 and U8 place it against the uncalibrated
+margin and against retrieval alone. Adding them now moves no threshold after
+an outcome is known, because none of V0, V2 or V5-refit has run. V5 stays
+the pre-registered headline, and V5-refit is reported beside it, never in
+its place.
+
+| # | Pair | Metrics tested | count |
+|---|---|---|---|
+| U1 | V0 vs V1 | Acc, Macro-F1 | 2 |
+| U2 | V0 vs V3 | Acc, Macro-F1 | 2 |
+| U3 | V0 vs V5 | Acc, Macro-F1 | 2 |
+| U4 | **V2 vs V3** | Acc, Macro-F1, halluc-rate | 3 |
+| U5 | V1 vs V2 | Acc, Macro-F1, halluc-rate | 3 |
+| U6 | **V5-refit vs V5** | Acc, Macro-F1 | 2 |
+| U7 | V5-refit vs V4−conflict | Acc, Macro-F1 | 2 |
+| U8 | V5-refit vs V3 | Acc, Macro-F1 | 2 |
+
+**m_U = 18**, Holm–Bonferroni at family-wise α = 0.05 within these 18 only;
+same method as the m=35 family (paired bootstrap, 10k resamples, seed 42,
+two-sided; Macro-F1 and halluc-rate by joint question resampling). Fixed
+contingencies, so m_U is never chosen after seeing a number:
+- **No P@K / MRR / ECE cell anywhere.** V0–V3 are all `single_prediction`
+  (the pair-b lesson above). U6–U8 are registered on accuracy and Macro-F1
+  only; V5-refit's P@K, MRR, ECE and halluc-rate are displayed, not tested.
+- **No halluc-rate cell for any V0 pair.** V0 retrieves and cites nothing, so
+  every claim is ungrounded by construction.
+- **If V0, V2 or V5-refit does not produce a valid run** (variant, split
+  test, n = 500, seed 42, code identical to `41f7e14`, hallucination scored;
+  for V5-refit, also derived from the grid V5 run and carrying the frozen
+  spec's digest — all checked by the analysis script), that variant's pairs
+  leave the family (−6 each). Pre-authorised; no other cell may be dropped.
+- Results are reported under the "unplanned" label, never pooled with, and
+  never used to reinterpret, the m=35 family.
+
+Runs, in this order: `scripts/run_phase7_v5_refit.ps1` (re-scores V5's saved
+SupportMatrices; zero LLM calls; refuses to launch unless the spec, the rule
+code, ADR-043 and this table are committed); then
+`scripts/run_phase7_v0_v2.ps1 -Only V0` and `-Only V2`. All are pinned to
+`41f7e14`'s code, and `-DryRun` runs the checks only. Analysis: `uv run python -m
+scripts.analysis.unplanned_v0_v2_family --v0 <V0 run dir> --v2 <V2 run dir>
+--v5-refit <V5-refit run dir>` → `results/phase7_grid/unplanned_v0_v2_family.json`.
+
 ## 2. Factual fidelity
 - **RAGAS faithfulness** — fraction of generated claims entailed by the retrieved
   context. Pin the RAGAS version; run with a fixed judge model recorded in config.
@@ -218,33 +309,377 @@ the V3-vs-V5 *ordering* on halluc-rate does not flip with the threshold.
 
 ## 5. Results table (fill only from `results/` — no hand-typed numbers)
 
-Grid per §0.3 and the `docs/SCHEDULE.md` cut: **MedQA only**, cells V1, V3, V5,
-V4−audit, V4−conflict, **B3** (n=500 test slice, seed 42; ADR-035 added B3 —
-the prior-work comparison the ablation cells cannot substitute for). V0/V2/V4
-rows below stay `TBD` unless a spare slot runs them. B3 is scored on
-accuracy / Macro-F1 / halluc-rate only — a binary verifier emits one option,
-no ranking (P@K / MRR / ECE are `–`).
+**Filled 2026-09-10 from the Phase 7 grid, `python -m scripts.report` →
+`paper/tables/results_grid.md` / `.tex`.** Grid per §0.3 and the
+`docs/SCHEDULE.md` cut: **MedQA only**, five cells ran —
+**V1, V3, B3, V5, V4−conflict** (n=500 test slice, seed 42, all commit
+`41f7e14`; the five run dirs are pinned by exact name in
+`scripts/analysis/*`, never by glob, and `scripts/report.py` takes the latest
+*eligible* run per row and asserts its code provenance — see the launch
+instruction). **V4−audit remains deferred** (ADR-036, needs the binary-audit
+prompt implementation). **V0/V2/V4 rows are `TBD` — no n=500 test run
+exists.** V0 and V2 are prepared, not run (`scripts/run_phase7_v0_v2.ps1`;
+§1.0b; ADR-040). **V5-refit**, the disclosed post-hoc correction of V5's
+scoring rule (ADR-043), is prepared, not run
+(`scripts/run_phase7_v5_refit.ps1`). It has its own row beside V5 and never
+replaces it: V5 is the pre-registered result and the headline. The Phase 3 dev-20 B0 number that previously filled the V0
+row under a dagger is gone: a dev-20 number does not appear in a table of
+n=500 test results, footnote or not, and `scripts/report.py` now admits only
+n=500, seed-42, non-dev-split runs to any row (ADR-040). The **Random** row is
+not a run. It is the analytic expectation of a uniformly random ranking of the
+4 options (P@1 = 1/4, P@2 = 2/4, MRR = 25/48;
+`results/phase7_grid/random_baseline.json`) — the floor every P@K / MRR
+number in this table must be read against (§5.0a). Faithfulness (RAGAS, §2)
+was never wired up — every cell in that column is `TBD`, not measured, not
+implied by any other metric here. B3 is scored on accuracy / Macro-F1 only in
+this grid — see the discovered-gap note below; it has no ranking (P@K / MRR /
+ECE are `–`).
 
 | Variant | Dataset | Acc | Macro-F1 | Faithfulness | Halluc. rate | P@1 | P@2 | MRR | ECE | run_id |
 |---|---|---|---|---|---|---|---|---|---|---|
+| **Random ranking (chance)** | any 4-option | 0.250 | – | – | – | 0.250 | 0.500 | 0.521 | – | `phase7_grid/random_baseline.json` (analytic) |
 | V0 zero-shot | MedQA | TBD | TBD | – | TBD | TBD | TBD | TBD | TBD | TBD |
-| V1 dense RAG | MedQA | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
+| V1 dense RAG | MedQA | 0.566 | 0.565 | TBD | 0.893 | TBD‡ | TBD‡ | TBD‡ | TBD | `medqa_V1_41f7e14_20260908T212655Z` |
 | V2 hybrid | MedQA | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
-| V3 +KG | MedQA | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
+| V3 +KG | MedQA | 0.546 | 0.545 | TBD | 0.883 | TBD‡ | TBD‡ | TBD‡ | TBD | `medqa_V3_41f7e14-dirty_20260908T230633Z` |
 | V4 +agents | MedQA | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
 | V4−audit | MedQA | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
-| V4−conflict | MedQA | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
-| V5 full | MedQA | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
-| B3 binary verifier | MedQA | TBD | TBD | – | TBD | – | – | – | – | TBD |
+| V4−conflict | MedQA | 0.358 | 0.342 | TBD | 0.725 | 0.358 | 0.606 | 0.598 | TBD | `medqa_V4-conflict_41f7e14-dirty_20260909T220306Z` |
+| V5 full | MedQA | **0.316** | 0.311 | TBD | 0.728 | 0.316 | 0.582 | 0.571 | 0.068 | `medqa_V5_41f7e14-dirty_20260909T103452Z` |
+| V5-refit (post-hoc refit, ADR-043) | MedQA | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
+| B3 binary verifier | MedQA | 0.538 | 0.537 | – | TBD§ | – | – | – | – | `medqa_B3_41f7e14-dirty_20260909T023658Z` |
 | V3 +KG | MedMCQA | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
 | V5 full | MedMCQA | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
 | V3 +KG | PubMedQA | TBD | TBD | TBD | TBD | – | – | – | TBD | TBD |
 | V5 full | PubMedQA | TBD | TBD | TBD | TBD | – | – | – | TBD | TBD |
 
+‡ V1 and V3 are `ranking_source: single_prediction` — `src/eval/harness.py`'s
+`score_run` (`_RANKED_SOURCES = ("calibrated_softmax",
+"uncalibrated_support_margin")`) deliberately leaves P@1/P@2/MRR/ECE null for
+this ranking source (a single predicted option is not a ranking). This is an
+aggregate-table convention, not a data gap. The same fact governs the
+exploratory family: pair b tests V3 vs V5 on **P@1 only** (top-1 is
+well-defined for a single prediction). b's P@2 and MRR are **not
+applicable** — V3's 1-item list makes both equal its accuracy (0.546) — see
+§1.0's post-grid accounting and §5.0a.
+
+§ **Discovered gap, not a Phase 7 run failure.** B3 (`scripts/run_baselines.py`)
+never computes `claim_records` / resolves cited-evidence text, so it has no
+claim-level NLI data at all — confirmed from its `predictions.jsonl` schema
+(raw `rationale` + citation IDs, no resolved evidence text) and its
+`metrics.json` (no `hallucination` key). Recomputing it now would mean
+re-running retrieval to resolve citation IDs back to text, out of scope for a
+read-only analysis pass. See §5.0a's exploratory-family note (pairs g/h drop
+their halluc-rate sub-test for the same reason).
+
 Also report, per variant: mean LLM calls/question, tokens/question, wall-clock,
 KG-hit rate, and the failure-mode counters from `docs/01_ARCHITECTURE.md`.
+**Wall-clock is only available for the three grid cells the runner itself
+timed** (V1 50.7 min, V3 99.7 min, B3 207.7 min — `results/phase7_grid/manifest.json`);
+V5 and V4−conflict were run manually after the runner failed to launch them
+(ADR-039) and have no independently captured duration — see §5.0a.
+
+### 5.0a Phase 7 grid: confirmatory test, exploratory family, and V5 diagnostics
+
+**Grid provenance and manifest.** `results/phase7_grid/manifest.json`
+(rebuilt by `scripts/analysis/rebuild_phase7_manifest.py`, never by hand)
+pins the five run dirs by exact name and records that V5 and V4−conflict's
+runner attempts failed silently (`exit 2`, no log) and were completed
+manually from the same launch commit — investigated in **ADR-039**. All five
+`-dirty` git SHA stamps are resolved in **ADR-038**: every dirty run's own
+`git_dirty_files` list names only untracked `results/` output from earlier
+cells in the same grid, never a tracked source path — commit `41f7e14` is
+authoritative for all five cells.
+
+**Confirmatory test (the one pre-registered comparison, §1.0).** V3 vs V5,
+accuracy, MedQA test n=500, paired bootstrap 10k resamples seed 42, two-sided
+(`scripts/analysis/confirmatory_v3_v5.py` →
+`results/phase7_grid/confirmatory_v3_v5.json`):
+
+| | V3 | V5 | diff (V3−V5) | 95% CI | p | verdict |
+|---|---|---|---|---|---|---|
+| accuracy | 0.546 | 0.316 | **+0.230** | **[+0.172, +0.288]** | <0.0001 | **V3 significantly > V5** |
+
+**This is not the null the §1.0 pre-registration flagged as a live
+possibility — it is a large, significant loss.** The full tri-modal +
+multi-agent + evidential-calibration stack (V5) scores 23 accuracy points
+*below* tri-modal retrieval alone (V3) on MedQA test at this scale, with a CI
+that excludes zero by a wide margin. Per the pre-registration's own framing
+(§1.0), a null here would have been reported as "the stack does not beat
+retrieval alone"; the actual result is stronger and less comfortable than
+that — the stack actively *regresses* accuracy relative to the tri-modal
+baseline it is built on top of. Read together with Phase 4 §5.5 Finding 3
+(uncalibrated agent stack 0.35 vs. equal-budget hybrid RAG 0.60 on the dev-20)
+and Phase 5 (temperature scaling alone matches the evidential features'
+ECE), this is the same direction of finding, now confirmed at n=500 test
+with a real significance test rather than a raw point estimate.
+
+**Exploratory family (Holm-Bonferroni, m=31 of 35 pre-registered).**
+`scripts/analysis/exploratory_family.py` →
+`results/phase7_grid/exploratory_family.json`, 10k resamples, seed 42,
+two-sided, α=0.05. Four pre-registered cells are untested, each for a reason
+fixed by the data's structure before any p-value in the family was read
+(§1.0 post-grid accounting, ADR-040):
+- **Not computable (2).** Pairs g and h drop their halluc-rate sub-test: B3
+  has no claim-level NLI data (see the §5 table's `§` note). A
+  data-availability finding disclosed up front, not a post-hoc exclusion.
+- **Not applicable (2).** Pair b's P@2 and MRR. V3 emits a 1-item list on
+  500/500 questions, so V3's P@2 = MRR = accuracy = 0.546 — P@2 asks whether
+  gold is in a list with no second slot, and MRR is 1 × accuracy + 0. V5's
+  4-item ranking earns rank-2 credit V3 cannot (V5 P@2 0.582, MRR 0.571), so
+  the previous table's "V3 − V5 = 0.546 − 0.582 on P@2, 0.546 − 0.571 on MRR"
+  measured list length, not ranking quality. Excluded from Holm exactly as
+  the B3 halluc-rate cells are; §1.0's own rule ("P@K/MRR appear only where
+  both sides produce a ranking") already excluded them.
+
+The 31 are Holm-corrected together (not per-pair). **No verdict changes**:
+the reject set — the same 18 cells — is identical at m = 35, 33 and 31
+(`holm_sensitivity`, §1.0).
+
+All numbers below are machine-generated from `results/phase7_grid/exploratory_family.json` (`scripts/analysis/exploratory_family.py`) — verified against that file, not re-typed by estimate.
+
+| pair | comparison | metric | point diff | 95% CI | p | Holm rank | Holm reject |
+|---|---|---|---|---|---|---|---|
+| a | V1 vs V3 | accuracy | +0.020 | tie | 0.1250 | 23 | no |
+| a | V1 vs V3 | macro-F1 | +0.020 | tie | 0.1096 | 22 | no |
+| a | V1 vs V3 | halluc-rate | +0.010 | tie | 0.3494 | 28 | no |
+| b | V3 vs V5 | macro-F1 | +0.234 | [+0.177,+0.290] | <0.0001 | 1 | **yes** |
+| b | V3 vs V5 | halluc-rate | +0.155 | [+0.110,+0.202] | <0.0001 | 2 | **yes** |
+| b | V3 vs V5 | P@1 | +0.230 | [+0.172,+0.288] | <0.0001 | 3 | **yes** (= the confirmatory accuracy test; not independent) |
+| b | V3 vs V5 | P@2 | not applicable — V3 P@2 = V3 acc = 0.546 (1-item list) vs V5 0.582 (4-item) | — | — | — | — |
+| b | V3 vs V5 | MRR | not applicable — V3 MRR = V3 acc = 0.546 (1-item list) vs V5 0.571 (4-item) | — | — | — | — |
+| d | V4−conflict vs V5 | accuracy | +0.042 | tie | 0.0666 | 20 | no |
+| d | V4−conflict vs V5 | macro-F1 | +0.031 | tie | 0.1694 | 24 | no |
+| d | V4−conflict vs V5 | halluc-rate | −0.002 | tie | 0.8888 | 31 | no |
+| d | V4−conflict vs V5 | P@1 | +0.042 | tie | 0.0666 | 21 | no |
+| d | V4−conflict vs V5 | P@2 | +0.024 | tie | 0.3096 | 27 | no |
+| d | V4−conflict vs V5 | MRR | +0.027 | [+0.000,+0.054] | 0.0476 | 19 | no (Holm step-down already stopped at rank 19) |
+| e | V1 vs V5 | accuracy | +0.250 | [+0.192,+0.306] | <0.0001 | 4 | **yes** |
+| e | V1 vs V5 | macro-F1 | +0.254 | [+0.196,+0.309] | <0.0001 | 5 | **yes** |
+| e | V1 vs V5 | halluc-rate | +0.165 | [+0.120,+0.211] | <0.0001 | 6 | **yes** |
+| g | V3 vs B3 | accuracy | +0.008 | tie | 0.2588 | 26 | no |
+| g | V3 vs B3 | macro-F1 | +0.008 | tie | 0.1916 | 25 | no |
+| g | V3 vs B3 | halluc-rate | not computable | — | — | — | — |
+| h | V5 vs B3 | accuracy | −0.222 | [−0.278,−0.166] | <0.0001 | 7 | **yes** (B3 > V5) |
+| h | V5 vs B3 | macro-F1 | −0.226 | [−0.282,−0.169] | <0.0001 | 8 | **yes** (B3 > V5) |
+| h | V5 vs B3 | halluc-rate | not computable | — | — | — | — |
+| i | post-hoc-binary vs V4−conflict | accuracy | −0.140 | [−0.196,−0.086] | <0.0001 | 9 | **yes** (V4−conflict > phb) |
+| i | post-hoc-binary vs V4−conflict | macro-F1 | −0.137 | [−0.192,−0.081] | <0.0001 | 10 | **yes** |
+| i | post-hoc-binary vs V4−conflict | halluc-rate | +0.013 | tie | 0.6068 | 29 | no |
+| i | post-hoc-binary vs V4−conflict | P@1 | −0.140 | [−0.196,−0.086] | <0.0001 | 11 | **yes** |
+| i | post-hoc-binary vs V4−conflict | P@2 | −0.148 | [−0.212,−0.084] | <0.0001 | 12 | **yes** |
+| i | post-hoc-binary vs V4−conflict | MRR | −0.104 | [−0.142,−0.066] | <0.0001 | 13 | **yes** |
+| j | post-hoc-binary vs V5 | accuracy | −0.098 | [−0.140,−0.056] | <0.0001 | 14 | **yes** (V5 > phb) |
+| j | post-hoc-binary vs V5 | macro-F1 | −0.106 | [−0.148,−0.064] | <0.0001 | 15 | **yes** |
+| j | post-hoc-binary vs V5 | halluc-rate | +0.011 | tie | 0.6106 | 30 | no |
+| j | post-hoc-binary vs V5 | P@1 | −0.098 | [−0.140,−0.056] | <0.0001 | 16 | **yes** |
+| j | post-hoc-binary vs V5 | P@2 | −0.124 | [−0.176,−0.072] | <0.0001 | 17 | **yes** |
+| j | post-hoc-binary vs V5 | MRR | −0.077 | [−0.105,−0.049] | <0.0001 | 18 | **yes** |
+
+**Reading, stated plainly.** V5 loses to every real baseline it should beat
+to support C1–C3 (V1, V3, B3 all significantly beat V5 on accuracy/macro-F1;
+pair **a**, V1 vs V3, is itself a tie — the KG modality adds nothing
+detectable even at the retrieval-only level, consistent with C1's existing
+diagnostic framing). Pair **d** (V4−conflict vs V5, i.e. the calibration
+layer's own effect, holding the agent stack fixed) is a **tie on accuracy**
+(uncorrected p=0.067, already short of α=0.05) and its only nominally-below-α
+cell (MRR, p=0.048) does not survive Holm correction — **calibration does not
+measurably help OR hurt accuracy/ranking here; it is a wash**, distinct from
+and more precise than diagnostic (a) below. Pairs **i** and **j**
+(post-hoc-binary vs. the two real agent variants) show post-hoc-binary
+significantly *worse* on every rank-sensitive metric — dropping the
+CONTRADICT/NEUTRAL-vs-SUPPORT distinction (forcing s⁻=0) costs accuracy, not
+just calibration quality — but **halluc-rate is a tie in both i and j**, so
+the binary collapse's damage is concentrated in ranking quality, not in
+grounding.
+
+**Diagnostics on V5's collapse** (`scripts/analysis/v5_diagnostics.py` →
+`results/phase7_grid/v5_diagnostics.json`, read-only over `predictions.jsonl`,
+no new runs):
+
+**(a) "Hypothesis agent's own stated answer" accuracy — not computable, and
+the real substitute is precise.** The Hypothesis agent does not propose or
+rank a candidate answer, in the architecture spec or in the implementation:
+its output is `[{option_id, claims, required_evidence_types}]`
+(`src/agents/schemas.py: HypothesisOut`; `docs/01_ARCHITECTURE.md
+#HypothesisAgent: "Out: [{option_id, claims:[str], required_evidence_types:[str]}]"`)
+— pure claim decomposition per option, no answer signal exists anywhere in
+the persisted state to measure. Reported as not computable rather than
+substituting a fabricated proxy under that name. **The closest real,
+available diagnostic** — V5's own SupportMatrices re-ranked by the raw
+uncalibrated (s⁺−s⁻) margin instead of the calibrated softmax, i.e. the same
+Hypothesis+Audit evidence V5 used, minus only the calibration/temperature
+step — scores **0.358**, exactly V4−conflict's own accuracy from an
+independent run using the identical uncalibrated-margin mechanism. This
+precisely corroborates pair **d** above: the raw audit-evidence floor on this
+grid is ~0.36 regardless of which run produced it, and calibration
+(0.358→0.316) is a real but statistically-tied-at-this-n further loss on top
+of an already-mediocre floor — **the defect is not concentrated in
+calibration; it is already present in the audit evidence itself**, with
+calibration adding a further (untested-significant) decrement.
+
+**(b) ok-only (459) vs. all-500 accuracy — the collapse is not a status
+artifact.** Accuracy on the 459 `ok`-status questions alone is **0.312**,
+statistically indistinguishable from the all-500 figure (**0.316**) — the
+37 `insufficient_evidence` and 4 `agent_error` rows are not concentrating the
+failure; if anything the 41 non-`ok` rows score slightly *higher* (0.366, but
+n=41, noisy). **V5's collapse is present throughout the `ok` majority of the
+run, not an artifact of the questions that failed to complete normally.**
+
+**(c) grounded_rate = 0.756 vs. V1/V3's 0.98–1.00 — fully explained, and
+100% coincides with abstention.** `grounded` means the predicted option has
+≥1 SUPPORT cell (`src/calibration/citations.py: cite()` draws only from
+SUPPORT cells). Of the 122/500 ungrounded rows, **all 122 have
+`pred_option_s_pos == 0`** (tautological given the definition, confirmed
+directly) and **all 122 are also flagged `abstained`** (p1 < τ=0.546) — V5's
+own confidence gate already flags every ungrounded prediction as low-
+confidence, so grounding loss is not silent. Of those 122, **68 occurred on
+questions where some OTHER option did have real SUPPORT evidence** — the
+calibrated softmax (which also weighs `kg_support_count` and
+`mean_rerank_score`, not `s⁺` alone) picked a zero-evidence option over one
+the audit layer actually supported on 68/500 (13.6%) questions. Breakdown by
+status: 83 of the 122 are `ok`, 37 are `insufficient_evidence` (where zero
+support is expected), 2 are `agent_error`.
+
+**Against chance — the direct test of C3's headline claim.** C3's headline
+claim is *probabilistically ranked differential diagnoses*. On a 4-option
+MCQ, a uniformly random ranking scores **P@1 0.250, P@2 0.500, MRR 0.521**
+(analytic expectations; `scripts/analysis/random_baseline.py` →
+`results/phase7_grid/random_baseline.json`, checked by a 200,000-trial seeded
+simulation; the Random row of the §5 table). **V5 (P@1 0.316 / P@2 0.582 /
+MRR 0.571) and V4−conflict (0.358 / 0.606 / 0.598) rank barely above
+chance.** V5's full calibrated ranking beats a random shuffle of the four
+options by +0.066 P@1, +0.082 P@2 and +0.051 MRR; V4−conflict by +0.108,
++0.106 and +0.077. The margins are real, not noise: a one-sample bootstrap of
+each per-question excess over the exact chance value (10k, seed 42) rejects
+chance for all six, Holm-corrected within the 9-cell display set (e.g. V5 MRR
+excess 95% CI [+0.024, +0.077], P@1 [+0.026, +0.106]). So the finding is
+"barely above chance", not "at chance". The post-hoc-binary ranking (0.218 /
+0.458 / 0.494) is not distinguishable from chance, with all three point
+estimates below it. **C3's headline claim — probabilistically ranked
+differential diagnoses — therefore does not hold on MedQA at n=500: the
+system does emit a probabilistically ranked differential with citations, but
+that ranking is barely better than shuffling the four options at random.**
+These chance comparisons are post-hoc — not pre-registered, outside both the
+m=35 family and the unplanned V0/V2 family — and are shown only so that
+"barely above chance" rests on a test rather than a raw inequality (CLAUDE.md
+§2). (d) below gives the mechanism.
+
+**(d) Decomposition of V5's calibrated score — what actually decides the
+ranking** (`scripts/analysis/calibration_decomposition.py` →
+`results/phase7_grid/calibration_decomposition.json`, ADR-041). Read-only.
+The script first reproduces V5's stored ranking and p-vector from the saved
+SupportMatrices and fitted weights on 500/500 questions, then splits
+z = α·s⁺ − β·s⁻ + γ·kg + δ·rerank (p = softmax(z/T)) into its four terms.
+
+*(i) Fitted weights* (`configs/v5.yaml`, equal field-by-field to the run's
+`config.yaml`): **α = −0.0139**, β = 0.1098, γ = 0.2949, δ = 0.00772,
+T = 0.2145. **α is negative: every SUPPORT cell lowers an option's score.**
+Its sign was never identified — Phase 5's 200-resample bootstrap of the same
+60-question fit already spanned zero ([−0.2777, +0.1934], §5.6). MedCPT rerank
+scores on option rows with any SUPPORT/CONTRADICT cell are mostly positive
+(median 6.16; 6.4% negative), so δ·rerank *raises* any option the audit
+judged, in either direction, above one it never judged (which carries the 0.0
+no-signal default).
+
+*(ii)–(iii) What each term does to the ranking.* Within-question figures —
+the ranking-relevant scope, since softmax is shift-invariant per question;
+variance shares are Cov(term, z)/Var(z) and sum to 1:
+
+| term | share of within-question Var(z) | within-question SD | V5 predictions changed if the term is removed | term alone: accuracy, ties broken at random |
+|---|---|---|---|---|
+| −β·s⁻ (contradictions) | 0.521 | 0.0510 | 225 / 500 | 0.316 |
+| γ·kg (KG support) | 0.527 | 0.0497 | 20 / 500 | 0.2455 |
+| α·s⁺ (support) | −0.050 | 0.0090 | 61 / 500 | 0.211 |
+| δ·rerank (passage score) | 0.002 | 0.0169 | 186 / 500 | 0.259 |
+
+Variance share and decision influence diverge, and decision influence is the
+honest read. γ·kg's 53% share lives entirely in the 21 questions where any
+option has KG support — the term is tied across all four options on the
+other 479 — so removing it changes only 20 predictions. δ·rerank carries 0.2%
+of the variance yet removing it changes 186: it is a continuous tiebreaker
+among options the integer count terms leave tied.
+
+*argmax z vs argmax α·s⁺ alone* (the requested comparison): they differ on
+**341/500** questions under V5's own tie-break (V5's pick lies outside α·s⁺'s
+tied maximisers on 288/500). Because α < 0, argmax α·s⁺ is the
+**least**-supported option (accuracy 0.224). Against the sign-free
+*most*-supported option (argmax s⁺), V5 differs on 259/500 and lies outside
+the most-supported set on 183. By contrast, V5's pick lies inside the
+fewest-contradiction set (argmax −β·s⁻) on **493/500**.
+
+*(iv) The 68 zero-support wins* — which term supplied the winning margin over
+the best-scoring supported option: **α·s⁺ 38, −β·s⁻ 26, δ·rerank 4,
+γ·kg 0**. Decisive on their own (removing that term alone flips the outcome):
+α·s⁺ 28, −β·s⁻ 20, δ·rerank 0, γ·kg 0; the other 20 needed two terms
+jointly. The zero-support winner had s⁺ = s⁻ = 0 and z = 0 exactly on 63/68;
+the best supported rival's z was negative on 68/68; and δ·rerank's mean
+contribution to the winner's margin was −0.015 — on these questions the
+reranker worked *against* the zero-support winner, not for it.
+
+**Verdict on the passage-reranker hypothesis: half right.** δ·rerank does
+dominate α·s⁺ — within-question SD 0.0169 vs 0.0090, and 186 vs 61
+predictions changed on removal. But the evidential score is **not**
+functionally a passage reranker: δ·rerank alone ranks at chance (0.259),
+carries 0.2% of the ranking-relevant variance, and supplied the margin in
+only 4 of the 68 zero-support wins. **The dominant term is −β·s⁻: V5 is
+functionally a "fewest CONTRADICT cells" rule.** That term alone, with ties
+broken at random, has expected accuracy 0.316 — V5's own figure. Its ties go
+to δ·rerank and then to option-letter order: the top of z is exactly tied on
+**170/500** questions (92 of them at z = 0), and the letter tie-break picks A
+on 120 of those 170 against a gold split of A 38 / B 47 / C 48 / D 37 — on
+those 170 questions option position, not evidence, breaks the tie.
+
+**The mechanism behind the near-chance ranking, stated plainly.** The
+calibrated score rewards the *absence of contradiction*, not the *presence of
+support*. Positive evidence enters with a negative weight and a negative
+variance share. An option the audit never judged scores exactly z = 0; a
+supported option falls below that whenever its support penalty plus any
+contradictions outweigh its reranker bonus — true of the best supported
+option in all 68 zero-support wins. V5's top-ranked option has s⁺ = s⁻ = 0 on
+**118/500** questions. "No contradiction found" cannot separate the gold
+option from distractors the audit never examined, so the ranked differential
+sits barely above chance.
+
+*Not a license to retune.* The what-if accuracies above (0.330 with α·s⁺
+removed; argmax s⁺ 0.348 with the letter tie-break, 0.332 with random ties)
+are descriptive, computed on the **test** set, and not significance-tested.
+None may be used to choose a replacement scoring rule — that would be
+test-set tuning. Any refit (α constrained ≥ 0, a neutral no-signal imputation
+for `mean_rerank_score`, a principled tie-break) is fit on a train slice and
+re-registered before it touches test (ADR-041).
+
+**Done that way: V5-refit (ADR-043).** V5-refit is fit on the Phase 5 train
+slice and frozen in `results/phase7_v5_refit/refit_spec.json` before any
+test evaluation; its tests are §1.0b's U6–U8. On train, once the no-signal
+rerank value is neutral, the unconstrained fit already puts α > 0 (0.0059),
+so no bound is active: V5's negative α was caused by the 0.0 no-signal
+default. But α is still weakly identified (on its 0 bound in 0.495 of 200
+bootstrap resamples), a CONTRADICT cell still outweighs a SUPPORT cell about
+twelve-fold, and V5-refit is no more accurate than V5 on either train half.
+The expectation registered before the test run is a near-chance ranking and
+a tie on U6.
+
+**Also resolved (ADR-042):** the 2/500 questions whose `option_support`
+disagrees with their cells are `agent_error` questions whose audit failed
+mid-question, leaving `option_support` empty. This is one code path, not a
+systematic s⁺ bug: the identity holds on the other 498 and on all 120 train
+questions. With cell-derived counts, V5's accuracy is 0.318 (one prediction
+changes), each count above moves by at most one, and no significance verdict
+can change (`results/phase7_grid/spos_consistency.json`).
+
+**Wall-clock note.** V5 and V4−conflict's durations are not independently
+recoverable: `write_run()` writes `config.yaml`/`predictions.jsonl`/
+`metrics.json` together at completion, so file mtimes and the `run_id`
+timestamp both record completion time only, not a start time (confirmed
+against V1's known 50.7-minute runner-timed duration). Only the three
+runner-timed cells (V1, V3, B3) have a real wall-clock figure.
 
 ### 5.1 Stronger-model sensitivity check (§0.6, robustness only — not a headline row)
+
+**Not run.** No Gemini Flash V3/V5 200-question check exists under
+`results/` — this remains queued, not part of the Phase 7 grid scope
+completed 2026-09-10.
 
 | Variant | Model | Dataset (n) | Acc | run_id |
 |---|---|---|---|---|

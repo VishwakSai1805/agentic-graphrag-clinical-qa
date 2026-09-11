@@ -63,8 +63,8 @@
   "run_id": "medqa_V4_a714fe0-dirty_20260907T121703Z",
   "seed": 42,
   "split": "train",
-  "superseded": false,
+  "superseded": true,
   "superseded_by": null,
-  "superseded_reason": null,
+  "superseded_reason": "Phase 5 calibration fit-set run (commit a714fe0, disjoint 120-q MedQA train slice). Remains the cited artifact for docs/04_EVALUATION.md \u00a75.6 and configs/v5.yaml's fit provenance comment -- retained, not invalid -- but must never be auto-tabulated as the V4 grid row (still TBD).",
   "variant": "V4"
 }

@@ -2430,3 +2430,556 @@ column until rescored, which is correct.
 **Operational note:** the Phase 7 grid runs from the user's own terminal, not a
 Claude Code Bash background job — those have a memory ceiling that killed the
 14-hour run. The harness fix makes each cell survivable regardless.
+
+## ADR-038 — the Phase 7 grid's `-dirty` git SHA suffix is an artifact of prior cells' own output, not evidence the code changed; the launch commit is authoritative for all five cells
+Date: 2026-09-10 · Phase: 7 · Status: accepted
+
+**Context.** Four of the five Phase 7 grid cells (`V3`, `B3`, `V5`,
+`V4-conflict`) carry `git_sha7: "41f7e14-dirty"` in their `metrics.json`
+instead of a clean `41f7e14`. `src/eval/results.py` stamps `-dirty` whenever
+`git status --porcelain` is non-empty at write time, on the (normally correct)
+theory that a dirty tree means the code that ran is not exactly the committed
+code. Taken at face value this would mean four of five grid cells cannot be
+trusted to have run the code at commit `41f7e14`.
+
+**Investigation.** Every run's `metrics.json` records `git_dirty_files`, the
+literal `git status --porcelain` paths at write time. Read directly, in grid
+order:
+
+| run | `git_dirty_files` |
+|---|---|
+| `medqa_V1_41f7e14_...` (clean) | `[]` |
+| `medqa_V3_41f7e14-dirty_...` | `results/medqa_V1_.../` |
+| `medqa_B3_41f7e14-dirty_...` | `results/medqa_V1_.../`, `results/medqa_V3_.../` |
+| `medqa_V5_41f7e14-dirty_...` | `results/medqa_{B3,V1,V3}_.../`, `results/phase7_grid/` |
+| `medqa_V4-conflict_41f7e14-dirty_...` | `results/medqa_{B3,V1,V3,V5}_.../`, `results/phase7_grid/` |
+
+Every single entry, across all four dirty runs, is an **untracked
+`results/<run_id>/` output directory from an earlier cell in this same grid**
+(each cell's own output directory did not exist yet at the moment it captured
+its own dirty-files list — `write_run` snapshots git status before writing
+itself — so a cell never lists its own directory, only its predecessors').
+`results/phase7_grid/` itself joins the list from V5 onward, for the same
+reason (the manifest file the runner had already started writing). **Not one
+entry across all four lists is a path under `src/`, `configs/`, `scripts/`,
+`tests/`, or any other tracked directory.** Cross-checked against `git log`
+and the present `git status`: no commit lands between the grid's launch
+(`41f7e14`) and now, and the only untracked paths at any point were these same
+five `results/` directories plus `results/phase7_grid/` — confirmed by
+`config_hash` too: V1 and V3 (both `--config configs/base.yaml`, differing
+only by `--variant`) share `config_hash`, i.e., byte-identical resolved
+config content, which a real source edit between them would have broken.
+
+**Decision.** The `-dirty` suffix on V3/B3/V5/V4-conflict is a cosmetic
+artifact of `src/eval/results.py`'s dirty check running against a `results/`
+tree that upstream cells were actively (and correctly) populating during a
+long sequential grid — not evidence that any tracked file differed from
+`41f7e14` at any point during the run. **All five cells ran identical code at
+commit `41f7e14`.** The launch commit is authoritative for the whole grid; no
+rerun is warranted to "clean" a stamp that was never wrong about the code,
+only about `results/` itself being part of the working tree it inspects.
+
+**Not changed.** `src/eval/results.py`'s dirty-check logic is correct and
+stays as-is — it is doing exactly its job (flag *any* untracked/modified path,
+so a reader doesn't have to trust an unstated assumption). The fix here is
+interpretive (this ADR), not a code change: a future multi-cell grid into the
+same `results/` tree will hit the identical cosmetic `-dirty` stamp on every
+cell after the first, and the correct response is to read `git_dirty_files`
+before concluding anything, exactly as done here — not to `.gitignore`
+`results/` (it is intentionally tracked-by-exception per repo convention for
+`metrics.json`/`config.yaml`) and not to treat every `-dirty` grid run as
+suspect by default.
+
+**Consequences.** `results/phase7_grid/manifest.json` (rebuilt by
+`scripts/analysis/rebuild_phase7_manifest.py`) records this resolution
+alongside the five pinned run dirs. Any report or table citing these five runs
+may cite them as commit `41f7e14`, full stop — the `-dirty` suffix in the
+`run_id` string is retained (it is the literal, correct directory name) but
+carries no code-provenance doubt once read together with this ADR.
+
+## ADR-039 — `run_phase7_grid.ps1`'s `Invoke-Cell` silently dropped V5 and V4-conflict's failure logs; leading hypothesis is post-B3 memory exhaustion, not a script or harness defect
+Date: 2026-09-10 · Phase: 7 · Status: accepted (investigation), fix applied
+
+**Context.** The grid runner's own manifest recorded `V5` and `V4-conflict`
+as `ExitCode 2, Minutes 0` — an immediate failure — with **no
+`logs/phase7_{V5,V4-conflict}_20260909_020855.log` ever written**, unlike
+every other cell that attempt. Both cells were subsequently run manually from
+the same launch commit and completed normally (`results/medqa_V5_...`,
+`results/medqa_V4-conflict_...`, both non-superseded, real
+`predictions.jsonl`).
+
+**Confirmed mechanism for the missing logs.** Reproduced directly on this
+machine (Windows PowerShell 5.1, the version installed here):
+`Invoke-Expression $Command 2>&1 | Tee-Object -FilePath $LogPath` only
+creates `$LogPath` once `Tee-Object` receives at least one pipeline object. A
+native command that exits non-zero after emitting **zero stdout** — even one
+that writes to stderr, which `2>&1` nominally folds into the same stream —
+leaves `Tee-Object` with nothing to write, and it never creates the file.
+`python -c "import sys; print(1, file=sys.stderr); sys.exit(2)"` run through
+the identical `Invoke-Cell` pattern reproduces the exact signature: `exit=2`,
+no log. `Invoke-Cell` itself has no bug in the sense of losing the exit code
+or the `$Results` entry — the manifest entry proves the function ran to
+completion — the bug is purely that a legitimate early failure leaves no
+diagnostic trace on this PowerShell version.
+
+**What that zero-stdout signature rules in and out.**
+`src/eval/harness.py`'s `main()` prints `torch.cuda.is_available() = ...` as
+its very first output, immediately after `argparse.parse_args()` succeeds.
+Zero stdout is therefore consistent with a failure at or before argument
+parsing / process startup, and inconsistent with a crash partway through a
+run (which would have flushed at least that line, and would not read
+`Minutes: 0`). Checked and ruled out: `--variant V4-conflict` being an
+invalid `argparse` choice (it is registered in `VARIANTS`, confirmed in
+`src/eval/harness.py`) — and this could not explain V5's failure regardless,
+since V5's command passes no `--variant` flag at all. Both commands are
+structurally identical to V1/V3's successful invocations from the same `$H`
+template, differing only in the config path / a trailing `--variant` token —
+no PowerShell string-parsing asymmetry found.
+
+**Leading hypothesis (not confirmed).** Resource exhaustion on the 15 GB
+machine, consistent with ADR-037's own documented OOM history for this grid.
+`B3` — the cell immediately before V5 — ran 207.7 minutes with
+`OLLAMA_KEEP_ALIVE=-1`, so Ollama's 7B model stayed resident in memory the
+entire time. `V5` and `V4-conflict` are the two heaviest remaining cells
+(agents+calibration, agents), needing to load the full retrieval stack
+(dense/BM25/cross-encoder models) on top of that already-resident model.
+Python's stdout is block-buffered, not line-buffered, when piped rather than
+attached to a real console — exactly `Invoke-Cell`'s situation — so an abrupt
+OS-level process kill before the first buffer flush would lose all buffered
+output, including the cuda-status line, producing precisely the zero-stdout,
+`exit≠0`, `Minutes≈0` signature observed, and precisely on the two cells with
+the highest memory demand run back-to-back immediately after the longest
+prior cell.
+
+**Explicitly not claimed.** This hypothesis is not independently verified —
+no OS-level crash log was captured that night, and reproducing it now would
+mean recreating the exact memory conditions of a live grid run, which is out
+of scope for a read-only investigation and would mean rerunning scoring code.
+It is reported as the leading, evidence-consistent explanation, not a
+confirmed root cause.
+
+**Fix applied (tooling only — no prompt/retrieval/scoring/agent code
+touched).** `run_phase7_grid.ps1`'s `Invoke-Cell` now writes a one-line stub
+to `$LogPath` (cell name, command, start timestamp) via `Set-Content` *before*
+invoking the command, then appends the real output (`Tee-Object -Append`). A
+future zero-stdout failure — from this cause or another — now always leaves a
+log file naming which command was attempted and when, instead of vanishing
+without a trace.
+
+**Consequences.** `scripts/run_phase7_grid.ps1` (stub-log fix). No other code
+changed. `results/phase7_grid/manifest.json` (rebuilt by
+`scripts/analysis/rebuild_phase7_manifest.py`) records both the runner's
+failed attempts and the manual completions, with this investigation attached.
+
+## ADR-040 — Phase 7 protocol corrections: pair b's P@2/MRR are not applicable (m=31), a chance row in every ranking table, dev-slice numbers barred from the grid, V0/V2 prepared under a separate unplanned family
+Date: 2026-09-10 · Phase: 7 · Status: accepted (analysis-only; V0/V2 runs prepared, not run)
+
+**Context.** Four defects in the Phase 7 write-up (`docs/04` §5 / §5.0a):
+1. Pair b of the pre-registered family tested V3 vs V5 on P@2 and MRR. V3 is
+   `ranking_source: single_prediction` — its `ranked` list has one item on all
+   500 questions — so its P@2 and MRR both equal its accuracy (0.546). The
+   tests compared a 1-item list against V5's 4-item ranking (P@2 0.582, MRR
+   0.571): V5's apparent advantage was an artifact of emitting more items.
+2. No ranking table carried a chance reference, so V5's P@2 0.582 / MRR 0.571
+   could read as moderate when a random shuffle of four options scores
+   0.500 / 0.521.
+3. The V0 row showed the Phase 3 **dev-20** B0 number (0.550) under a dagger,
+   via `scripts/report.py`'s dev-slice fallback, in a table of n=500 test
+   results.
+4. V0 and V2 — pre-specified grid rows (§0.3) — never ran. The paper cannot
+   omit "does retrieval help at all" (V0), and C1 has never had its isolating
+   comparison (V2 vs V3; pair a, V1 vs V3, changes two modalities at once).
+
+**Decision 1 — b P@2 and b MRR are reclassified *not applicable*; m = 31.**
+Handled exactly like the two not-computable B3 halluc-rate cells: reported
+with the arithmetic, excluded from Holm. This enforces §1.0's own registered
+contingency ("P@K/MRR appear only where both sides produce a ranking"), which
+the b row contradicted; it is decidable from the data schema
+(`ranking_source`, list lengths) without any outcome.
+`scripts/analysis/exploratory_family.py` asserts the premise from the data
+(V3's list lengths all 1, V3's metric equal to V3's accuracy) and refuses to
+run if it fails. Pre-registered m = 35; actually tested m = 31 (35 − 2 not
+computable − 2 not applicable). **No verdict changes:** `holm_sensitivity` in
+`results/phase7_grid/exploratory_family.json` gives the identical 18
+rejections at m = 35 (the not-computable cells as p = 1.0 placeholders), m = 33
+(the previous reading) and m = 31. All 18 have bootstrap p = 0 (smallest
+attainable non-zero p 0.0002) against a strictest threshold of 0.05/35 =
+0.00143; the smallest non-rejected p is 0.0476. b P@1 is kept — top-1 is
+well-defined for one prediction — but it is the same per-question comparison
+as the confirmatory accuracy test, not independent evidence; dropping it too
+(m = 30) leaves the other 17 rejections unchanged.
+
+**Decision 2 — a Random row in every ranking table.**
+`scripts/analysis/random_baseline.py` → `results/phase7_grid/random_baseline.json`:
+analytic expectations for a uniformly random ranking of 4 options (P@1 1/4 =
+0.250, P@2 2/4 = 0.500, MRR 25/48 = 0.521; accuracy 0.250), checked by a
+200,000-trial seeded simulation. `scripts/report.py` reads the row from that
+JSON — never typed. Because `docs/04` §5.0a now states that V5 and V4−conflict
+rank "barely above chance", the same script runs a **post-hoc** one-sample
+bootstrap of each ranking variant's per-question excess over chance (10k,
+seed 42, Holm within the 9-cell display set; not pre-registered, outside both
+families). V5 and V4−conflict are above chance on all three metrics (V5: P@1
++0.066 [+0.026, +0.106], P@2 +0.082 [+0.040, +0.124], MRR +0.051 [+0.024,
++0.077]); post-hoc-binary is not distinguishable from chance. This is the
+direct test of C3's headline claim — probabilistically ranked differential
+diagnoses — and §5.0a states it in those words.
+
+**Decision 3 — dev-slice runs are barred from every grid table.** The V0 row
+is `TBD`. `scripts/report.py` drops ADR-029's dev-slice fallback (B0→V0,
+B1→V1, B2→V3) and admits a run to any row only if `limit == 500`,
+`seed == 42` and split ∉ {train, dev}. The same rule removes the B2eq dev-20
+row from the tables' diagnostics section (it stays in §5.5, where it belongs).
+The provenance guard is extended: a MedQA row's run must be at `41f7e14`, or
+at a later commit whose run-affecting tracked paths (`src/`, `configs/`,
+`pyproject.toml`, `uv.lock`) are byte-identical to `41f7e14`
+(`git diff --quiet`), and no run-affecting path may appear in its
+`git_dirty_files` — ADR-038's manual check, now executed on every report.
+
+**Decision 4 — V0 and V2 are prepared, not run, pinned to the grid's code.**
+`scripts/run_phase7_v0_v2.ps1` runs `uv run python -m src.eval.harness
+--dataset medqa --split test --limit 500 --seed 42 --config configs/base.yaml
+--variant {V0,V2}` — the grid's V1/V3 template with the seed made explicit.
+It refuses to launch unless `src/`, `configs/`, `pyproject.toml` and
+`uv.lock` are identical to `41f7e14` at HEAD and in the working tree (no
+staged, unstaged or untracked change), so docs/scripts-only commits on top do
+not break the pin; `-DryRun` runs only the check (passed 2026-09-10 at HEAD
+`41f7e14`). Stub logs (ADR-039), rescore sweep (ADR-037), manifest
+`results/phase7_grid/v0_v2_launch.json`.
+
+**Decision 5 — their comparisons are a separate, explicitly unplanned
+family.** V0/V2 are pre-specified grid *rows*, but their *tests* were never
+pre-registered. Registered in `docs/04` §1.0b before either run exists: U1
+V0–V1, U2 V0–V3, U3 V0–V5 (Acc, Macro-F1); U4 V2–V3, U5 V1–V2 (Acc,
+Macro-F1, halluc-rate). m_U = 12, Holm within the family only, never merged
+into the m=35 family. No P@K/MRR (all four are single-prediction — Decision
+1's lesson); no V0 halluc-rate (V0 cites nothing).
+`scripts/analysis/unplanned_v0_v2_family.py` validates each new run
+(variant, split test, n = 500, seed 42, code identical to `41f7e14`,
+hallucination scored) before testing anything.
+
+**Alternatives rejected.** (1) Keep b P@2/MRR with a caveat: a test whose
+outcome is set by list length is not a result a caveat can rescue, and it
+contradicts the registered rule. (2) Pad V3 to a 4-item list (e.g. random
+order after its prediction): invents a ranking V3 never produced. (3) Merge
+V0/V2 into the m=35 family: moves that family's thresholds after its outcomes
+are known. (4) Keep the V0 dev-20 number with a stronger footnote: a dev-20
+number does not belong in an n=500 test table in any form. (5) Require HEAD ==
+`41f7e14` to launch V0/V2: would forbid committing this ADR first; identity of
+the run-affecting code is what the pin actually needs.
+
+**Consequences.** `scripts/analysis/{exploratory_family,random_baseline,unplanned_v0_v2_family}.py`,
+`scripts/report.py`, `tests/test_report.py`, `scripts/run_phase7_v0_v2.ps1`;
+regenerated `results/phase7_grid/{exploratory_family,random_baseline}.json`
+and `paper/tables/results_grid.{md,tex}`; `docs/04` §1.0 / §1.0b / §5 /
+§5.0a; `docs/00` family-size references.
+
+## ADR-041 — V5's calibrated score is functionally a "fewest CONTRADICT cells" rule: support carries a negative weight, the reranker breaks ties, and that is the mechanism behind the near-chance ranking
+Date: 2026-09-10 · Phase: 7 · Status: accepted (diagnostic finding; no code or weight changed)
+
+**Context.** V5 ranks barely above chance (ADR-040 Decision 2) and on 68/500
+questions ranks a zero-support option above one the audit supported
+(`docs/04` §5.0a (c)). The hypothesis tested: if δ·rerank dominates α·s⁺, the
+"evidential" score is functionally a passage reranker.
+
+**Method.** `scripts/analysis/calibration_decomposition.py` →
+`results/phase7_grid/calibration_decomposition.json`. Read-only over V5's
+`predictions.jsonl` and `configs/v5.yaml` (cross-checked field-by-field
+against the run's own `config.yaml`). Before any statistic, the script
+reproduces V5's stored ranking and p-vector from the saved SupportMatrices on
+500/500 questions (exact order, |Δp| < 1e-12). z is split into α·s⁺, −β·s⁻,
+γ·kg and δ·rerank. Variance shares are Cov(term, z)/Var(z) — exact, summing
+to 1 — reported within-question (the ranking-relevant scope: softmax is
+shift-invariant per question) and pooled. Every argmax uses V5's own
+tie-break (earliest option letter).
+
+**Findings.**
+1. *Weights:* α = −0.0139, β = 0.1098, γ = 0.2949, δ = 0.00772, T = 0.2145.
+   **α is negative — each SUPPORT cell lowers an option's score.** Phase 5's
+   bootstrap already put α's interval across zero ([−0.2777, +0.1934], §5.6):
+   the 60-question fit never identified the sign of the one term that
+   measures positive evidence.
+2. *Variance, within-question:* −β·s⁻ 0.521, γ·kg 0.527, α·s⁺ −0.050,
+   δ·rerank 0.002. γ's share is concentrated in the 21 questions where any
+   option has KG support (the term ties across all options on 479/500), so
+   decision influence is the better read: removing each term changes 225
+   (−β·s⁻), 186 (δ·rerank), 61 (α·s⁺) and 20 (γ·kg) of V5's 500 predictions.
+3. *argmax z vs argmax α·s⁺ alone:* differ on 341/500 (V5's pick lies outside
+   α·s⁺'s tied maximisers on 288). Since α < 0, argmax α·s⁺ is the
+   *least*-supported option (accuracy 0.224). V5 differs from the sign-free
+   most-supported option (argmax s⁺) on 259/500. V5's pick is among the
+   fewest-contradiction options (argmax −β·s⁻) on 493/500.
+4. *The 68 zero-support wins:* the winning margin came from α·s⁺ in 38, −β·s⁻
+   in 26, δ·rerank in 4, γ·kg in 0; the terms that are decisive alone are
+   α·s⁺ 28, −β·s⁻ 20, δ·rerank 0, γ·kg 0 (20 need two terms jointly). The
+   winner had s⁺ = s⁻ = 0 and z = 0 on 63/68; the best supported rival's z was
+   negative on 68/68; δ·rerank's mean contribution to the winner's margin was
+   −0.015 — it worked *against* the zero-support winner.
+
+**Decision — the mechanism, as it will be reported.** The passage-reranker
+hypothesis is half right. δ·rerank does outweigh α·s⁺ (within-question SD
+0.0169 vs 0.0090; 186 vs 61 predictions changed on removal). But the score is
+**not** functionally a passage reranker: δ·rerank alone ranks at chance
+(tie-aware accuracy 0.259), carries 0.2% of the within-question variance, and
+supplied the winning margin in only 4 of the 68 zero-support wins. **The
+dominant term is −β·s⁻: V5 is functionally a "fewest CONTRADICT cells"
+rule**, with ties broken by δ·rerank and then by option-letter order. The top
+of z is exactly tied on 170/500 questions (92 of them at z = 0), and the
+letter tie-break picks A on 120 of those 170 against a gold split of A 38 /
+B 47 / C 48 / D 37. That one term alone, ties broken at random, has expected
+accuracy 0.316 — V5's own figure. Positive evidence enters with the wrong
+sign. The score therefore rewards the absence of contradiction, not the
+presence of support. An option the audit never judged scores exactly z = 0,
+and a supported option falls below that whenever its support penalty plus
+any contradictions outweigh its reranker bonus — true of the best supported
+option in all 68 zero-support wins. V5's top pick has s⁺ = s⁻ = 0 on
+118/500 questions. "No contradiction found" cannot separate the gold option
+from unexamined distractors: that is the mechanism behind the near-chance
+ranking.
+
+**Not done, deliberately.** No weights refit, no scoring rule changed. The
+leave-one-term-out and single-term accuracies (0.330 without α·s⁺; argmax s⁺
+0.348 with the letter tie-break, 0.332 tie-aware) are descriptive what-ifs on
+the **test** set. They are not significance-tested and must not be used to
+choose a replacement rule — that would be test-set tuning. A refit (e.g. α
+constrained ≥ 0, a neutral no-signal imputation for `mean_rerank_score`, a
+principled tie-break) must be fit on a train slice and re-registered before
+any test-set evaluation. Also noted, not investigated: on 2/500 questions the
+predicted option's `option_support.s_pos` is 0 while the matrix holds SUPPORT
+cells for it — the feature and the cell list disagree.
+
+**Consequences.** `scripts/analysis/calibration_decomposition.py`,
+`results/phase7_grid/calibration_decomposition.json`, `docs/04` §5.0a (d).
+
+## ADR-042 — `option_support` goes stale when the audit fails mid-question: 2/500 grid questions, not a systematic s⁺ bug
+Date: 2026-09-11 · Phase: 7 · Status: accepted (diagnostic finding; code fix deferred until V0/V2/V5-refit have run)
+
+**Context.** ADR-041 noted, without investigating, that on 2/500 V5 questions
+the predicted option's `option_support.s_pos` is 0 while the matrix holds
+SUPPORT cells for it. s⁺ is the feature the C2/C3 argument rests on: if it
+were computed wrongly in general, every support-based number in the grid
+would be affected.
+
+**Method.** `scripts/analysis/spos_consistency.py` →
+`results/phase7_grid/spos_consistency.json`. Read-only. Checks the identity
+`option_support[o].s_pos == #SUPPORT cells of o` and `s_neg == #CONTRADICT
+cells of o` on every option of every question in the three agent runs the
+paper's numbers come from: grid V5 and grid V4−conflict (test, n = 500 each),
+and the Phase 5 fit run V5's weights were fit on (train, n = 120). It then
+re-ranks each grid variant with cell-derived counts, each variant's own rule
+otherwise unchanged, after first reproducing that variant's stored rankings
+exactly (500/500).
+
+**Findings.**
+1. *Not systematic.* The identity holds on 498/500 questions in V5 and in
+   V4−conflict, and on 120/120 in the train fit run. The 2 exceptions
+   (`test_00421`, `test_01043` — the same pair in both runs, which share the
+   agent code and the LLM cache) are both `status: agent_error`, and both
+   have an **empty** `option_support` list; 5 options disagree in total.
+2. *Mechanism: one code path.* `_node_audit` (`src/agents/graph.py`) audits
+   options in letter order. When one option's audit fails schema validation
+   after its one repair, the `agent_error` return carries the cells already
+   produced for the earlier options but never calls
+   `_aggregate_option_support`. `option_support` keeps its previous value
+   (`[]` in round 1). `extract_option_features` reads a missing row as
+   s⁺ = s⁻ = 0, while `kg_support_count` and `mean_rerank_score` are computed
+   from the cells. The node's other exits (no-signal, budget) and
+   `_node_conflict` recompute or leave cells and counts consistent. On
+   `test_00421` the audit failed on C after A and B each got one SUPPORT and
+   one CONTRADICT cell; on `test_01043` it failed on D. The other two
+   `agent_error` questions failed before any cell existed, so nothing could
+   disagree.
+3. *Effect on the grid.* Cell-derived counts change V5's ranking on 2
+   questions and its prediction on 1 (`test_00421`: A → C, gold C):
+   accuracy 0.316 → 0.318, Macro-F1 0.311 → 0.313, P@2 0.582 → 0.584, MRR
+   0.571 → 0.573. V4−conflict changes one prediction (`test_01043`: A → C,
+   gold D), correctness unchanged: accuracy 0.358 both ways, Macro-F1
+   0.3417 → 0.3416. post-hoc-binary: no ranking changes. ADR-041's counts
+   move by one each: predicted option with s⁺ = s⁻ = 0, 118 → 117;
+   zero-support wins, 68 → 69; exact ties at the top of z, 170 → 169. V5's
+   weights are untouched: the train fit run has no disagreement.
+4. *No verdict can change.* The confirmatory test (V3 0.546 vs V5) cannot
+   move on a 0.002 shift. In the m = 35 family, every rejected cell
+   involving V5 or post-hoc-binary has its 95% CI at least 0.048 from zero
+   (closest: `j` MRR, upper bound −0.0485) against a largest metric shift of
+   0.0022 (V5 Macro-F1). The non-rejected `d` cells (V4−conflict − V5) move
+   toward zero, since the correction raises V5 and leaves V4−conflict's
+   correctness unchanged, and `i` does not move
+   (`results/phase7_grid/exploratory_family.json`).
+
+**Decision.**
+1. The grid runs stand as run. They are the pre-registered results, produced
+   by the pinned code; §5 and §5.0a keep the stored values, and this ADR and
+   `spos_consistency.json` disclose the corrected ones beside them.
+2. V5-refit (ADR-043) counts s⁺ / s⁻ from the cell list, the definition
+   `option_support` is meant to equal.
+3. The fix is deferred, not dropped. `src/` must stay byte-identical to
+   `41f7e14` until V0, V2 and V5-refit have run (their pin). After that,
+   `_node_audit`'s `agent_error` return recomputes `option_support` from the
+   cells it returns, with a regression test (the audit fails on C after A and
+   B produced cells, and the counts equal the cell counts). Later agent runs
+   use the fixed code; the grid rows do not change.
+
+**Alternatives rejected.** (1) Patch the grid numbers to the corrected
+values: rewrites pre-registered results with post-hoc code. (2) Fix `src/`
+now: breaks the V0/V2 pin before those cells run, for a 2/500 effect.
+(3) Drop the four `agent_error` questions: changes n after outcomes are
+known.
+
+**Consequences.** `scripts/analysis/spos_consistency.py`,
+`results/phase7_grid/spos_consistency.json`; ADR-043's feature source; a
+deferred fix in `src/agents/graph.py`.
+
+## ADR-043 — V5-refit: a disclosed post-hoc correction of V5's scoring rule, fit on train, frozen and registered before test
+Date: 2026-09-11 · Phase: 7 · Status: accepted (spec frozen; test run prepared, not run)
+
+**Context.** ADR-041: V5's fitted α = −0.0139, so V5 ranks by fewest
+contradictions with support penalised. As it stands, a reviewer can dismiss
+the whole negative result as a sign error. ADR-041 also found two structural
+problems. `mean_rerank_score` has no neutral no-signal value: an option the
+audit never judged gets 0.0, against a median of 5.89 among judged options
+on the train fit half (6.16 on test). And exact ties (170/500 on test) are
+broken by option letter. ADR-042 adds a fourth problem: `option_support` is
+stale on `agent_error` questions. All of this was found on the test set, so
+any corrected rule is post-hoc by construction. It stays honest only if it
+is chosen and fit without test, frozen, and registered before it touches
+test.
+
+**Decision 1 — the rule.** V5-refit changes four things and nothing else
+(`scripts/analysis/v5_refit.py`):
+1. *Sign.* α, β, γ ≥ 0, so every evidential term enters in its evidential
+   direction (β enters as −β·s⁻). The instruction named α; β and γ get the
+   same constraint for the same reason, since a count of SUPPORT or
+   CONTRADICT verdicts has a known direction. δ, a retrieval-quality prior
+   over the cells consulted in either direction, has no a-priori sign and
+   stays free.
+2. *Neutral no-signal rerank.* rerank_c = the mean rerank score over the
+   option's SUPPORT + CONTRADICT cells, minus r_ref. An option with no such
+   cell gets rerank_c = 0, the reference itself, so δ·rerank contributes
+   nothing for it. r_ref = 5.8926, the median over the fit half's options
+   with ≥ 1 such cell, frozen. It is global, not per-question: a
+   per-question centre would zero the feature on every question with a
+   single judged option.
+3. *Tie-break.* Options are shuffled by a per-question seeded RNG
+   (`random.Random("v5-refit-tiebreak:42:<question_id>")`, SHA-512-seeded,
+   stable across processes) before the same stable sort on p. The result is
+   uniform among exactly-tied options, reproducible, and independent of
+   letter and of question order.
+4. *Feature source.* s⁺ / s⁻ are counted from the cell list (ADR-042).
+
+Everything else is V5's protocol: the same 120-question train slice
+(ADR-028); the same sorted-question-id split, checked against the Phase 5
+output's own fit and held-out lists; the same 60-question fit half; the same
+objective; the same Adam (lr, betas, 500 iterations, init). Only the bounds
+differ, enforced by the same per-step projection. The held-out 60 set the
+abstention threshold (V5's procedure, target risk 0.10) and nothing else.
+The rule was fixed before the fit ran and was not revised afterwards: one
+fit, no alternatives tried on train. The unconstrained and 5000-iteration
+fits below are recorded as descriptive and were never candidates.
+
+**Decision 2 — the frozen spec.** `results/phase7_v5_refit/refit_spec.json`,
+`spec_sha256` `29936369e689105e059a2cff731ba77633de2e61ab53a339847fce7b8944aff7`
+(over rule, weights and τ).
+- Before refitting, the script reproduces V5's weights bit-for-bit from the
+  fit half, both with the unmodified `fit_weights` and with the bounded
+  optimizer under V5's bounds.
+- Weights: α = 0.005935, β = 0.07415, γ = 0.2696, δ = 0.01351, T = 0.1850;
+  τ = 0.4757.
+- **No bound is active.** The unconstrained fit on the same features returns
+  exactly the same weights: once the rerank feature is neutral for
+  no-signal options, the fit puts α > 0 without being forced to. Between
+  V5's fit and this unconstrained fit, the only change that touches the
+  train data is the rerank centring (the cell-derived counts equal
+  `option_support` on every train question). So V5's negative α was caused
+  by the 0.0 no-signal default. The likely mechanism is collinearity: an
+  option with any SUPPORT cell also had a rerank score near 6, where a
+  no-signal option had 0, so δ·rerank and α·s⁺ both loaded on the same
+  "was judged" contrast.
+- **α is still weakly identified.** Under the refit bounds it sits on its 0
+  bound in 0.495 of 200 bootstrap resamples (β 0.135, γ 0.175).
+- Effective coefficients (w/T; the softmax depends only on these): α/T
+  0.032, β/T 0.401, γ/T 1.457, δ/T 0.073, against V5's −0.065, 0.512,
+  1.375, 0.036. A CONTRADICT cell still moves z about twelve times as much
+  as a SUPPORT cell: V5-refit is still mostly a contradiction rule, now with
+  support pointing the right way.
+- Convergence: the 5000-iteration fit differs in scale (T = 0.110) but not
+  in w/T (α/T 0.030, β/T 0.404, γ/T 1.494, δ/T 0.076; objective 1.3421 vs
+  1.3426). The 500-iteration budget stops short only along the
+  weight-scale-versus-T direction, which the L2 penalty leaves nearly flat.
+  Parity with V5's 500 iterations is kept.
+
+**Pre-test expectation, written before the test run exists.** On train,
+V5-refit is not better than V5. Rank-1 accuracy is 0.200 vs 0.267 on the fit
+half and 0.250 vs 0.267 on the held-out half (n = 60 each). Tie-aware
+expected accuracy is 0.279 vs 0.260 and 0.265 vs 0.276; mean gold NLL 1.342
+vs 1.347 and 1.326 vs 1.328. The tie-break does what it should: V5's rule
+gives A 13 of its 22 tied fit-half questions and 12 of 14 held-out ones,
+while V5-refit spreads them (fit half A 3 / B 7 / C 6 / D 5). The train
+evidence therefore predicts that V5-refit also ranks near chance on test and
+that U6 (V5-refit vs V5) is a tie. If so, the reading is that **correcting
+the sign, the no-signal default and the tie-break does not rescue the
+evidential score: the negative result is not a sign error.** A significant
+improvement would instead mean V5's defects cost real accuracy. It would
+still be a post-hoc result, and it would not replace V5.
+
+**Decision 3 — evaluated by re-scoring, not re-running.** V5-refit is V5's
+own 500 test SupportMatrices, re-scored under the frozen spec. The agent
+stage is the grid's `41f7e14` output verbatim, so V5-refit vs V5 isolates
+the scoring rule exactly; an agent re-run would hit the LLM cache and
+reproduce the same matrices at a cost of hours. Zero LLM calls, zero GPU.
+Hallucination rate is re-aggregated from V5's own per-claim NLI judgements
+under V5-refit's predicted option, because entailment depends only on the
+claim and its evidence (post-hoc-binary's procedure, ADR-036).
+
+**Decision 4 — code placement and pin.** The rule lives in
+`scripts/analysis/v5_refit.py` and imports `src.calibration` unchanged,
+because `src/` and `configs/` must stay byte-identical to `41f7e14` for
+V0/V2 (ADR-040). V5-refit therefore has no `configs/` file; its spec is the
+JSON above. `scripts/run_phase7_v5_refit.ps1` refuses to launch unless:
+(1) the V0/V2 code pin holds; (2) the spec and every script the rule runs
+through are committed at HEAD and unmodified; (3) this ADR and §1.0b's U6
+are committed at HEAD; (4) no V5-refit run exists yet (one shot). `apply`
+then checks the spec digest; validates the grid V5 run (variant, split test,
+n = 500, seed 42, code provenance); asserts there is no test/train overlap
+and that V5's own rule replays V5's stored rankings 500/500; and writes
+`results/medqa_V5-refit_<sha7>_<ts>/`. Port the rule to `src/calibration/`
+after V0/V2/V5-refit have run, with a replay test against this run.
+
+**Decision 5 — registration and reporting.** U6 (V5-refit vs V5), U7
+(vs V4−conflict) and U8 (vs V3), on accuracy and Macro-F1, join `docs/04`
+§1.0b's unplanned family: m_U goes from 12 to 18, Holm-corrected within the
+family. They are registered before any of V0, V2 or V5-refit exists, so the
+family's thresholds are fixed before any of its outcomes. V5-refit's P@K,
+MRR, ECE and halluc-rate are displayed, not tested. V5 remains the
+pre-registered result and the headline. V5-refit is reported in its own row
+beside it, as the disclosed post-hoc correction; neither replaces the other.
+`scripts/report.py` gives it that row, and
+`scripts/analysis/unplanned_v0_v2_family.py --v5-refit` validates the run
+(spec digest; derived from the grid V5 run) before testing it.
+
+**Disclosed limitation.** The four defects were found by looking at
+test-set behaviour (ADR-041, ADR-042). The *treatments* were chosen on
+principle and fit on train, but the decision to correct these four things,
+and not others, was informed by test. That is why V5-refit is labelled
+post-hoc and never takes V5's place.
+
+**Alternatives rejected.** (1) Refit on all 120 train questions: confounds
+the rule change with a doubled fit set; as designed, V5-refit differs from
+V5 only in the declared rule. (2) A has-signal indicator with its own
+weight: a sixth parameter on 60 questions, and it would learn the very
+"unjudged" contrast this correction removes. (3) Per-question rerank
+centring: loses the feature on questions with one judged option.
+(4) Tie-aware fractional credit instead of a tie-break: changes the metric,
+not the ranking, and Macro-F1 needs a single prediction. (5) Constrain α
+only: leaves the same objection open for β and γ; moot here, since no bound
+binds. (6) Choose among treatments by train accuracy: 60 questions cannot
+separate them, and trying several turns the refit into a search. (7) Re-run
+the agent stack: the same matrices from the cache, hours of cost, and a
+broken pin if the rule lived in `src/`. (8) More Adam iterations: breaks
+parity with V5 for no change in w/T.
+
+**Consequences.** `scripts/analysis/v5_refit.py`, `tests/test_v5_refit.py`,
+`results/phase7_v5_refit/refit_spec.json`, `scripts/run_phase7_v5_refit.ps1`;
+`scripts/analysis/unplanned_v0_v2_family.py` (U6–U8, m_U = 18);
+`scripts/run_phase7_v0_v2.ps1` (`-Only`, one cell per launch);
+`scripts/report.py` and `tests/test_report.py` (the V5-refit row); `docs/04`
+§1.0b, §5, §5.0a (d).
