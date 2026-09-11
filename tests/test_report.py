@@ -164,7 +164,37 @@ def test_random_row_is_read_from_the_analytic_json(results_tree):
     assert [rnd[header.index(h)] for h in ("Acc", "P@1", "P@2", "MRR")] == [
         "0.250", "0.250", "0.500", "0.521",
     ]
-    assert [rnd[header.index(h)] for h in ("Macro-F1", "Halluc.", "ECE")] == ["--", "--", "--"]
+    assert [rnd[header.index(h)] for h in ("Macro-F1", "Halluc.", "Grounded", "ECE")] == [
+        "--", "--", "--", "--",
+    ]
+
+
+def test_grounded_rate_is_copied_into_its_column(results_tree):
+    _write_run(
+        results_tree, "medqa_V0_41f7e14_20260911T000000Z", "medqa", "V0",
+        {"accuracy": 0.58, "grounded_rate": 0.0, "hallucination_rate": 1.0},
+    )
+    header, rows = _grid_rows(results_tree)
+    v0 = rows[("V0 zero-shot", "medqa")]
+    assert v0[header.index("Grounded")] == "0.000"  # a real 0.0, not a missing TBD
+    assert rows[("V2 hybrid", "medqa")][header.index("Grounded")] == "TBD"  # no run
+
+
+@pytest.mark.parametrize(
+    "filled, expect, reject",
+    [
+        (set(), ["V0 and V2 have no n=500 test run yet", "Prepared, not run"], ["ran at n=500"]),
+        ({"V0"}, ["V2 has no n=500 test run yet"], ["ran at n=500"]),
+        ({"V0", "V2", "V5-refit"}, ["ran at n=500", "Run by"], ["no n=500 test run", "Prepared"]),
+    ],
+)
+def test_status_notes_follow_the_filled_rows(filled, expect, reject):
+    # the prose must never call a row "not run" while the table shows its number
+    text = "\n".join(report._status_notes(filled))
+    for s in expect:
+        assert s in text
+    for s in reject:
+        assert s not in text
 
 
 def test_ece_dict_is_unwrapped_to_its_number(results_tree):

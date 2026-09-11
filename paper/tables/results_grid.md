@@ -2,27 +2,29 @@
 
 Every number here is copied from a `results/<run_id>/metrics.json` field (or `results/phase7_posthoc_binary_audit/metrics.json` for the derived post-hoc-binary row), except the Random row, which is the analytic expectation of a uniformly random ranking of 4 options read from `results/phase7_grid/random_baseline.json` (P@1 = 1/4, P@2 = 2/4, MRR = 25/48) -- a chance floor, not a run. `TBD` = no eligible run yet; `--` = metric not defined for that variant/dataset. Only n=500, seed-42, non-dev-split runs are eligible for any row: a dev-slice number never appears here (ADR-040). Every MedQA row is asserted to come from code identical to Phase 7's launch commit `41f7e14` -- a run from other code raises instead of silently tabulating.
 
-V0 (zero-shot) and V2 (`{dense,lexical}`) have no n=500 test run yet: prepared, not run, in `scripts/run_phase7_v0_v2.ps1` (ADR-040).
+V0 (zero-shot) and V2 (`{dense,lexical}`) ran at n=500 via `scripts/run_phase7_v0_v2.ps1` (ADR-040, ADR-044). Their tests are the UNPLANNED family's U1-U5 (`docs/04` §1.0b), never merged into the m=35 family.
 
-V5 is the pre-registered result and the headline. V5-refit is its disclosed post-hoc correction (ADR-043): V5's own test SupportMatrices re-scored with weights refit on the Phase 5 train slice (evidential weights >= 0, a neutral no-signal rerank value, a seeded tie-break). It is reported beside V5 and replaces nothing; its tests are the unplanned family's U6-U8 (`docs/04` §1.0b). Prepared in `scripts/run_phase7_v5_refit.ps1`.
+V5 is the pre-registered result and the headline. V5-refit is its disclosed post-hoc correction (ADR-043): V5's own test SupportMatrices re-scored with weights refit on the Phase 5 train slice (evidential weights >= 0, a neutral no-signal rerank value, a seeded tie-break). It is reported beside V5 and replaces nothing; its tests are the unplanned family's U6-U8 (`docs/04` §1.0b). Run by `scripts/run_phase7_v5_refit.ps1`.
 
-| Variant | Dataset | Acc | Macro-F1 | Halluc. | P@1 | P@2 | MRR | ECE | run_id |
-|---|---|---|---|---|---|---|---|---|---|
-| Random ranking (chance) | any 4-option | 0.250 | -- | -- | 0.250 | 0.500 | 0.521 | -- | phase7_grid/random_baseline.json (analytic) |
-| V0 zero-shot | medqa | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
-| V1 dense RAG | medqa | 0.566 | 0.565 | 0.893 | TBD | TBD | TBD | TBD | medqa_V1_41f7e14_20260908T212655Z |
-| V2 hybrid | medqa | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
-| V3 +KG | medqa | 0.546 | 0.545 | 0.883 | TBD | TBD | TBD | TBD | medqa_V3_41f7e14-dirty_20260908T230633Z |
-| V4 +agents | medqa | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
-| V4-audit (binary audit) | medqa | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
-| V4-conflict (no Conflict agent) | medqa | 0.358 | 0.342 | 0.725 | 0.358 | 0.606 | 0.598 | TBD | medqa_V4-conflict_41f7e14-dirty_20260909T220306Z |
-| V5 full | medqa | 0.316 | 0.311 | 0.728 | 0.316 | 0.582 | 0.571 | 0.068 | medqa_V5_41f7e14-dirty_20260909T103452Z |
-| V5-refit (post-hoc refit, ADR-043) | medqa | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
-| B3 binary verifier | medqa | 0.538 | 0.537 | TBD | -- | -- | -- | -- | medqa_B3_41f7e14-dirty_20260909T023658Z |
-| V3 +KG | medmcqa | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
-| V5 full | medmcqa | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
-| V3 +KG | pubmedqa | TBD | TBD | TBD | -- | -- | -- | TBD | TBD |
-| V5 full | pubmedqa | TBD | TBD | TBD | -- | -- | -- | TBD | TBD |
+`Grounded` is `grounded_rate`, and it has two operationalisations -- compare within a group, not across. Single-prediction rows (V0-V3, B3): the answer carries >=1 valid citation, i.e. a cited id present in the retrieved bundle (`src/eval/baselines.py`). Agent rows (V4-conflict, V5, V5-refit): the predicted option has >=1 SUPPORT audit cell (`src/eval/harness.py`, `src/calibration/citations.py`), a stricter bar. V0 retrieves nothing, so its Grounded = 0 and Halluc. = 1 by construction, not by measurement. Grounded is displayed, never significance-tested.
+
+| Variant | Dataset | Acc | Macro-F1 | Halluc. | Grounded | P@1 | P@2 | MRR | ECE | run_id |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Random ranking (chance) | any 4-option | 0.250 | -- | -- | -- | 0.250 | 0.500 | 0.521 | -- | phase7_grid/random_baseline.json (analytic) |
+| V0 zero-shot | medqa | 0.582 | 0.579 | 1.000 | 0.000 | TBD | TBD | TBD | TBD | medqa_V0_b24015a-dirty_20260911T080323Z |
+| V1 dense RAG | medqa | 0.566 | 0.565 | 0.893 | 1.000 | TBD | TBD | TBD | TBD | medqa_V1_41f7e14_20260908T212655Z |
+| V2 hybrid | medqa | 0.556 | 0.555 | 0.870 | 0.998 | TBD | TBD | TBD | TBD | medqa_V2_b24015a-dirty_20260911T104513Z |
+| V3 +KG | medqa | 0.546 | 0.545 | 0.883 | 0.984 | TBD | TBD | TBD | TBD | medqa_V3_41f7e14-dirty_20260908T230633Z |
+| V4 +agents | medqa | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
+| V4-audit (binary audit) | medqa | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
+| V4-conflict (no Conflict agent) | medqa | 0.358 | 0.342 | 0.725 | 0.856 | 0.358 | 0.606 | 0.598 | TBD | medqa_V4-conflict_41f7e14-dirty_20260909T220306Z |
+| V5 full | medqa | 0.316 | 0.311 | 0.728 | 0.756 | 0.316 | 0.582 | 0.571 | 0.068 | medqa_V5_41f7e14-dirty_20260909T103452Z |
+| V5-refit (post-hoc refit, ADR-043) | medqa | 0.292 | 0.290 | 0.736 | 0.652 | 0.292 | 0.530 | 0.551 | 0.054 | medqa_V5-refit_b24015a_20260911T074318Z |
+| B3 binary verifier | medqa | 0.538 | 0.537 | TBD | 0.972 | -- | -- | -- | -- | medqa_B3_41f7e14-dirty_20260909T023658Z |
+| V3 +KG | medmcqa | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
+| V5 full | medmcqa | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
+| V3 +KG | pubmedqa | TBD | TBD | TBD | TBD | -- | -- | -- | TBD | TBD |
+| V5 full | pubmedqa | TBD | TBD | TBD | TBD | -- | -- | -- | TBD | TBD |
 
 ## Diagnostics (not grid variants)
 
