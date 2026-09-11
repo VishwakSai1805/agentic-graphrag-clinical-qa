@@ -21,41 +21,112 @@ is 4–5 option multiple choice. A binary verifier:
 
 ## 3. Contribution
 
-*Updated 2026-09-10 against the completed Phase 7 grid (`docs/04_EVALUATION.md`
-§5/§5.0a: five MedQA test-n=500 cells — V1, V3, B3, V5, V4−conflict, all
-commit `41f7e14` — plus the post-hoc-binary derived analysis, the one
-pre-registered confirmatory test, and the m=31-of-35 exploratory family (ADR-040),
-Holm-Bonferroni corrected). Every number cited below traces to
-`results/phase7_grid/{confirmatory_v3_v5,exploratory_family,v5_diagnostics}.json`
-or `results/phase7_posthoc_binary_audit/metrics.json`. Below that:
-rewritten 2026-09-07 against AUDIT 2026-09-06 §5.1–5.6. The previous version
+*Updated 2026-09-11 against the completed Phase 7 MedQA grid
+(`docs/04_EVALUATION.md` §5/§5.0a). That grid is seven test n=500 cells (V0,
+V1, V2, V3, B3, V4−conflict, V5, all on code identical to `41f7e14`), plus
+V5-refit (ADR-043), the post-hoc-binary derived analysis, the one
+pre-registered confirmatory test, the Holm-corrected m=31-of-35 exploratory
+family (ADR-040), and the separately Holm-corrected unplanned family U1–U8
+(m_U = 18, `docs/04` §1.0b). Every project number cited below traces to
+`results/phase7_grid/{confirmatory_v3_v5,exploratory_family,unplanned_v0_v2_family,v5_diagnostics}.json`,
+`results/phase7_posthoc_binary_audit/metrics.json`, or a grid run's
+`metrics.json` via `paper/tables/results_grid.md`. MEGA-RAG's figures are
+quoted from the cited paper, verified against it on 2026-09-11. Earlier
+revisions: 2026-09-10 (the five-cell grid) and, below that, 2026-09-07
+against AUDIT 2026-09-06 §5.1–5.6. The previous version
 stated C1–C4 flatly as achieved results; at the time, three of the four had no
 supporting run and one had three runs against it. Each claim below now carries
 its evidential status and the artifact that settles it. **A claim marked
 PENDING may not appear in paper text as an achieved result until the run named
 in it exists.** Status is part of the claim, not a caveat appended to it.*
 
-**C1 — Tri-modal evidence: a diagnostic (currently negative) contribution.**
-`STILL PENDING the exact V2-vs-V3 cell — V2 ({dense,lexical}) has never been
-run, TBD in docs/04 §5.` Joint dense + lexical + knowledge-graph retrieval,
+**Headline (MedQA test, n=500): a negative result shaped as one step, not a
+slope.** Along the nested component chain the accuracy point estimates fall
+at every step: V0 zero-shot 0.582 → V1 +dense 0.566 → V2 +lexical 0.556 →
+V3 +KG 0.546 → V4−conflict +Hypothesis and Audit agents 0.358 → V5 +Conflict
+agent, +calibration 0.316. The off-chain variants are B3 (V3's retrieval
+plus the binary verifier) at 0.538 and V5-refit (V5 re-scored) at 0.292.
+**Zero-shot with no retrieval has the highest accuracy point estimate in the
+grid.** The significance tests resolve that monotone sequence into two tiers
+(`docs/04` §5.0a):
+
+- **Retrieval tier, {V0, V1, V2, V3, B3}: no tested difference survives
+  correction.** That includes **V0 vs V1, a tie** (+0.016, 95% CI [−0.008,
+  +0.042], p = 0.2308, U1). V0 vs V3 (+0.036) clears an unadjusted CI but
+  not Holm (U2).
+- **Agent tier, {V4−conflict, V5, V5-refit}: no tested difference survives
+  correction either** (pair d, U6, U7).
+- **Between the tiers: a 0.22–0.27 accuracy drop, significant in every
+  cross-tier test run.** V0 > V5 (U3), V1 > V5 (pair e), V3 > V5 (the
+  confirmatory test), B3 > V5 (pair h), V3 > V5-refit (U8).
+
+**What the data support.** Retrieval does not improve accuracy over
+zero-shot. **"Retrieval hurts" is not supported:** the one direct test is a
+tie. The graded audit-and-rank stack, this project's own contribution,
+significantly hurts accuracy against zero-shot and against every
+retrieval-tier variant it was tested against, and correcting its scoring
+rule does not change that. C1–C3 each now have n=500 test evidence against
+them. The delivered part of C4 *is* that evidence. Each claim below names
+its cells.
+
+**Relation to prior art: the anomaly in MEGA-RAG's own Table 2.** MEGA-RAG
+(Frontiers in Public Health, 2025; PMC12540348), Table 2, HealthQuestDB (890
+public-health QA pairs, LLaMA3-70B behind every LLM row): the plain **LLM
+scores accuracy 0.6674, and LLM+RAG scores 0.6281** (F1 0.7643 vs 0.6739).
+Adding standard retrieval lowered both below the bare model. The paper
+reports no significance test for any Table 2 comparison. Its §5.2 describes
+the two baselines' error profiles: the vanilla LLM's inflated false
+positives, and standard RAG's "overcorrection, excluding many
+borderline-relevant passages and increasing false negatives". It never
+states that retrieval made the model *less accurate*, and never asks why.
+That inversion runs the same direction as this project's V0 > V1. What this
+work adds, stated only as strongly as the data allow:
+
+1. **It re-measures the inversion with a paired significance test, and
+   finds a tie.** The direction replicates on MedQA at n = 500, but the gap
+   cannot be told apart from zero. The supportable statement is "standard
+   RAG does not beat the bare LLM", not "standard RAG hurts". MEGA-RAG's own
+   0.039 gap cannot be re-tested here: its per-question predictions are not
+   available, and the two results differ in dataset, task format and
+   generator.
+2. **It locates where a real, significant loss does occur, and gives its
+   mechanism.** The loss is not at the retrieval step. It is at the graded
+   audit-and-rank layer: 0.22–0.27 accuracy. ADR-041 explains it: V5's
+   calibrated score is functionally a "fewest CONTRADICT cells" rule, and
+   that rule cannot separate the gold option from options the audit never
+   examined. In MEGA-RAG's Table 2 the full system recovers above the plain
+   LLM (0.7913). This project's full system falls far below it. The two
+   results diverge at exactly the layer this project added.
+3. **It does not explain MEGA-RAG's retrieval-step inversion.** No mechanism
+   for a retrieval-step loss was measured, because at this n there is no
+   retrieval-step loss to explain. The paper may say the anomaly went
+   unremarked, was re-tested, and came out at most a null. **It may not say
+   this work "reproduces and explains" it.**
+
+**C1 — Tri-modal evidence: a diagnostic (negative) contribution.**
+`AGAINST at n=500. The isolation C1 always needed, V2 ({dense,lexical}) vs V3
+(+KG), ran as U4 and is a tie on accuracy, macro-F1 and halluc-rate.` Read
+from the KG's side, U4's accuracy CI puts the KG's effect between −3.0 and
++1.0 points (V2 − V3 = +0.010, 95% CI [−0.010, +0.030], p = 0.3634). Adding
+lexical to dense ties too (U5). Joint dense + lexical + knowledge-graph retrieval,
 with KG triples treated as first-class evidence objects rather than context
-text. **No run yet shows the KG arm improving any downstream metric, and four
-measurements now point against it (one new):** RRF fusion is a statistical tie
+text. **No run shows the KG arm improving any downstream metric, and five
+measurements point against it, the last being the exact isolation (U4,
+above):** RRF fusion is a statistical tie
 with dense alone on NFCorpus (ADR-012 — a *tie*, reported as a tie); the KG
 arm's own quality figure is middling (`overall_novel_and_relevant_rate ≈
 0.41`, `entity_level_mapping_rate ≈ 0.11`); on the Phase 4 dev-20 the KG slot
 was filled on 17/20 questions but only **1 of 108** audit cells cited a KG
 triple; and **the Phase 7 exploratory family's pair a (V1 dense-only vs V3
 dense+lexical+KG, MedQA test n=500) is a statistical tie on accuracy (+0.020,
-95% CI includes 0, p=0.125), macro-F1 (p=0.110), and halluc-rate (p=0.349)** —
-not the pre-registered V2-vs-V3 isolation (V2 still does not exist, so this
-does not separate "lexical" from "KG"), but the closest real evidence
-available, and it points the same direction as the other three: adding
-retrieval modalities on top of dense-only produces no detectable accuracy gain
-at n=500. C1's honest form stays a *diagnostic* result — "here is what it
-costs to wire a biomedical KG into a clinical RAG pipeline, and here is the
-measured value it returns" — with the current answer being *not much*, now
-with a fourth, larger-n corroborating measurement. A negative result, reported
+95% CI includes 0, p=0.125), macro-F1 (p=0.110), and halluc-rate (p=0.349)**.
+Pair a changes two modalities at once; U4 then isolates the KG and finds the
+same tie. At n=500, adding retrieval modalities on top of dense-only produces
+no detectable accuracy gain, and dense-only produces none over zero-shot
+(U1, headline above). C1's honest form stays a *diagnostic* result: "here is
+what it costs to wire a biomedical KG into a clinical RAG pipeline, and here
+is the measured value it returns". The measured answer is *nothing
+detectable*, now from the exact isolation at n=500. A negative result, reported
 with its mechanism, is a publishable contribution; an unsupported positive
 claim is not.
 
@@ -111,7 +182,10 @@ same audit evidence, but the audit-and-rank mechanism this project built,
 graded or not, is substantially worse than either doing no agentic
 verification at all (V1/V3) or using the cruder binary verifier it was meant
 to replace (B3).* This is not the C2 the project set out to establish, and it
-is stated as such rather than softened.
+is stated as such rather than softened. **The unplanned family adds the
+bluntest comparison: the agent stack is significantly worse than no
+retrieval at all.** V0 zero-shot beats V5 by +0.266 accuracy (U3,
+p < 0.0001, Holm-significant), a larger gap than any retrieval baseline's.
 
 **C3 — Evidential calibration for multi-choice.** `RESTATED — mechanism works,
 the evidential contribution is not established (ADR-028, Phase 5).` Per-option
@@ -156,14 +230,29 @@ calibration layer's own terms**: the mechanism runs correctly and is
 well-calibrated (ECE 0.0724 at fit time — that part is real), but nothing
 measured shows it earning its added complexity over simpler alternatives.
 
+**The disclosed scoring-rule correction does not change this (V5-refit,
+ADR-043).** V5-refit keeps the evidential weights ≥ 0, imputes a neutral
+no-signal rerank value, uses a seeded tie-break, and was fit on train and
+frozen before test. It **ties V5** (0.292 vs 0.316, U6, p = 0.2572, the
+outcome registered in advance) and **loses significantly to V3** (−0.254,
+U8). Its ranking (P@1 0.292 / P@2 0.530 / MRR 0.551, displayed, not tested
+against chance) sits next to the chance row's 0.250 / 0.500 / 0.521. The
+near-chance ranking is not an artifact of V5's negative α.
+
 **C4 — Empirical study.** `PARTIALLY DELIVERED — MedQA test-set grid complete
-(2026-09-10); MedMCQA and PubMedQA still PENDING.` Baseline parity on
+(seven cells, 2026-09-11); MedMCQA and PubMedQA still PENDING.` Baseline parity on
 PubMedQA (binary), and the MedQA-USMLE / MedMCQA multi-choice comparison, with
 an ablation grid isolating each modality and each agent. **The MedQA rows of
-the `docs/04_EVALUATION.md` §5 grid are now filled from five real n=500
-test-set runs (V1, V3, B3, V5, V4−conflict, commit `41f7e14`) — V0/V2/V4/
-V4−audit remain `TBD` (no run), and every MedMCQA/PubMedQA row remains `TBD`
-(never run — C4's empirical-study scope is still only one-third delivered).**
+the `docs/04_EVALUATION.md` §5 grid are now filled from seven real n=500
+test-set runs (V0, V1, V2, V3, B3, V5, V4−conflict, code identical to
+`41f7e14`), plus V5-refit beside V5. V4 and V4−audit remain `TBD` (no run),
+and every MedMCQA/PubMedQA row remains `TBD` (never run: C4's
+empirical-study scope is still only one-third delivered).** The delivered
+third's headline is the two-tier step above. Retrieval does not beat
+zero-shot, and the agent stack sits 0.22–0.27 accuracy below both. Every
+adjacent step of the component chain that was tested is a tie. The one step
+where the drop sits, V3 → V4−conflict, was never tested directly. The drop
+is established by the cross-tier pairs listed in the headline.
 The one pre-registered confirmatory comparison is done: **V3 significantly
 beats V5 on accuracy** (0.546 vs 0.316, paired bootstrap 10k resamples seed
 42, 95% CI [+0.172, +0.288], p<0.0001, `docs/04` §5.0a) — not the null the

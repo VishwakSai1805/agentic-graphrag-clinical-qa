@@ -3081,3 +3081,47 @@ unplanned family ran on V0 `...080323Z`, V2 `...104513Z` and V5-refit
 `...074318Z` (`results/phase7_grid/unplanned_v0_v2_family.json`, m_U = 18
 of 18). `scripts/report.py` tabulates all three, and its per-row status
 prose is now derived from which rows have runs (`tests/test_report.py`).
+
+## ADR-045 — Phase 7 headline framing: a monotone point-estimate chain whose significance structure is a two-tier step; the MEGA-RAG Table 2 link stated as "re-tested, found null"
+Date: 2026-09-11 · Phase: 7 · Status: accepted (claims register, `docs/00` §3; no paper prose yet)
+
+**Context.** With all seven MedQA cells in, the accuracy point estimates
+fall monotonically along the nested component chain: V0 0.582 → V1 0.566 →
+V2 0.556 → V3 0.546 → V4−conflict 0.358 → V5 0.316. B3 (0.538) and V5-refit
+(0.292) sit off-chain. The proposed framing was "a monotonic degradation
+curve", "zero-shot beats every configuration", and "this work reproduces and
+explains the anomaly in MEGA-RAG's Table 2", where LLM+RAG 0.6281 < LLM
+0.6674.
+
+**Decision.** `docs/00` §3 states the result as the tests resolve it.
+- **Point estimates are monotone. The significance structure is two tiers
+  separated by one step.** Every tested pair inside the retrieval tier {V0,
+  V1, V2, V3, B3} ties after correction, and so does every tested pair
+  inside the agent tier {V4−conflict, V5, V5-refit}. Every cross-tier pair
+  tested (U3, e, confirmatory, h, U8) is Holm-significant, at 0.22–0.27
+  accuracy.
+- **"Retrieval does not help", not "retrieval hurts".** U1 (V0 vs V1) is a
+  tie: +0.016, 95% CI [−0.008, +0.042]. U2 (V0 vs V3) clears only an
+  unadjusted CI.
+- **"Zero-shot has the highest point estimate", not "zero-shot beats every
+  configuration".** V0 is significantly better only than the agent tier.
+  V0 vs V2, B3 and V4−conflict were never tested.
+- **MEGA-RAG.** The inversion is real in their table: HealthQuestDB, n = 890,
+  LLaMA3-70B, untested, and never remarked on as an accuracy loss. This work
+  re-tests the same direction with a paired test and finds a tie. It
+  explains a *different* loss, the audit-and-rank layer (ADR-041), and does
+  not explain theirs.
+
+**Alternatives rejected.** (1) "Monotonic degradation curve": no tested
+adjacent step is significant, and the step where the drop sits (V3 →
+V4−conflict) was never tested, so "curve" asserts a gradient the tests do
+not show. (2) "Retrieval actively hurts": unsupported. U1 is a tie,
+and U2 does not survive Holm. CLAUDE.md §2: a tie is reported as a tie.
+(3) "Reproduces and explains MEGA-RAG's anomaly": "reproduces" overstates a
+tie, and "explains" would borrow ADR-041's agent-layer mechanism for a
+retrieval-step effect this project did not detect.
+
+**Consequences.** `docs/00_RESEARCH_SPEC.md` §3 (headline, prior-art link,
+C1–C4 statuses) and `docs/04_EVALUATION.md` §5.0a (U1–U8 table, tier
+structure, grounding vs accuracy). Paper prose must use these forms. Any
+stronger wording needs a new test first, not new adjectives.
