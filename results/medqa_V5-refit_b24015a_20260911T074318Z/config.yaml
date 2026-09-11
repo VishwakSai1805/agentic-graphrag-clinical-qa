@@ -1,0 +1,150 @@
+agents:
+  enabled: true
+  epsilon: 1
+  evidence_split:
+  - 8
+  - 4
+  hypothesis_sample: false
+  hypothesis_temperature: 0.0
+  kg_slot_rerank: true
+  max_evidence: 12
+  max_llm_calls_per_question: 12
+  max_rounds: 2
+  prompt_versions:
+    audit: v1
+    conflict: v2
+    hypothesis: v1
+  run_conflict: true
+  source_precedence:
+  - kg
+  - textbook
+  - pubmed_abstract
+cache_dir: .cache\llm
+calibration:
+  abstention_tau: 0.4756586761159263
+  alpha: 0.005935326110206106
+  beta: 0.07415413622207706
+  delta: 0.01351250599836146
+  ece_binning: equal_width
+  enabled: true
+  fit_dataset: medqa
+  fit_limit: 60
+  fit_seed: 42
+  fit_split: train
+  gamma: 0.26957062462976267
+  n_ece_bins: 15
+  temperature: 0.18504984617186618
+eval:
+  concurrency: 4
+  ollama_keep_alive: -1
+kg:
+  cache_dir: data\processed\kg_cache
+  degree_cap: 200
+  edge_allowlist:
+  - indication
+  - contraindication
+  - off-label use
+  - disease_phenotype_positive
+  - disease_protein
+  - drug_effect
+  - disease_disease
+  kg_rerank: false
+  kg_rerank_pool_size: 150
+  linker_threshold: 0.85
+  max_hops: 2
+  max_triples_per_question: 40
+  neo4j_password_env: NEO4J_PASSWORD
+  neo4j_uri: bolt://localhost:7687
+  neo4j_user: neo4j
+llm:
+  backoff_base_s: 1.0
+  context_completion_reserve: 512
+  fallback_chain:
+  - api_base: http://localhost:11434
+    api_key_env: null
+    model: ollama/qwen2.5:7b-instruct
+    provider: ollama
+    timeout_s: 120.0
+  - api_base: null
+    api_key_env: GROQ_API_KEY
+    model: groq/llama-3.1-8b-instant
+    provider: groq
+    timeout_s: 30.0
+  - api_base: null
+    api_key_env: GEMINI_API_KEY
+    model: gemini/gemini-1.5-flash
+    provider: gemini
+    timeout_s: 30.0
+  max_retries: 3
+  max_tokens: 512
+  num_ctx: 8192
+  seed: 42
+  temperature: 0.0
+retrieval:
+  bm25:
+    b: 0.75
+    k1: 1.5
+  chunk_overlap: 32
+  chunk_tokens: 256
+  corpus:
+    pubmed_seed: 42
+    pubmed_subset_size: 20000
+  dense:
+    article_model: ncbi/MedCPT-Article-Encoder
+    batch_size: 64
+    bge_model: BAAI/bge-large-en-v1.5
+    bge_query_prefix: 'Represent this sentence for searching relevant passages: '
+    checkpoint_every_batches: 25
+    device: null
+    max_article_length: 512
+    max_query_length: 64
+    model_type: medcpt
+    nlist: 100
+    nprobe: 16
+    query_model: ncbi/MedCPT-Query-Encoder
+  fusion:
+    rrf_k: 60
+  rerank:
+    max_length: 512
+    model: ncbi/MedCPT-Cross-Encoder
+  tokenizer_model: ncbi/MedCPT-Article-Encoder
+  top_k_bm25: 50
+  top_k_dense: 50
+  top_k_rerank: 12
+seed: 42
+v5_refit:
+  derived_from_run: medqa_V5_41f7e14-dirty_20260909T103452Z
+  rule:
+    abstention: choose_abstention_threshold on the held-out half, target_risk=0.1
+    bounds:
+      alpha:
+      - 0.0
+      - 10.0
+      beta:
+      - 0.0
+      - 10.0
+      delta:
+      - -10.0
+      - 10.0
+      gamma:
+      - 0.0
+      - 10.0
+      log_t:
+      - -2.995732273553991
+      - 2.995732273553991
+    logit: z = alpha*s_pos - beta*s_neg + gamma*kg_support_count + delta*rerank_c
+    optimizer: src.calibration.softmax_rank.fit_weights verbatim (Adam, lr/betas/eps/500
+      iterations/init/L2 unchanged), projection onto `bounds` each step
+    probabilities: softmax(z / temperature)
+    rerank_c: mean MedCPT rerank score over the option's SUPPORT+CONTRADICT cells
+      minus rerank_reference; 0.0 (= the reference) for an option with no such cell
+    rerank_reference: 5.892607629299164
+    rerank_reference_definition: median raw mean_rerank_score over the fit half's
+      options with >= 1 SUPPORT/CONTRADICT cell
+    s_pos_s_neg_source: counted from SupportMatrix.cells (not option_support; ADR-042)
+    tie_break:
+      method: seeded uniform shuffle, then stable sort on p
+      rng_key: v5-refit-tiebreak:<seed>:<question_id>
+      seed: 42
+  spec_path: results/phase7_v5_refit/refit_spec.json
+  spec_sha256: 29936369e689105e059a2cff731ba77633de2e61ab53a339847fce7b8944aff7

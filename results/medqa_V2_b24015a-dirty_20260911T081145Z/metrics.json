@@ -1,0 +1,168 @@
+{
+  "config_hash": "c6e5466de6701b64f4993a4a7b293595c0ec676af8d4c5caf4f44da50aad864c",
+  "dataset": "medqa",
+  "git_diff_sha256": "88ab29230de79856c3a9ec7ea644de0e4160d7eec730ee6182003030dff73aeb",
+  "git_dirty": true,
+  "git_dirty_files": [
+    "results/medqa_V0_b24015a-dirty_20260911T080323Z/",
+    "results/medqa_V2_b24015a-dirty_20260911T081145Z/",
+    "results/medqa_V5-refit_b24015a_20260911T074318Z/",
+    "results/phase7_grid/v0_v2_launch.json",
+    "results/phase7_grid/v5_refit_launch.json"
+  ],
+  "git_sha7": "b24015a-dirty",
+  "limit": 3,
+  "metrics": {
+    "accuracy": 0.6666666666666666,
+    "completion_tokens_total": 496,
+    "contamination_assertion": {
+      "applies": false,
+      "check": "medqa_stem_vs_retrieved_chunk_ngram_overlap",
+      "checked": true,
+      "flag_threshold": 0.5,
+      "max_overlap": 0.0,
+      "mean_overlap": 0.0,
+      "median_overlap": 0.0,
+      "n_flagged": 0,
+      "n_questions": 3,
+      "n_questions_with_any_shared_ngram": 0,
+      "ngram_n": 8,
+      "note": "Executed check: fraction of each question stem's 8-grams appearing verbatim in any passage retrieved for that question. MedQA has no source-abstract blocklist (blocklisted_pmids('medqa') raises by design); the 18 USMLE textbooks are in the corpus disclosed under ADR-009, so non-zero overlap is expected and is reported as a distribution. `applies` is True iff >=1 question reaches 0.5 verbatim overlap, which would indicate a stem reproduced inside a retrieved chunk.",
+      "p95_overlap": 0.0
+    },
+    "dataset": "medqa",
+    "ece": null,
+    "ece_note": "null: no calibrated probability vector for this variant (only V5 has one).",
+    "grounded_rate": 1.0,
+    "hallucination": {
+      "hallucination_rate_all_support_cells": 1.0,
+      "hallucination_rate_predicted_option": 1.0,
+      "n_claims_all_support_cells": 10,
+      "n_claims_predicted_option": 10,
+      "n_uncited_all_support_cells": 0,
+      "n_uncited_predicted_option": 0,
+      "n_ungrounded_all_support_cells": 10,
+      "n_ungrounded_predicted_option": 10,
+      "nli_model": "MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli",
+      "per_claim": [
+        {
+          "cited": true,
+          "claim": "The patient's symptoms of progressive fatigue, new onset muscle cramps, and hypokalemia (3.3 mEq/L) are consistent with primary aldosteronism.",
+          "entailed": false,
+          "max_entail_score": 0.34423828125,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00051"
+        },
+        {
+          "cited": true,
+          "claim": "The patient's history of hypertension and the presence of hypokalemia, which is exacerbated by thiazide diuretic treatment, suggest an underlying aldosterone excess.",
+          "entailed": false,
+          "max_entail_score": 0.380615234375,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00051"
+        },
+        {
+          "cited": true,
+          "claim": "Additionally, the patient's age (56 years) and the presence of hypertension associated with drug resistance and hypokalemia support the diagnosis of primary aldosteronism as outlined in the cited evidence.",
+          "entailed": false,
+          "max_entail_score": 0.356689453125,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00051"
+        },
+        {
+          "cited": true,
+          "claim": "The patient's symptoms, including fever, headache, malaise, and arthralgias, are consistent with dengue fever.",
+          "entailed": false,
+          "max_entail_score": 0.1229248046875,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00228"
+        },
+        {
+          "cited": true,
+          "claim": "The rapid onset of symptoms and the presence of a maculopapular rash also support this diagnosis.",
+          "entailed": false,
+          "max_entail_score": 0.376220703125,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00228"
+        },
+        {
+          "cited": true,
+          "claim": "Additionally, the patient's recent travel history to Vietnam and Cambodia, where dengue is endemic, further strengthens this diagnosis.",
+          "entailed": false,
+          "max_entail_score": 0.36474609375,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00228"
+        },
+        {
+          "cited": true,
+          "claim": "Chikungunya and Epstein-Barr virus are less likely given the absence of specific symptoms for these conditions, and hepatitis A is unlikely given the absence of gastrointestinal symptoms and the normal liver function tests.",
+          "entailed": false,
+          "max_entail_score": 0.396240234375,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00228"
+        },
+        {
+          "cited": true,
+          "claim": "The patient's history of postcoital vaginal bleeding and a polypoid mass on the anterior wall of the vagina, along with the confirmation of malignant cells, most likely indicates a clear cell adenocarcinoma.",
+          "entailed": false,
+          "max_entail_score": 0.1278076171875,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00563"
+        },
+        {
+          "cited": true,
+          "claim": "This type of cancer is often associated with a history of DES exposure, which the patient has.",
+          "entailed": false,
+          "max_entail_score": 0.0035076141357421875,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00563"
+        },
+        {
+          "cited": true,
+          "claim": "The evidence from First Aid Step2 and Gynecology Novak supports this diagnosis, as clear cell adenocarcinoma is a known risk following DES exposure and is commonly found in the upper third of the vagina.",
+          "entailed": false,
+          "max_entail_score": 0.02752685546875,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00563"
+        }
+      ],
+      "primary": "hallucination_rate_predicted_option",
+      "threshold": 0.5
+    },
+    "hallucination_pending": false,
+    "hallucination_rate": 1.0,
+    "invalid_citation_count": 0,
+    "llm_cache_hits": 0,
+    "llm_calls_total": 3,
+    "macro_f1": 0.2,
+    "macro_f1_note": "position-bias check, not a skill metric for 4-option MCQ",
+    "mean_llm_calls": 1.0,
+    "mrr": null,
+    "n_evaluated": 3,
+    "p_at_1": null,
+    "p_at_2": null,
+    "prompt_tokens_total": 12495,
+    "ranking_note": "P@K / MRR are null: this variant emits a single predicted option, not a ranked differential (approved Phase 6 plan).",
+    "ranking_source": "single_prediction",
+    "status_counts": {
+      "ok": 3
+    }
+  },
+  "run_id": "medqa_V2_b24015a-dirty_20260911T081145Z",
+  "seed": 42,
+  "split": "test",
+  "superseded": false,
+  "superseded_by": null,
+  "superseded_reason": null,
+  "variant": "V2"
+}

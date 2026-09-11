@@ -1,0 +1,46 @@
+﻿{
+    "phase":  7,
+    "cells":  [
+                  "V0",
+                  "V2"
+              ],
+    "purpose":  "pre-specified grid rows (docs/04 section 0.3) that had not run; their comparisons are the UNPLANNED family (docs/04 section 1.0b, ADR-040), never merged into the m=35 family",
+    "launched_utc":  "2026-09-11 07:58:20Z",
+    "pinned_code_commit":  "41f7e14df845b1fcfa256141da41a03ba0ff8720",
+    "pin_check":  "passed before launch: git diff --quiet 41f7e14 HEAD, git diff --quiet HEAD (worktree + index), no untracked files -- over src, configs, pyproject.toml, uv.lock",
+    "launch_head":  "b24015ac032d9c3f88f2faae52e09823ddf6461b",
+    "launch_worktree_dirty_files":  [
+                                        "results/medqa_V5-refit_b24015a_20260911T074318Z/",
+                                        "results/phase7_grid/v5_refit_launch.json"
+                                    ],
+    "dataset":  "medqa",
+    "split":  "test",
+    "n":  500,
+    "seed":  42,
+    "commands":  {
+                     "V0":  "uv run python -m src.eval.harness --dataset medqa --split test --limit 500 --seed 42 --config configs/base.yaml --variant V0",
+                     "V2":  "uv run python -m src.eval.harness --dataset medqa --split test --limit 500 --seed 42 --config configs/base.yaml --variant V2"
+                 },
+    "run_dirs":  {
+                     "V0":  "medqa_V0_b24015a-dirty_20260911T080323Z",
+                     "V2":  null
+                 },
+    "cell_outcomes":  [
+                          {
+                              "Cell":  "V0",
+                              "ExitCode":  0,
+                              "Minutes":  5.1,
+                              "Log":  "C:\\Claude\\AI Project\\logs\\phase7_V0_20260911_132820.log"
+                          },
+                          {
+                              "Cell":  "V2",
+                              "ExitCode":  1,
+                              "Minutes":  0.5,
+                              "Log":  "C:\\Claude\\AI Project\\logs\\phase7_V2_20260911_132820.log"
+                          }
+                      ],
+    "next_steps":  [
+                       "uv run python -m scripts.analysis.unplanned_v0_v2_family --v0 \u003cV0 run dir\u003e --v2 \u003cV2 run dir\u003e --v5-refit \u003cV5-refit run dir\u003e",
+                       "uv run python -m scripts.report"
+                   ]
+}

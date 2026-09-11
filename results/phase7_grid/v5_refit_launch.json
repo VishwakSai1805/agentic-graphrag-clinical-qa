@@ -1,0 +1,33 @@
+﻿{
+    "phase":  7,
+    "cell":  "V5-refit",
+    "purpose":  "disclosed post-hoc correction of V5\u0027s scoring rule (ADR-043); tests are the UNPLANNED family\u0027s U6-U8 (docs/04 section 1.0b), never merged into the m=35 family",
+    "launched_utc":  "2026-09-11 07:43:09Z",
+    "pinned_code_commit":  "41f7e14df845b1fcfa256141da41a03ba0ff8720",
+    "pin_check":  "passed before launch: git diff --quiet 41f7e14 HEAD, git diff --quiet HEAD (worktree + index), no untracked files -- over src, configs, pyproject.toml, uv.lock",
+    "rule_files_committed":  [
+                                 "results/phase7_v5_refit/refit_spec.json",
+                                 "scripts/analysis/v5_refit.py",
+                                 "scripts/analysis/spos_consistency.py",
+                                 "scripts/analysis/exploratory_family.py",
+                                 "scripts/analysis/posthoc_binary.py",
+                                 "scripts/fit_calibration.py",
+                                 "scripts/report.py"
+                             ],
+    "refit_spec":  "results/phase7_v5_refit/refit_spec.json",
+    "refit_spec_git_blob":  "569fb1f5c36b75fddf86e7884df73a51f602d4f8",
+    "refit_spec_sha256":  "29936369e689105e059a2cff731ba77633de2e61ab53a339847fce7b8944aff7",
+    "launch_head":  "b24015ac032d9c3f88f2faae52e09823ddf6461b",
+    "launch_worktree_dirty_files":  [
+
+                                    ],
+    "command":  "uv run python -m scripts.analysis.v5_refit apply",
+    "run_dir":  "medqa_V5-refit_b24015a_20260911T074318Z",
+    "exit_code":  0,
+    "minutes":  0.2,
+    "log":  "C:\\Claude\\AI Project\\logs\\phase7_V5-refit_20260911_131309.log",
+    "next_steps":  [
+                       "uv run python -m scripts.analysis.unplanned_v0_v2_family --v0 \u003cV0 run dir\u003e --v2 \u003cV2 run dir\u003e --v5-refit medqa_V5-refit_b24015a_20260911T074318Z",
+                       "uv run python -m scripts.report"
+                   ]
+}
