@@ -16,6 +16,18 @@ class ProviderConfig(BaseModel):
     api_base: str | None = None
     api_key_env: str | None = None
     timeout_s: float = 60.0
+    # Params this provider's API rejects outright, e.g. Gemini has no `seed`
+    # (litellm raises UnsupportedParamsError). Declared PER PROVIDER and never
+    # dropped globally: `litellm.drop_params = True` would silently discard
+    # unsupported params for every provider including Ollama, which could mask
+    # a real bug in a run whose determinism actually matters. Listing them here
+    # keeps the drop visible in the config, in code, and in the run's own
+    # `results/<run_id>/config.yaml` -- never a module-level side effect.
+    #
+    # A dropped param is also removed from the LLM cache key, so a cache entry
+    # is keyed on what was actually sent rather than on a param the provider
+    # never saw. Empty by default, so no existing cache entry changes.
+    unsupported_params: list[str] = []
 
 
 class LLMConfig(BaseModel):

@@ -375,7 +375,30 @@ the family (−2 each); pre-authorised, nothing else may be dropped.
 
 **Descriptive only — displayed, never tested, never Holm-corrected:** B3's
 `verifier_decision_rate` and `n_supported` distribution; V5's ECE and ranking
-metrics against the analytic chance row; per-question 7B-vs-Gemini agreement.
+metrics against the analytic chance row; per-question 7B-vs-Gemini agreement;
+and the V3-gemini repeat-run agreement below.
+
+**Limitation — these runs are not seed-deterministic (ADR-047).** Every Phase 7
+grid cell is seeded and bit-reproducible. These are not: the Gemini API exposes
+no `seed` parameter (litellm raises `UnsupportedParamsError`), so the only
+determinism lever available is `temperature`, pinned explicitly to **0.0** —
+the value the 7B cells used — in `configs/gemini_base.yaml` and recorded in
+each run's own `config.yaml`. Greedy decoding is not a reproducibility
+guarantee, and a hosted endpoint can change behind a fixed name. **These runs
+are never described as reproducible**, and the check is therefore a robustness
+signal, not a replication. Also in `docs/00` §7.
+
+**Registered now, descriptive only: the V3-gemini repeat.** After the four
+cells complete, V3-gemini is run a second time (`configs/gemini_v3_repeat.yaml`,
+variant `V3-gemini-rep2`) and the **per-question agreement between the two
+runs** is reported — turning "not deterministic" into a number. V3 is the
+cheapest cell (~1 call/question). This is **never tested, never
+Holm-corrected, not part of m_G = 8, and never a claim**; it bounds how much of
+any Gemini-vs-7B difference could be run-to-run noise. The repeat config's only
+change is a separate `cache_dir`: on the shared cache the second run would
+replay the first run's replies and report a meaningless 1.000, so
+`gemini_sensitivity_family.py` refuses a repeat whose `llm_cache_hits` is
+nonzero.
 
 **Pre-registered predictions.** Recorded verbatim, each with what a failure
 would mean:

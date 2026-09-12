@@ -156,6 +156,20 @@ def _cache_key(model: str, prompt: str, system: str | None, params: dict) -> str
     return hashlib.sha256(canonical.encode()).hexdigest()
 
 
+def _supported_params(provider: ProviderConfig, params: dict) -> dict:
+    """`params` minus whatever `provider` declares it cannot accept.
+
+    Used for the cache key so an entry is keyed on what was actually sent --
+    e.g. a Gemini call carries no `seed`, so its key must not pretend it did.
+    Providers with no declared exclusions (every pre-existing one) get `params`
+    back unchanged, so no committed cache entry is invalidated.
+    """
+    if not provider.unsupported_params:
+        return params
+    excluded = set(provider.unsupported_params)
+    return {k: v for k, v in params.items() if k not in excluded}
+
+
 def _model_slug(model: str) -> str:
     """Filesystem-safe form of a model id (`gemini/gemini-3.8-flash` ->
     `gemini-gemini-3.8-flash`), for the cache namespace directory."""
@@ -316,6 +330,22 @@ def _call_provider(
             # against a local server that ignores it.
             kwargs["api_key"] = "ollama"
 
+    # Per-provider param exclusions (ADR-047). Applied here, after the full
+    # kwargs set is assembled, so it also covers the logprobs extras. This is
+    # deliberately NOT `litellm.drop_params = True`: a global flag would drop
+    # unsupported params for every provider, including Ollama, and could hide a
+    # real bug in a run whose determinism matters. What gets dropped is declared
+    # in the provider's own config and therefore recorded in the run's
+    # config.yaml.
+    for name in provider.unsupported_params:
+        if kwargs.pop(name, None) is not None:
+            logger.debug(
+                "provider %s (%s) declares %r unsupported -- omitted from this call",
+                provider.provider,
+                provider.model,
+                name,
+            )
+
     last_exc: Exception | None = None
     for attempt in range(max_retries + 1):
         try:
@@ -428,7 +458,7 @@ def chat(
         _assert_free_tier(provider, llm_cfg)
 
         provider_cache_dir = _cache_dir_for(cfg, provider)
-        key = _cache_key(provider.model, prompt, system, params)
+        key = _cache_key(provider.model, prompt, system, _supported_params(provider, params))
 
         if use_cache:
             cached = _read_cache(provider_cache_dir, key)

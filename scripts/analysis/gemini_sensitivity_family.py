@@ -163,7 +163,59 @@ def _verdict(res: dict, side_a: str, side_b: str) -> str:
     return "tie (95% CI includes 0)"
 
 
-def run_family(run_dirs: dict[str, Path], ids: list[str], out_path: Path) -> dict:
+def repeat_agreement(v3_preds: dict[str, dict], repeat_dir: Path, ids: list[str]) -> dict:
+    """Per-question agreement between the two V3-gemini runs (ADR-047).
+
+    DESCRIPTIVE ONLY -- never tested, never Holm-corrected, not part of m_G.
+    Gemini exposes no seed, so this is how "not deterministic" becomes a
+    number: it bounds how much of any Gemini-vs-7B difference could be
+    run-to-run noise.
+    """
+    meta = json.loads((repeat_dir / "metrics.json").read_text(encoding="utf-8"))
+    if meta.get("variant") != "V3-gemini-rep2":
+        raise SystemExit(
+            f"[gemini_sensitivity_family] repeat run {repeat_dir.name} has variant "
+            f"{meta.get('variant')!r} (expected 'V3-gemini-rep2')"
+        )
+    cache_hits = meta["metrics"].get("llm_cache_hits")
+    if cache_hits:
+        raise SystemExit(
+            f"[gemini_sensitivity_family] repeat run {repeat_dir.name} recorded "
+            f"llm_cache_hits={cache_hits}: it replayed the first run's cached replies "
+            "instead of making real calls, so its agreement figure would be a "
+            "meaningless 1.000. Re-run it with configs/gemini_v3_repeat.yaml "
+            "(separate cache_dir)."
+        )
+    rep = _load_predictions(repeat_dir)
+    missing = [q for q in ids if q not in rep]
+    if missing:
+        raise SystemExit(
+            f"[gemini_sensitivity_family] repeat run is missing {len(missing)} pinned ids"
+        )
+    same = sum(1 for q in ids if rep[q]["pred_option"] == v3_preds[q]["pred_option"])
+    return {
+        "note": (
+            "DESCRIPTIVE ONLY -- two V3-gemini runs, identical config except cache_dir. "
+            "Quantifies the nondeterminism left by Gemini having no seed parameter; "
+            "never tested, never Holm-corrected, not part of m_G."
+        ),
+        "run_a": None,  # filled by the caller (it holds the V3 run dir name)
+        "run_b": repeat_dir.name,
+        "n": len(ids),
+        "same_prediction_rate": same / len(ids),
+        "n_disagreements": len(ids) - same,
+        "accuracy_run_a": _acc(v3_preds, ids),
+        "accuracy_run_b": _acc(rep, ids),
+        "llm_cache_hits_run_b": cache_hits,
+    }
+
+
+def run_family(
+    run_dirs: dict[str, Path],
+    ids: list[str],
+    out_path: Path,
+    repeat_dir: Path | None = None,
+) -> dict:
     preds = {name: _load_predictions(d) for name, d in run_dirs.items()}
     for name, p in preds.items():
         missing = [q for q in ids if q not in p]
@@ -263,6 +315,14 @@ def run_family(run_dirs: dict[str, Path], ids: list[str], out_path: Path) -> dic
         },
         "per_question_7b_vs_gemini_agreement": agreement,
     }
+    if repeat_dir is not None:
+        rep = repeat_agreement(preds["V3"], repeat_dir, ids)
+        rep["run_a"] = run_dirs["V3"].name
+        descriptive["v3_gemini_repeat_run_agreement"] = rep
+    else:
+        descriptive["v3_gemini_repeat_run_agreement"] = {
+            "note": "not run yet -- pass --v3-repeat <dir> (ADR-047, descriptive only)"
+        }
 
     # --- the three registered predictions (§1.0d) ------------------------
     acc_g = {c: _acc(preds[c], ids) for c in preds}
@@ -362,6 +422,13 @@ def main() -> None:
     )
     for cell in ("v0", "v3", "b3", "v5"):
         ap.add_argument(f"--{cell}", required=True, help=f"{cell.upper()}-gemini run dir name")
+    ap.add_argument(
+        "--v3-repeat",
+        default=None,
+        help="V3-gemini-rep2 run dir (ADR-047). Descriptive only: reports "
+        "per-question agreement between the two V3 runs, quantifying the "
+        "nondeterminism left by Gemini having no seed. Never tested.",
+    )
     args = ap.parse_args()
 
     ids = load_pinned_ids()
@@ -371,7 +438,8 @@ def main() -> None:
         "B3": RESULTS_DIR / args.b3,
         "V5": RESULTS_DIR / args.v5,
     }
-    out = run_family(run_dirs, ids, OUT_PATH)
+    repeat_dir = (RESULTS_DIR / args.v3_repeat) if args.v3_repeat else None
+    out = run_family(run_dirs, ids, OUT_PATH, repeat_dir=repeat_dir)
 
     print(f"[gemini_sensitivity_family] wrote {OUT_PATH}")
     c = out["confirmatory"]
@@ -384,6 +452,13 @@ def main() -> None:
             f"  {key:14s} A={r['point_a']:.3f} B={r['point_b']:.3f} "
             f"[{r['ci_lo']:+.3f},{r['ci_hi']:+.3f}] p={r['p_value']:.4f} "
             f"rank={r['holm_rank']} reject={r['holm_reject']}  {r['verdict']}"
+        )
+    rep = out["descriptive"].get("v3_gemini_repeat_run_agreement") or {}
+    if "same_prediction_rate" in rep:
+        print(
+            f"  [descriptive] V3-gemini run-to-run agreement: "
+            f"{rep['same_prediction_rate']:.3f} ({rep['n_disagreements']}/{rep['n']} differ) "
+            "-- not a test"
         )
     for name, p in out["registered_predictions"].items():
         print(f"  {name}: held={p['held']}")

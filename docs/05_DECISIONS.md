@@ -3313,6 +3313,46 @@ relaunching replays finished questions at zero cost in minutes and continues
 where it stopped. This needs no checkpoint file and no change to
 `consensus_over_questions`.
 
+**Gemini has no `seed`, so these runs are NOT seed-deterministic — a stated
+limitation, added after the first dry run aborted.** The dry run failed on
+`litellm.UnsupportedParamsError: gemini does not support parameters: ['seed']`,
+for all three candidate models. The free tier and the key were fine; this is a
+parameter-compatibility fact about the Gemini API, which exposes no seed at
+all. Consequences, recorded rather than smoothed over:
+
+1. **Every Phase 7 grid cell is seeded and bit-reproducible. The Gemini cells
+   are not.** They must never be described as reproducible. `docs/00` §7 and
+   `docs/04` §1.0d carry this as a threat to validity, and it makes the check a
+   robustness signal rather than a replication.
+2. **Temperature is pinned explicitly to 0.0** in `configs/gemini_base.yaml` —
+   the value the 7B cells used — so the generator is as close to deterministic
+   as the API allows and the two are comparable on that axis. Recorded in each
+   run's own `config.yaml`, not inherited silently. Greedy decoding is not a
+   reproducibility guarantee, so this narrows the gap without closing it.
+3. **The nondeterminism is quantified, not hand-waved.** After the four cells
+   complete, V3-gemini — the cheapest cell at ~1 call/question — is run a
+   second time and the per-question agreement between the two runs is reported.
+   **Registered now as DESCRIPTIVE ONLY: never tested, never Holm-corrected,
+   never part of m_G, never a claim.** The repeat uses
+   `configs/gemini_v3_repeat.yaml`, whose only change is a separate `cache_dir`
+   — with the shared cache the second run would replay the first run's replies,
+   report 100% agreement and measure nothing. `gemini_sensitivity_family.py`
+   refuses a repeat run whose `llm_cache_hits` is nonzero, so that failure is
+   loud rather than a fake 1.000.
+
+**The `seed` fix is per-provider, never global.** `ProviderConfig.unsupported_params`
+declares what an API rejects; `_call_provider` removes exactly those keys after
+assembling kwargs, and `_supported_params` removes them from the cache key too,
+so an entry is keyed on what was actually sent. `litellm.drop_params = True` was
+rejected: a module-level flag would silently discard unsupported params for
+**every** provider including Ollama, which could mask a real bug in a run whose
+determinism does matter — and it would do so invisibly, as a global side
+effect. Declaring the exclusion in the provider config keeps it visible in
+code, in the config, and in every run's recorded `config.yaml`. Providers that
+declare nothing are untouched, so no committed cache entry is invalidated
+(`tests/test_provider_unsupported_params.py` pins all of this, including that
+importing the client sets no global flag).
+
 **Cache namespace.** `_cache_key` already mixes the model id into the hash, so a
 Gemini reply could never be *read as* an Ollama reply. `llm.cache_namespace_by_provider_model`
 adds a directory-level namespace (`.cache/llm/<provider>__<model>/`) so the two

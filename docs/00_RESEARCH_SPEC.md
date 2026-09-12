@@ -378,3 +378,17 @@ datasets are public and de-identified); clinical deployment claims.
   KG side has no equivalent control yet. State the shared-judge dependence
   wherever either number is used, and do not present the two as independent
   corroboration of the KG modality's (lack of) value.
+- **The §0.6 Gemini sensitivity-check runs are not seed-deterministic (ADR-047).**
+  Every Phase 7 grid cell is seeded and bit-reproducible; the Gemini cells are
+  not. The Gemini API exposes no `seed` parameter at all — litellm raises
+  `UnsupportedParamsError` if one is sent — so the strongest determinism lever
+  available is `temperature: 0`, which the runs pin explicitly to match the 7B
+  cells. Temperature 0 is greedy decoding, not a reproducibility guarantee:
+  the same prompt can return a different completion across calls, and the
+  served endpoint can change behind a fixed model name (which is why the model
+  id, API version and UTC run date are all recorded in each run's
+  `config.yaml`). **These runs must never be described as reproducible**, and
+  the check's conclusions are correspondingly weaker than the grid's: they are
+  a robustness signal, not a replication. The disagreement is quantified rather
+  than asserted — V3-gemini is run twice and the per-question agreement between
+  the two runs is reported as a descriptive statistic (`docs/04` §1.0d).

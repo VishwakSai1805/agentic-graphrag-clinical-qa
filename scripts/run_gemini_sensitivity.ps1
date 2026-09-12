@@ -33,9 +33,12 @@
 #
 # ASCII only (8f37955: the PowerShell 5.1 parser chokes on non-ASCII here).
 
+# V3rep is the nondeterminism probe (ADR-047): a SECOND V3 run, descriptive
+# only, never tested. It runs last and uses configs/gemini_v3_repeat.yaml,
+# whose separate cache_dir forces real API calls instead of replaying run 1.
 param(
     [switch]$DryRun,
-    [ValidateSet("V0", "V3", "B3", "V5")][string[]]$Only = @("V0", "V3", "B3", "V5")
+    [ValidateSet("V0", "V3", "B3", "V5", "V3rep")][string[]]$Only = @("V0", "V3", "B3", "V5", "V3rep")
 )
 
 $ErrorActionPreference = "Continue"
@@ -52,7 +55,8 @@ $RegisteredAt = @(
     "scripts/analysis/gemini_sensitivity_family.py",
     "scripts/freeze_gemini_question_ids.py",
     "configs/gemini_base.yaml",
-    "configs/gemini_v5.yaml"
+    "configs/gemini_v5.yaml",
+    "configs/gemini_v3_repeat.yaml"
 )
 # Tried in order; the first the free tier actually serves wins.
 $ModelCandidates = @(
@@ -123,12 +127,16 @@ Write-Host "[gemini_0.6] model resolved: $Model (api_version $ApiVersion)"
 $H = "uv run python -m src.eval.harness --dataset medqa --split test --seed 42 --question-ids $IdsPath --variant-suffix -gemini --llm-model $Model --llm-api-version $ApiVersion"
 $B = "uv run python -m scripts.run_baselines --dataset medqa --split test --seed 42 --question-ids $IdsPath --variant-suffix -gemini --llm-model $Model --llm-api-version $ApiVersion"
 
+$Hrep = "uv run python -m src.eval.harness --dataset medqa --split test --seed 42 --question-ids $IdsPath --variant-suffix -gemini-rep2 --llm-model $Model --llm-api-version $ApiVersion"
 $AllCells = [ordered]@{
-    "V0" = "$H --config configs/gemini_base.yaml --variant V0"
-    "V3" = "$H --config configs/gemini_base.yaml --variant V3"
-    "B3" = "$B --config configs/gemini_base.yaml --baselines B3"
-    "V5" = "$H --config configs/gemini_v5.yaml"
+    "V0"    = "$H --config configs/gemini_base.yaml --variant V0"
+    "V3"    = "$H --config configs/gemini_base.yaml --variant V3"
+    "B3"    = "$B --config configs/gemini_base.yaml --baselines B3"
+    "V5"    = "$H --config configs/gemini_v5.yaml"
+    "V3rep" = "$Hrep --config configs/gemini_v3_repeat.yaml --variant V3"
 }
+# run dir prefix per cell -- V3rep writes medqa_V3-gemini-rep2_*, not medqa_V3rep-*
+$DirPrefix = @{ "V0" = "V0-gemini"; "V3" = "V3-gemini"; "B3" = "B3-gemini"; "V5" = "V5-gemini"; "V3rep" = "V3-gemini-rep2" }
 $Cells = [ordered]@{}
 foreach ($name in $AllCells.Keys) { if ($Only -contains $name) { $Cells[$name] = $AllCells[$name] } }
 
@@ -179,7 +187,7 @@ foreach ($name in $Cells.Keys) { Invoke-Cell -Name $name -Command $Cells[$name] 
 # --- run dirs this launch produced ----------------------------------------------
 $RunDirs = [ordered]@{}
 foreach ($name in $Cells.Keys) {
-    $d = Get-ChildItem -Path (Join-Path $RepoRoot "results") -Directory -Filter "medqa_$($name)-gemini_*" |
+    $d = Get-ChildItem -Path (Join-Path $RepoRoot "results") -Directory -Filter "medqa_$($DirPrefix[$name])_*" |
         Where-Object { $_.LastWriteTimeUtc -ge $StartUtc } |
         Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1
     $RunDirs[$name] = if ($d) { $d.Name } else { $null }
@@ -204,8 +212,9 @@ $manifest = [ordered]@{
     commands           = $Cells
     run_dirs           = $RunDirs
     cell_outcomes      = $Results
+    nondeterminism     = "Gemini exposes no seed: these runs are NOT reproducible (ADR-047, docs/00 section 7). temperature pinned to 0.0; V3rep quantifies run-to-run agreement, descriptive only."
     next_steps         = @(
-        "uv run python -m scripts.analysis.gemini_sensitivity_family --v0 <dir> --v3 <dir> --b3 <dir> --v5 <dir>",
+        "uv run python -m scripts.analysis.gemini_sensitivity_family --v0 <dir> --v3 <dir> --b3 <dir> --v5 <dir> --v3-repeat <dir>",
         "fill docs/04 section 5.1 from results/phase7_gemini/gemini_sensitivity_family.json"
     )
 }
@@ -221,5 +230,8 @@ if ($failed) {
     exit 1
 }
 Write-Host "[gemini_0.6] all cells OK. Next:"
-Write-Host "  uv run python -m scripts.analysis.gemini_sensitivity_family --v0 $($RunDirs['V0']) --v3 $($RunDirs['V3']) --b3 $($RunDirs['B3']) --v5 $($RunDirs['V5'])"
+$AnalysisCmd = "  uv run python -m scripts.analysis.gemini_sensitivity_family --v0 $($RunDirs['V0']) --v3 $($RunDirs['V3']) --b3 $($RunDirs['B3']) --v5 $($RunDirs['V5'])"
+if ($RunDirs['V3rep']) { $AnalysisCmd += " --v3-repeat $($RunDirs['V3rep'])" }
+Write-Host $AnalysisCmd
+Write-Host "[gemini_0.6] reminder: these runs are NOT seed-deterministic (Gemini has no seed) -- never report them as reproducible."
 exit 0

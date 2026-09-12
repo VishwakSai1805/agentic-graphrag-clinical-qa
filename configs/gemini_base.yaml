@@ -28,11 +28,28 @@ llm:
   # model id into the hash so a collision was never possible; this keeps them
   # separable on disk as well.
   cache_namespace_by_provider_model: true
+  # Explicit, not inherited: the 7B grid cells all generated at temperature 0
+  # (base.yaml `llm.temperature: 0.0`, and every call site passes
+  # `temperature=0`). Pinned here so the Gemini generator is as close to
+  # deterministic as the API allows and the two are comparable on that axis,
+  # and so the value is visible in each run's own config.yaml rather than
+  # inherited silently. See the nondeterminism limitation in ADR-047: Gemini
+  # exposes no seed, so temperature 0 is the ONLY determinism lever available.
+  temperature: 0.0
   fallback_chain:
     - provider: gemini
       model: gemini/gemini-3.8-flash
       api_base: null
       api_key_env: GEMINI_API_KEY
+      # Gemini's API has no `seed` parameter -- litellm raises
+      # UnsupportedParamsError ("gemini does not support parameters: ['seed']"),
+      # which is what aborted the first dry run. Declared per provider rather
+      # than fixed with a global `litellm.drop_params = True`, which would
+      # silently drop unsupported params for EVERY provider including Ollama
+      # and could mask a real bug in a run whose determinism matters. `seed` is
+      # also removed from this provider's cache key, so an entry is keyed on
+      # what was actually sent. Ollama still receives `seed` normally.
+      unsupported_params: ["seed"]
       # Generous: a free-tier request queues behind rate limiting rather than
       # failing fast, and src/llm/client.py's existing exponential backoff
       # (max_retries / backoff_base_s) handles the 429s on top of this.

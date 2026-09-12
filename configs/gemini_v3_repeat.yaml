@@ -1,0 +1,19 @@
+# §0.6 nondeterminism probe: a SECOND V3-gemini run (ADR-047).
+#
+# Gemini exposes no `seed`, so the Gemini cells are not bit-reproducible the
+# way every Phase 7 cell is. This config runs V3 a second time so the
+# disagreement between the two runs can be reported as a number instead of a
+# hand-wave. V3 is the cheapest agent-free cell (~1 call/question).
+#
+# DESCRIPTIVE ONLY. Never tested, never Holm-corrected, never a claim.
+#
+# The ONLY difference from gemini_base.yaml is `cache_dir`, and it is the whole
+# point: with the default cache the second run would replay the first run's
+# cached replies verbatim, report 100% agreement, and measure exactly nothing.
+# A separate cache root forces real API calls. `scripts/analysis/
+# gemini_sensitivity_family.py` refuses to use a repeat run whose
+# `llm_cache_hits` is nonzero, so a misconfigured repeat fails loudly rather
+# than reporting a fake 1.000.
+_extends: gemini_base.yaml
+
+cache_dir: .cache/llm_gemini_rep2
