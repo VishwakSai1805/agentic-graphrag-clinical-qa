@@ -388,6 +388,21 @@ guarantee, and a hosted endpoint can change behind a fixed name. **These runs
 are never described as reproducible**, and the check is therefore a robustness
 signal, not a replication. Also in `docs/00` §7.
 
+**Generator budget — a disclosed difference between the two arms.**
+`gemini-3.8-flash` is a *thinking* model: reasoning tokens are charged against
+the completion budget but never appear in the output, and thinking cannot be
+switched off on this model. Measured on a realistic tri-modal prompt (3090
+prompt tokens): 170 completion tokens = 117 reasoning + 53 visible text. The
+Gemini cells therefore run at `max_tokens: 1024` where the 7B cells used 512 —
+a **parity correction, not extra room**: equal `max_tokens` would have given
+Gemini ~120 fewer tokens of *answer* than the 7B had. It changes the
+generator's budget only; no prompt, retrieval knob, scoring rule or agent
+setting differs. If truncation happens anyway it is visible, not silent — a
+`length` finish yields empty/partial text, recorded as `no_answer` /
+`parse_error` in `status_counts`. **A Gemini cell with anomalous
+`status_counts` is a budget or format problem and must never be reported as
+poor accuracy.**
+
 **Registered now, descriptive only: the V3-gemini repeat.** After the four
 cells complete, V3-gemini is run a second time (`configs/gemini_v3_repeat.yaml`,
 variant `V3-gemini-rep2`) and the **per-question agreement between the two

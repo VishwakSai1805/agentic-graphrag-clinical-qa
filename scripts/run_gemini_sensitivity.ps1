@@ -22,8 +22,13 @@
 #   3. both Gemini configs assert free_tier_only.
 #   4. GEMINI_API_KEY is present.
 #   5. a model probe confirms which allowlisted model the free tier actually
-#      serves; the exact id + API version + UTC date are then stamped into every
-#      cell's own results/<run_id>/config.yaml.
+#      serves AND returns non-empty text; the exact id + API version + UTC date
+#      are then stamped into every cell's own results/<run_id>/config.yaml.
+#      The probe budget must stay well above the model's reasoning-token usage:
+#      gemini-3.8-flash is a thinking model, and the first version of this probe
+#      used max_tokens=8, which thinking consumed entirely -- the call
+#      "succeeded" with finish_reason=length and empty text, and the gate passed
+#      it. An empty reply is now a hard failure.
 #
 # RESUMING: there is no checkpoint file and none is needed. Every completed LLM
 # call is already in .cache/llm/gemini__<model>/, keyed on (model, prompt,
@@ -114,8 +119,11 @@ cfg = load_config('configs/gemini_base.yaml')
 cfg.llm.fallback_chain[0].model = '$cand'
 if f'gemini:$cand' not in cfg.llm.free_tier_allowed:
     print('not on the free-tier allowlist'); sys.exit(1)
-r = chat('Reply with the single word OK.', config=cfg, max_tokens=8)
-print('probe reply:', r.text.strip()[:40])
+r = chat('Reply with the single word OK.', config=cfg, max_tokens=512)
+txt = (r.text or '').strip()
+if not txt:
+    print('probe returned EMPTY text -- served but produced no visible output'); sys.exit(1)
+print('probe reply:', txt[:40])
 "@
     if ($LASTEXITCODE -eq 0) { $Model = $cand; break }
     Write-Host "[gemini_0.6]   $cand did not serve -- trying the next candidate"

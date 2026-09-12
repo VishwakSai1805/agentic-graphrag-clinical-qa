@@ -36,6 +36,19 @@ llm:
   # inherited silently. See the nondeterminism limitation in ADR-047: Gemini
   # exposes no seed, so temperature 0 is the ONLY determinism lever available.
   temperature: 0.0
+  # 1024, not base.yaml's 512, and this is a parity correction rather than a
+  # favour. gemini-3.8-flash is a THINKING model: reasoning tokens are charged
+  # against the same completion budget but never appear in the output, and
+  # thinking cannot be switched off ("Thinking level MINIMAL is not supported
+  # for this model"). Measured on a realistic tri-modal prompt (3090 prompt
+  # tokens): 170 completion tokens = 117 reasoning + 53 visible text. Holding
+  # max_tokens at 512 would therefore give Gemini ~120 tokens LESS room to
+  # answer than the 7B had, not the same room. 1024 restores the visible-text
+  # budget with headroom for the agent cells, whose audit/hypothesis calls emit
+  # more text per call. Truncation is not silent if it happens anyway: a
+  # `length` finish returns empty/partial text, which `_parse_answer` records
+  # as `no_answer`/`parse_error` in the run's `status_counts`.
+  max_tokens: 1024
   fallback_chain:
     - provider: gemini
       model: gemini/gemini-3.8-flash

@@ -3340,6 +3340,45 @@ all. Consequences, recorded rather than smoothed over:
    refuses a repeat run whose `llm_cache_hits` is nonzero, so that failure is
    loud rather than a fake 1.000.
 
+**gemini-3.8-flash is a thinking model, which changes the token budget and
+broke the first probe gate.** Found on the second dry run: the probe reported
+an empty reply while still passing. Diagnosed directly against the API rather
+than guessed — at `max_tokens=8` the call returns `finish_reason='length'`,
+`text=None`, and `completion_tokens_details.reasoning_tokens = 5` of 5. The
+model was fine; the probe's own 8-token budget was consumed entirely by
+reasoning. Three consequences:
+
+1. **The probe gate was wrong and is fixed.** It asserted only a zero exit
+   code, so it green-lit an empty completion — a gate that would have let all
+   five cells run against a configuration producing no output. It now probes at
+   `max_tokens=512` and **fails hard on empty text**.
+2. **`max_tokens` is raised to 1024 for the Gemini cells, as a parity
+   correction rather than a favour.** Reasoning tokens are charged against the
+   completion budget but never appear in the output, and thinking cannot be
+   disabled on this model (`reasoning_effort: "disable"` → *"Thinking level
+   MINIMAL is not supported for this model"*). Measured on a realistic
+   tri-modal prompt (3090 prompt tokens): 170 completion tokens = **117
+   reasoning + 53 visible text**. Leaving the budget at the 7B's 512 would give
+   Gemini roughly 120 tokens *less* room to answer than the 7B had, so equal
+   `max_tokens` is not equal answer room. Disclosed here because it is a real
+   difference between the two arms, and it is the generator's budget only — no
+   prompt, retrieval knob, scoring rule or agent setting changes.
+3. **Truncation cannot masquerade as a wrong answer.** A `length` finish yields
+   empty or partial text, which `_parse_answer` records as `no_answer` /
+   `parse_error` in the run's `status_counts`. Verified empirically, along with
+   the fact that Gemini returns its JSON wrapped in ```` ```json ```` fences,
+   which both `_first_json_obj` and `src/agents/schemas.py: first_json_obj`
+   already tolerate — so no parser change was needed. A Gemini cell with an
+   unusual `status_counts` must be read as a budget/format problem, never
+   reported as poor accuracy.
+
+**Free-tier capacity is a live risk, observed not assumed.** Six probe calls
+produced one `503` ("model is currently experiencing high demand") and one
+`429` ("you exceeded your current quota"). Both are already in
+`_RETRYABLE_EXC`, the configs allow 8 retries at 4s doubling, and the LLM cache
+makes a resume cheap — but a 5-cell × 200-question run may still need more than
+one sitting. That is a scheduling cost, not a correctness one.
+
 **The `seed` fix is per-provider, never global.** `ProviderConfig.unsupported_params`
 declares what an API rejects; `_call_provider` removes exactly those keys after
 assembling kwargs, and `_supported_params` removes them from the cache key too,
