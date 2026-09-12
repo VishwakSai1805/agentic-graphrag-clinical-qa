@@ -132,16 +132,31 @@ if (-not $Model) { Stop-Check "no allowlisted model was served by the free tier"
 Write-Host "[gemini_0.6] model resolved: $Model (api_version $ApiVersion)"
 
 # --- cells ----------------------------------------------------------------------
-$H = "uv run python -m src.eval.harness --dataset medqa --split test --seed 42 --question-ids $IdsPath --variant-suffix -gemini --llm-model $Model --llm-api-version $ApiVersion"
-$B = "uv run python -m scripts.run_baselines --dataset medqa --split test --seed 42 --question-ids $IdsPath --variant-suffix -gemini --llm-model $Model --llm-api-version $ApiVersion"
+# EVERY value-taking flag uses the --flag=value form, deliberately.
+#
+# `--variant-suffix -gemini` fails: argparse sees a token starting with "-" and
+# treats it as a new option rather than this option's value, so all five cells
+# died on "argument --variant-suffix: expected one argument" (zero API calls
+# made). `--variant-suffix=-gemini` is unambiguous regardless of the leading
+# dash. Audited the rest at the same time: --dataset, --split, --seed,
+# --question-ids, --llm-model, --llm-api-version, --config, --variant and
+# --baselines all currently carry values with no leading dash, so only the
+# suffix was actually broken -- but the "=" form is applied uniformly so the
+# whole bug class is gone rather than one instance of it. This is a launch-time
+# failure that no local check caught, so it is pinned by
+# tests/test_launcher_argv.py, which parses the real command strings out of
+# THIS file and feeds them to the actual parsers.
+$CommonArgs = "--dataset=medqa --split=test --seed=42 --question-ids=$IdsPath --llm-model=$Model --llm-api-version=$ApiVersion"
+$H = "uv run python -m src.eval.harness $CommonArgs --variant-suffix=-gemini"
+$B = "uv run python -m scripts.run_baselines $CommonArgs --variant-suffix=-gemini"
 
-$Hrep = "uv run python -m src.eval.harness --dataset medqa --split test --seed 42 --question-ids $IdsPath --variant-suffix -gemini-rep2 --llm-model $Model --llm-api-version $ApiVersion"
+$Hrep = "uv run python -m src.eval.harness $CommonArgs --variant-suffix=-gemini-rep2"
 $AllCells = [ordered]@{
-    "V0"    = "$H --config configs/gemini_base.yaml --variant V0"
-    "V3"    = "$H --config configs/gemini_base.yaml --variant V3"
-    "B3"    = "$B --config configs/gemini_base.yaml --baselines B3"
-    "V5"    = "$H --config configs/gemini_v5.yaml"
-    "V3rep" = "$Hrep --config configs/gemini_v3_repeat.yaml --variant V3"
+    "V0"    = "$H --config=configs/gemini_base.yaml --variant=V0"
+    "V3"    = "$H --config=configs/gemini_base.yaml --variant=V3"
+    "B3"    = "$B --config=configs/gemini_base.yaml --baselines=B3"
+    "V5"    = "$H --config=configs/gemini_v5.yaml"
+    "V3rep" = "$Hrep --config=configs/gemini_v3_repeat.yaml --variant=V3"
 }
 # run dir prefix per cell -- V3rep writes medqa_V3-gemini-rep2_*, not medqa_V3rep-*
 $DirPrefix = @{ "V0" = "V0-gemini"; "V3" = "V3-gemini"; "B3" = "B3-gemini"; "V5" = "V5-gemini"; "V3rep" = "V3-gemini-rep2" }

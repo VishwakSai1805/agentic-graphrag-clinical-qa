@@ -686,9 +686,14 @@ def _print_summary(variant: str, metrics: dict, run_dir: Path) -> None:
     print(f"  status={metrics['status_counts']}")
 
 
-def main() -> None:
-    import torch
+def build_parser() -> argparse.ArgumentParser:
+    """The CLI, as a value so it can be parsed in tests without running a job.
 
+    `tests/test_launcher_argv.py` feeds this the exact argv
+    `scripts/run_gemini_sensitivity.ps1` emits. That test exists because
+    `--variant-suffix -gemini` is silently unparseable -- argparse reads the
+    leading dash as a new option -- and the failure only surfaces at launch.
+    """
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--config", required=True)
     ap.add_argument("--dataset", default="medqa", choices=["medqa", "medmcqa", "pubmedqa"])
@@ -712,9 +717,16 @@ def main() -> None:
         "--variant-suffix",
         default="",
         help="appended to the recorded variant/run_id (e.g. '-gemini'); never "
-        "affects which code path runs.",
+        "affects which code path runs. Pass it as --variant-suffix=-gemini: the "
+        "space form is unparseable because the value starts with a dash.",
     )
-    args = ap.parse_args()
+    return ap
+
+
+def main() -> None:
+    import torch
+
+    args = build_parser().parse_args()
 
     question_ids = None
     if args.question_ids:

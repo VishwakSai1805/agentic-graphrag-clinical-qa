@@ -200,7 +200,9 @@ def summarise(preds: list[Prediction], baseline: str, dataset: str) -> dict:
     return metrics
 
 
-def main() -> None:
+def build_parser() -> argparse.ArgumentParser:
+    """The CLI, as a value so it can be parsed in tests without running a job.
+    See `tests/test_launcher_argv.py` and `src.eval.harness.build_parser`."""
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--dataset", default="medqa", choices=["medqa", "medmcqa", "pubmedqa"])
     ap.add_argument("--split", default="train")
@@ -231,8 +233,14 @@ def main() -> None:
         default="",
         help="appended to the recorded variant/run_id (e.g. '-gemini'), so a run "
         "under a different generator can never be conflated with the grid cell "
-        "of the same baseline name.",
+        "of the same baseline name. Pass it as --variant-suffix=-gemini: the "
+        "space form is unparseable because the value starts with a dash.",
     )
+    return ap
+
+
+def main() -> None:
+    ap = build_parser()  # kept bound: ap.error(...) is used for validation below
     args = ap.parse_args()
 
     requested = [b.strip() for b in args.baselines.split(",") if b.strip()]
