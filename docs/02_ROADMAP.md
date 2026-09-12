@@ -379,7 +379,10 @@ make the V3−V2 comparison a variant against itself.
   MedQA-6-cell figure is what the grid runner logs.
 - **Sensitivity check (ADR-008):** V3 vs V5, 200 MedQA questions, via free
   Gemini Flash tier — reported alongside the grid as a robustness check, not
-  a headline result (`docs/04_EVALUATION.md` §0.6/§5.1).
+  a headline result (`docs/04_EVALUATION.md` §0.6/§5.1). **Registered
+  2026-09-12 (ADR-047, `docs/04` §1.0d) and widened to four cells — V0, V3,
+  B3, V5 — with the analysis plan, frozen question set and cost guard
+  committed before the first API call. Not yet run.**
 
 - **Exit test:** `results/` contains every cell of the cut grid above (not the
   original full cross-product); `docs/04_EVALUATION.md` §5 and §5.1 have no

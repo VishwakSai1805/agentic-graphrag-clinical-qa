@@ -44,6 +44,18 @@ class LLMGatewayError(RuntimeError):
     """Raised when every provider in the fallback chain fails."""
 
 
+class LLMCostGuardError(RuntimeError):
+    """A provider/model outside the configured free-tier allowlist was about to
+    be called while `llm.free_tier_only` is set (ADR-047, §0.6 Gemini check).
+
+    This is a HARD STOP, deliberately not a "skip this provider and try the
+    next one". The default `fallback_chain` ends at billable cloud providers,
+    so silently falling through is precisely how a "free tier only" run would
+    become a paid one -- and it would do so mid-run, after a rate limit, which
+    is exactly when nobody is watching. Raised before any network call.
+    """
+
+
 class LLMContextBudgetError(RuntimeError):
     """The prompt plus the reserved completion space exceeds the configured
     context window (`llm.num_ctx - llm.context_completion_reserve`).
@@ -142,6 +154,41 @@ def _cache_key(model: str, prompt: str, system: str | None, params: dict) -> str
     payload = {"model": model, "system": system, "prompt": prompt, "params": params}
     canonical = json.dumps(payload, sort_keys=True)
     return hashlib.sha256(canonical.encode()).hexdigest()
+
+
+def _model_slug(model: str) -> str:
+    """Filesystem-safe form of a model id (`gemini/gemini-3.8-flash` ->
+    `gemini-gemini-3.8-flash`), for the cache namespace directory."""
+    return "".join(ch if (ch.isalnum() or ch in "._-") else "-" for ch in model)
+
+
+def _cache_dir_for(cfg: AppConfig, provider: ProviderConfig) -> Path:
+    """The cache directory serving `provider` under `cfg`.
+
+    With `llm.cache_namespace_by_provider_model` off (the default) this is the
+    plain `cfg.cache_dir`, so every already-written `.cache/llm/` entry keeps
+    being found. With it on, each (provider, model) gets its own subdirectory --
+    the §0.6 Gemini run's replies live beside, never inside, the Ollama cache.
+    """
+    if not cfg.llm.cache_namespace_by_provider_model:
+        return cfg.cache_dir
+    return cfg.cache_dir / f"{provider.provider}__{_model_slug(provider.model)}"
+
+
+def _assert_free_tier(provider: ProviderConfig, llm_cfg) -> None:
+    """Cost guard (ADR-047). No-op unless `llm.free_tier_only` is set; then the
+    provider/model must be on the allowlist or this raises before any call."""
+    if not llm_cfg.free_tier_only:
+        return
+    ident = f"{provider.provider}:{provider.model}"
+    if ident not in set(llm_cfg.free_tier_allowed):
+        raise LLMCostGuardError(
+            f"llm.free_tier_only is set and {ident!r} is not in "
+            f"llm.free_tier_allowed ({sorted(llm_cfg.free_tier_allowed)}). "
+            "Refusing to call it. This is a hard stop, not a fallback: add the "
+            "provider:model to the allowlist only if you have confirmed it is "
+            "served by a free tier for this API key."
+        )
 
 
 def _cache_path(cache_dir: Path, key: str) -> Path:
@@ -375,10 +422,16 @@ def chat(
             logger.info("Skipping provider %s: %s not set", provider.provider, provider.api_key_env)
             continue
 
+        # Cost guard BEFORE the cache read (ADR-047): a misconfigured chain must
+        # surface immediately, not stay hidden behind cache hits until the first
+        # miss -- which would be mid-run, on a billable provider.
+        _assert_free_tier(provider, llm_cfg)
+
+        provider_cache_dir = _cache_dir_for(cfg, provider)
         key = _cache_key(provider.model, prompt, system, params)
 
         if use_cache:
-            cached = _read_cache(cfg.cache_dir, key)
+            cached = _read_cache(provider_cache_dir, key)
             if cached is not None:
                 # A cache hit incurs no real tokens/cost/latency this run —
                 # replaying the original call's usage would double-count
@@ -417,7 +470,7 @@ def chat(
         latency_ms = (time.monotonic() - start) * 1000
 
         if use_cache:
-            _write_cache(cfg.cache_dir, key, {"text": text, "logprobs": logprobs_out})
+            _write_cache(provider_cache_dir, key, {"text": text, "logprobs": logprobs_out})
 
         response = ChatResponse(
             text=text,

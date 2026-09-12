@@ -29,6 +29,7 @@ CLAUDE.md forbids "A beats B" from a raw mean. Significance is Phase 7's job.
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from collections import Counter
 from pathlib import Path
@@ -215,6 +216,23 @@ def main() -> None:
         "instead of up to 12 passages PLUS all cached KG triples (~52 total). "
         "Default off -- does not change any already-committed run's numbers.",
     )
+    ap.add_argument(
+        "--question-ids",
+        default=None,
+        help="JSON file with {'question_ids': [...]} pinning the exact question "
+        "set and order (ADR-047). Overrides --limit. Required to reproduce a "
+        "subset of an existing run: a seeded sample at a smaller --limit is a "
+        "DIFFERENT draw, not a prefix.",
+    )
+    ap.add_argument("--llm-model", default=None, help="override fallback_chain[0].model")
+    ap.add_argument("--llm-api-version", default=None, help="recorded in config.yaml")
+    ap.add_argument(
+        "--variant-suffix",
+        default="",
+        help="appended to the recorded variant/run_id (e.g. '-gemini'), so a run "
+        "under a different generator can never be conflated with the grid cell "
+        "of the same baseline name.",
+    )
     args = ap.parse_args()
 
     requested = [b.strip() for b in args.baselines.split(",") if b.strip()]
@@ -226,10 +244,36 @@ def main() -> None:
     cfg = load_config(args.config)
     seed = args.seed if args.seed is not None else cfg.seed
 
-    questions = load_question_sample(args.dataset, args.split, args.limit, seed=seed)
+    # Stamp generator provenance into the config BEFORE write_run records it
+    # (ADR-047): a hosted endpoint can change behind a fixed name, so the model
+    # id, API version and resolution date all belong in the run's config.yaml.
+    if args.llm_model is not None:
+        if not cfg.llm.fallback_chain:
+            ap.error("--llm-model given but the config has an empty fallback_chain")
+        cfg.llm.fallback_chain[0].model = args.llm_model
+    if args.llm_model is not None or args.llm_api_version is not None:
+        import datetime as _dt
+
+        cfg.llm.api_version = args.llm_api_version
+        cfg.llm.model_resolved_utc = _dt.datetime.now(_dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    if args.question_ids:
+        pinned = json.loads(Path(args.question_ids).read_text(encoding="utf-8"))["question_ids"]
+        by_id = {q.question_id: q for q in load_question_sample(args.dataset, args.split, None)}
+        missing = [qid for qid in pinned if qid not in by_id]
+        if missing:
+            ap.error(
+                f"{len(missing)} pinned question_id(s) absent from "
+                f"{args.dataset}/{args.split}: {missing[:5]}"
+            )
+        questions = [by_id[qid] for qid in pinned]
+        print(f"[run_baselines] pinned question set: {len(questions)} ids from {args.question_ids}")
+    else:
+        questions = load_question_sample(args.dataset, args.split, args.limit, seed=seed)
+    n_questions = len(questions)
     golds = {q.question_id: gold_option(q) for q in questions}
     print(
-        f"[run_baselines] {len(questions)} questions, dataset={args.dataset} "
+        f"[run_baselines] {n_questions} questions, dataset={args.dataset} "
         f"split={args.split} seed={seed}"
     )
 
@@ -295,6 +339,7 @@ def main() -> None:
         # results/ later -- `baseline` itself (B0/B1/B2/B3) stays unchanged
         # for dispatch and the B3-specific handling below.
         variant = f"{baseline}eq" if args.equal_budget else baseline
+        variant = f"{variant}{args.variant_suffix}"
         run_id = make_run_id(args.dataset, variant)
         run_dir = write_run(
             run_id=run_id,
@@ -302,7 +347,7 @@ def main() -> None:
             dataset=args.dataset,
             variant=variant,
             split=args.split,
-            limit=args.limit,
+            limit=n_questions,
             seed=seed,
             predictions=[p.model_dump(mode="json") for p in preds],
             metrics=metrics,

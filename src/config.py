@@ -36,6 +36,39 @@ class LLMConfig(BaseModel):
     # budget-guard rule.
     context_completion_reserve: int = 512
 
+    # --- §0.6 Gemini sensitivity check (ADR-047) ---------------------------
+    # Cost guard. When True, EVERY provider the fallback chain would call must
+    # appear in `free_tier_allowed` as an exact "<provider>:<model>" string, or
+    # `chat()` raises LLMCostGuardError BEFORE any network call. This is a hard
+    # stop, never a skip-and-fall-through: falling through to the next provider
+    # is exactly the failure mode the guard exists to prevent (the default chain
+    # ends at a billable cloud provider).
+    #
+    # It deliberately does NOT consult `litellm.model_cost`. Google AI Studio's
+    # free tier is a property of the API KEY's quota, not of the model id --
+    # litellm prices `gemini/gemini-3.8-flash` at 7.5e-07/token input and would
+    # report a nonzero `completion_cost` for a call served entirely free. A
+    # price-based guard would therefore reject a legitimately free call and, more
+    # dangerously, could be argued into accepting a paid one. An explicit
+    # allowlist is the only check that means what it says.
+    free_tier_only: bool = False
+    free_tier_allowed: list[str] = []
+    # Provenance for a run served by a hosted endpoint (ADR-047). A model
+    # endpoint can change behaviour behind a fixed name, so "gemini-3.8-flash"
+    # alone does not identify what generated a run -- the API version and the
+    # date it served are part of the identity. Stamped at launch by
+    # `src.eval.harness --llm-api-version`, so they land in the resolved
+    # results/<run_id>/config.yaml rather than only in a launcher log.
+    api_version: str | None = None
+    model_resolved_utc: str | None = None
+    # Cache namespacing. `_cache_key` already mixes the model id into the hash,
+    # so a Gemini reply can never be READ as an Ollama reply. This flag adds a
+    # directory-level namespace (`.cache/llm/<provider>__<model>/`) so the two
+    # generators' caches are also separable on disk -- inspectable, measurable
+    # and deletable independently. Default False: flipping it on globally would
+    # orphan every existing `.cache/llm/` entry.
+    cache_namespace_by_provider_model: bool = False
+
 
 class EvalConfig(BaseModel):
     """Eval-run concurrency/keep-alive knobs. See docs/04_EVALUATION.md §0.4-0.5, ADR-006."""

@@ -3215,3 +3215,136 @@ lower-is-better metric. `_verdict` now respects metric direction
 (`LOWER_IS_BETTER`, with a test case), and the family was re-run. The
 p-values, CIs and Holm decisions are identical, since only the label
 changed. The family's composition is unchanged from `d53b40f`.
+
+## ADR-047 — The §0.6 stronger-model sensitivity check: four cells on a pinned 200, an id-pinned question set (because `--limit 200` is not a prefix), and a free-tier cost guard asserted in code
+Date: 2026-09-12 · Phase: 7 (deferred §0.6 item, not a new phase) · Status: accepted (registered and committed before the first Gemini API call)
+
+**Context.** `docs/SCHEDULE.md` has listed the Gemini Flash sensitivity check as
+in scope since 2026-09-07 ("kept because cheap and high-value — it defends the
+B3 verifier-collapse result, which is the paper's strongest finding"). ADR-008
+specified it in 2026-09-05 as V3 vs V5 on 200 MedQA questions via the free
+tier. It never ran. `docs/04` §5.1 still reads "Not run", and ADR-033 lists the
+model-strength axis of the B3 verifier-collapse claim as *still open*:
+`verifier_decision_rate` is prompt-sensitive across 0.05–0.35, and the claim
+that a binary verifier collapses is evidence for C2's binary bottleneck **only
+if it is not merely an artifact of a 7B model's SUPPORTED-threshold
+calibration**. `GEMINI_API_KEY` is now available.
+
+**Decision.** Run the deferred §0.6 check, registered in `docs/04` §1.0d before
+any API call. Four cells (`V0-gemini`, `V3-gemini`, `B3-gemini`, `V5-gemini`),
+not ADR-008's two: V0 anchors the retrieval floor and B3 carries the finding
+the check exists to defend. Not V1/V2 (retrieval tier already ties, §5.0a), not
+V4−conflict (ties with V5). One confirmatory test (V3-gemini vs V5-gemini,
+accuracy, paired bootstrap 10k, seed 42, two-sided, α=0.05); an exploratory
+family G1–G4 on accuracy and Macro-F1, **m_G = 8**, Holm **within this family
+only**; B3's verifier metrics, V5's calibration/ranking and 7B-vs-Gemini
+agreement descriptive only. Three predictions (P1/P2/P3) registered verbatim in
+§1.0d with what a failure would mean.
+
+**This measures model dependence, not MedQA.** Same code, same prompts, same
+retrieval config, same scoring rule, same agent graph, same questions — only
+the generator differs. It is never pooled with, and never used to reinterpret
+or re-threshold, the m=35, U1–U8 or m_X=7 families, and never reported as a
+headline row.
+
+**The finding that changed the design: `--limit 200` is not the first 200.**
+The plan of record said "the first 200 of the existing MedQA test-500 in seeded
+order (seed 42) — the same questions the 7B runs used, so every comparison is
+paired within question." Implemented literally as `--limit 200`, that is false.
+`load_question_sample` draws `random.Random(42).sample(range(n), limit)`, and
+`random.sample` at a different `k` produces a different sequence, not a prefix.
+Measured on the real file: `sample(...,200)` and `sample(...,500)` at seed 42
+overlap on **190 of 200** ids — 10 of the 200 lie outside the 500 entirely and
+were never run by any 7B cell. Running it that way would have silently broken
+the pairing the confirmatory test and P2 both rest on, and produced a
+"paired" comparison that was 5% unpaired. `load_question_sample_excluding`'s
+own docstring documents this trap from the other direction; this is the same
+trap, hit going the other way.
+
+Therefore the question set is pinned **by explicit `question_id`**, frozen with
+a sha256 in `results/phase7_gemini/question_ids_200.json` by
+`scripts/freeze_gemini_question_ids.py`, and the launcher re-verifies that
+digest before running. All four 7B grid runs wrote predictions in exactly the
+500-question order (verified), so the first 200 ids are present in every one of
+them and the pairing is exact. New `--question-ids` flags on
+`src/eval/harness.py` and `scripts/run_baselines.py` select by id and refuse to
+start if any pinned id is absent.
+
+**Cost guard, asserted in code (`src/llm/client.py: _assert_free_tier`).** With
+`llm.free_tier_only` set, every provider the chain would call must appear in
+`llm.free_tier_allowed` as an exact `provider:model` string, or `chat()` raises
+`LLMCostGuardError` **before any network call** — a hard stop, never a
+skip-and-try-the-next-provider. Falling through is the specific failure mode
+worth preventing: the default chain ends at billable cloud providers, and a
+fall-through would happen mid-run, right after a rate limit, when nobody is
+watching. The Gemini chain is also deliberately one entry long, so there is
+nothing to fall through *to*. The guard fires before the cache read as well, so
+a misconfigured chain surfaces immediately instead of hiding behind cache hits
+until the first miss.
+
+**The guard deliberately does not consult `litellm.model_cost`.** Checked
+against the installed litellm 1.99.0: `gemini/gemini-3.8-flash` is priced at
+7.5e-07/token input and 3.75e-06 output. Google AI Studio's free tier is a
+property of the API **key's quota**, not of the model id, so litellm reports a
+nonzero `completion_cost` for a call served entirely free. A price-based guard
+would reject legitimately free calls and — the real hazard — could be argued
+into accepting a paid one. An explicit allowlist is the only check that means
+what it says.
+
+**Rate limits and resumability.** 429s are `litellm.RateLimitError`, already in
+`_RETRYABLE_EXC`; the Gemini configs set `max_retries: 8`, `backoff_base_s: 4.0`
+(~8 minutes of doubling per call), which absorbs a per-minute quota window. For
+a hard daily-quota stop the resume mechanism is the **LLM cache itself**: every
+completed call is already on disk, keyed on (model, prompt, params), so
+relaunching replays finished questions at zero cost in minutes and continues
+where it stopped. This needs no checkpoint file and no change to
+`consensus_over_questions`.
+
+**Cache namespace.** `_cache_key` already mixes the model id into the hash, so a
+Gemini reply could never be *read as* an Ollama reply. `llm.cache_namespace_by_provider_model`
+adds a directory-level namespace (`.cache/llm/<provider>__<model>/`) so the two
+generators' caches are separable, inspectable and deletable independently.
+Default off: flipping it on globally would orphan every existing `.cache/llm/`
+entry.
+
+**These runs can never enter the §5 grid table, by two independent
+mechanisms.** `scripts/report.py: is_grid_eligible` requires `limit == 500`, and
+these are n=200; and `canonical_variant` does not recognise a `-gemini`
+suffixed variant name. Either alone is sufficient. `variant_suffix` is recorded
+only — dispatch still resolves the bare variant, so a `-gemini` cell runs
+exactly the code its counterpart ran.
+
+**Alternatives rejected.** (1) `--limit 200`, per the literal plan: breaks
+pairing on 10 questions, as measured. (2) Re-fit V5's calibration weights for
+Gemini: would confound "stronger generator" with "different scoring rule"; the
+weights are copied verbatim from `configs/v5.yaml` and frozen. (3) Put the cost
+guard only in the launcher: cannot stop a mid-run fall-through to a billable
+provider, which is the thing worth stopping. (4) Add these pairs to an existing
+family: every one of those families fixed its thresholds before its outcomes,
+and adding cells now would move them after the fact — the same reason U1–U8
+never merged into m=35.
+
+**Consequence — this commit breaks the 41f7e14 code pin for two launchers.**
+`scripts/run_phase7_v0_v2.ps1` and `scripts/run_phase7_v5_refit.ps1` refuse to
+launch unless `src/`, `configs/`, `pyproject.toml` and `uv.lock` at HEAD are
+byte-identical to `41f7e14`. This ADR adds fields to `src/config.py`, a guard
+and cache namespace to `src/llm/client.py`, flags to `src/eval/harness.py`, and
+two `configs/gemini_*.yaml` files, so those two launchers will now abort. That
+is accepted: their work is complete (V0, V2 and V5-refit have all run), and the
+abort is a loud, correct refusal rather than a silent code drift. **No already
+committed run is affected** — `report.py: code_matches_launch_commit` compares
+each run's *own recorded* `git_sha7` against 41f7e14, not HEAD, so every
+existing grid row still tabulates exactly as before. A future n=500 grid re-run
+at this HEAD would correctly fail the provenance guard; re-pinning is a
+deliberate decision for whoever needs it, recorded in its own ADR.
+
+**Consequences.** `docs/04` §1.0d and a rewritten §5.1; `configs/gemini_base.yaml`,
+`configs/gemini_v5.yaml`; `src/config.py` (`free_tier_only`,
+`free_tier_allowed`, `cache_namespace_by_provider_model`, `api_version`,
+`model_resolved_utc`); `src/llm/client.py` (`LLMCostGuardError`,
+`_assert_free_tier`, `_cache_dir_for`); `--question-ids` / `--llm-model` /
+`--llm-api-version` / `--variant-suffix` on the harness and
+`scripts/run_baselines.py`; `scripts/freeze_gemini_question_ids.py`;
+`scripts/analysis/gemini_sensitivity_family.py`;
+`scripts/run_gemini_sensitivity.ps1`; `tests/test_llm_cost_guard.py`,
+`tests/test_gemini_sensitivity_family.py`. Results go to §5.1 and §1.0d.

@@ -491,12 +491,30 @@ def run_eval(
     seed: int | None = None,
     exclude_limit: int | None = None,
     exclude_seed: int | None = None,
+    question_ids: list[str] | None = None,
+    llm_model: str | None = None,
+    llm_api_version: str | None = None,
+    variant_suffix: str = "",
     results_dir: Path = RESULTS_DIR,
     nli_scorer=None,
     _pipeline=None,
 ) -> Path:
     """Run one variant end-to-end and write `results/<run_id>/`. Returns the
     run directory. `_pipeline` is a test seam (inject a fake TriModalPipeline).
+
+    `question_ids` (ADR-047) pins the EXACT question set, in the given order,
+    instead of drawing a seeded sample. Required by the §0.6 Gemini check:
+    `load_question_sample(..., 200, seed=42)` is NOT the first 200 of
+    `load_question_sample(..., 500, seed=42)` -- `random.sample` draws a
+    different sequence for a different `k`, and the two overlap on only 190 of
+    200 questions (measured, not assumed; the same trap
+    `load_question_sample_excluding`'s docstring documents). Pairing a Gemini
+    run against the 7B grid runs therefore requires naming the ids, not
+    re-sampling.
+
+    `llm_model` / `llm_api_version` override the first provider's model and
+    stamp the resolution date, so the run's own `config.yaml` records which
+    hosted endpoint served it and when.
     """
     from src.kg.dataset_questions import (
         gold_letter,
@@ -507,6 +525,17 @@ def run_eval(
 
     cfg = load_config(config_path)
     seed = seed if seed is not None else cfg.seed
+
+    # Stamp generator provenance into the config BEFORE write_run records it.
+    if llm_model is not None:
+        if not cfg.llm.fallback_chain:
+            raise ValueError("--llm-model given but the config has an empty fallback_chain")
+        cfg.llm.fallback_chain[0].model = llm_model
+    if llm_model is not None or llm_api_version is not None:
+        import datetime as _dt
+
+        cfg.llm.api_version = llm_api_version
+        cfg.llm.model_resolved_utc = _dt.datetime.now(_dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     variant = variant or resolve_variant(cfg)
     if variant not in VARIANTS:
         raise ValueError(f"unknown variant {variant!r}; valid: {sorted(VARIANTS)}")
@@ -517,7 +546,19 @@ def run_eval(
     if variant == "V5" and not cfg.calibration.enabled:
         raise ValueError("V5 needs calibration.enabled -- use configs/v5.yaml")
 
-    if exclude_limit is not None:
+    if question_ids is not None:
+        if exclude_limit is not None:
+            raise ValueError("--question-ids and --exclude-limit are mutually exclusive")
+        by_id = {q.question_id: q for q in load_question_sample(dataset, split, None)}
+        missing = [qid for qid in question_ids if qid not in by_id]
+        if missing:
+            raise ValueError(
+                f"{len(missing)} pinned question_id(s) absent from {dataset}/{split}: "
+                f"{missing[:5]}{' ...' if len(missing) > 5 else ''}"
+            )
+        questions = [by_id[qid] for qid in question_ids]
+        limit = len(questions)
+    elif exclude_limit is not None:
         excl_seed = exclude_seed if exclude_seed is not None else seed
         excluded = load_question_sample(dataset, split, exclude_limit, seed=excl_seed)
         questions = load_question_sample_excluding(
@@ -587,12 +628,19 @@ def run_eval(
     metrics["prompt_tokens_total"] = stats.prompt_tokens
     metrics["completion_tokens_total"] = stats.completion_tokens
 
-    run_id = make_run_id(dataset, variant)
+    # `variant_suffix` (ADR-047) is recorded, never dispatched on: `spec` above
+    # is resolved from the bare variant name, so a `-gemini` cell runs exactly
+    # the code its unsuffixed counterpart runs. It exists so a run under a
+    # different generator can never be conflated with the grid cell of the same
+    # name -- `scripts/report.py: canonical_variant` does not recognise a
+    # suffixed name, so such a run can never fill a §5 grid row.
+    recorded_variant = f"{variant}{variant_suffix}"
+    run_id = make_run_id(dataset, recorded_variant)
     run_dir = write_run(
         run_id=run_id,
         cfg=cfg,
         dataset=dataset,
-        variant=variant,
+        variant=recorded_variant,
         split=split,
         limit=limit,
         seed=seed,
@@ -650,7 +698,30 @@ def main() -> None:
     ap.add_argument("--seed", type=int, default=None)
     ap.add_argument("--exclude-limit", type=int, default=None)
     ap.add_argument("--exclude-seed", type=int, default=None)
+    ap.add_argument(
+        "--question-ids",
+        default=None,
+        help="JSON file with {'question_ids': [...]} pinning the exact question "
+        "set and order (ADR-047). Overrides --limit. Use this, never --limit, to "
+        "reproduce a subset of an existing run: a seeded sample at a smaller "
+        "limit is a DIFFERENT draw, not a prefix.",
+    )
+    ap.add_argument("--llm-model", default=None, help="override fallback_chain[0].model")
+    ap.add_argument("--llm-api-version", default=None, help="recorded in config.yaml")
+    ap.add_argument(
+        "--variant-suffix",
+        default="",
+        help="appended to the recorded variant/run_id (e.g. '-gemini'); never "
+        "affects which code path runs.",
+    )
     args = ap.parse_args()
+
+    question_ids = None
+    if args.question_ids:
+        question_ids = json.loads(Path(args.question_ids).read_text(encoding="utf-8"))[
+            "question_ids"
+        ]
+        print(f"[harness] pinned question set: {len(question_ids)} ids from {args.question_ids}")
 
     available = torch.cuda.is_available()
     print(f"torch.cuda.is_available() = {available}")
@@ -666,6 +737,10 @@ def main() -> None:
         seed=args.seed,
         exclude_limit=args.exclude_limit,
         exclude_seed=args.exclude_seed,
+        question_ids=question_ids,
+        llm_model=args.llm_model,
+        llm_api_version=args.llm_api_version,
+        variant_suffix=args.variant_suffix,
     )
     print(run_dir)
 

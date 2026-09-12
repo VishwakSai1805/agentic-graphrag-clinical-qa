@@ -1,0 +1,44 @@
+# §0.6 stronger-model sensitivity check -- retrieval-tier cells (ADR-047).
+#
+# Serves the V0-gemini / V3-gemini / B3-gemini cells. Inherits configs/base.yaml
+# and changes EXACTLY ONE THING: which model generates. No prompt, retrieval
+# knob, scoring rule or agent setting differs from base.yaml -- that identity is
+# the whole point of the check, and `config_hash` over a run's resolved
+# config.yaml is what proves it (docs/04 §1.0d).
+#
+# `llm.model` / `api_version` / `model_resolved_utc` are stamped at launch by
+# scripts/run_gemini_sensitivity.ps1 via the harness's --llm-model /
+# --llm-api-version flags, so the resolved results/<run_id>/config.yaml records
+# the model that actually served the run and the date it served it. A model
+# endpoint can change behind a fixed name, so the date is part of the
+# provenance, not decoration.
+_extends: base.yaml
+
+llm:
+  # Free tier only, asserted in src/llm/client.py: _assert_free_tier. Anything
+  # not on `free_tier_allowed` raises LLMCostGuardError before the call rather
+  # than falling through to a billable provider. The chain is deliberately ONE
+  # entry long: with a single-entry chain there is nothing to fall through TO.
+  free_tier_only: true
+  free_tier_allowed:
+    - "gemini:gemini/gemini-3.8-flash"
+    - "gemini:gemini/gemini-2.5-flash"
+    - "gemini:gemini/gemini-3.5-flash-lite"
+  # Gemini responses get their own cache subtree. `_cache_key` already mixes the
+  # model id into the hash so a collision was never possible; this keeps them
+  # separable on disk as well.
+  cache_namespace_by_provider_model: true
+  fallback_chain:
+    - provider: gemini
+      model: gemini/gemini-3.8-flash
+      api_base: null
+      api_key_env: GEMINI_API_KEY
+      # Generous: a free-tier request queues behind rate limiting rather than
+      # failing fast, and src/llm/client.py's existing exponential backoff
+      # (max_retries / backoff_base_s) handles the 429s on top of this.
+      timeout_s: 120
+  # 429s are litellm.RateLimitError, already in client.py's _RETRYABLE_EXC.
+  # 8 attempts at base 4s doubles to ~8 minutes of patience per call, which
+  # absorbs a per-minute quota window without abandoning the run.
+  max_retries: 8
+  backoff_base_s: 4.0

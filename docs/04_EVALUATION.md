@@ -307,6 +307,102 @@ finding. Not in the family, and still untested: V0 vs V2, and B3 vs
 V4−conflict. They were not added after the fact.
 Output: `results/phase7_grid/posthoc_boundary_family.json`.
 
+### 1.0d Stronger-model sensitivity check — the §0.6 deferred item (registered 2026-09-12, ADR-047, before any Gemini API call)
+
+**What this measures, stated first because it is the thing most easily
+overclaimed: model dependence, not independent evidence about MedQA.** Every
+cell re-runs the *same code* on the *same 200 questions* with the *same
+prompts, retrieval config, scoring rule and agent graph* — only the generator
+changes. A result here says "the Phase 7 finding does / does not survive a
+stronger generator". It is **not** a second, independent measurement of any
+system's MedQA accuracy, it does not add evidence for or against any
+pre-registered Phase 7 claim, and it is **never pooled with, or used to
+re-threshold, the m=35, U1–U8 or m_X=7 families.** Reported as a robustness
+check (§0.6, ADR-008), never as a headline row.
+
+**Model.** `gemini/gemini-3.8-flash` via LiteLLM, Google AI Studio free tier
+(`GEMINI_API_KEY`). Fallbacks, in order, if the free tier does not serve it:
+`gemini/gemini-2.5-flash`, then `gemini/gemini-3.5-flash-lite`. The **exact
+model id, API version and UTC run date** are stamped into each run's own
+`results/<run_id>/config.yaml` (`llm.fallback_chain[0].model`,
+`llm.api_version`, `llm.model_resolved_utc`) — a hosted endpoint can change
+behaviour behind a fixed name, so the date is part of the provenance, not
+decoration.
+
+**Questions — the first 200 of the MedQA test-500 in seeded order (seed 42),
+pinned by explicit id.** Frozen in
+`results/phase7_gemini/question_ids_200.json` with a sha256 the launcher
+re-verifies before it runs. These are the same questions the 7B cells ran, so
+every comparison is paired within question.
+
+> **A trap this check had to route around, recorded because it would have
+> silently invalidated the pairing.** `--limit 200` does **not** give the first
+> 200 of the 500. `load_question_sample` draws
+> `random.Random(42).sample(range(n), limit)`, and `random.sample` at a
+> different `k` is a different draw, not a prefix — measured, the two sets
+> overlap on only **190 of 200** ids, with 10 questions lying outside the 500
+> entirely and never run by any 7B cell. `load_question_sample_excluding`'s
+> docstring already warned about this from the other direction. The check
+> therefore selects by resolved `question_id` (`--question-ids`), never by
+> re-sampling.
+
+**Cells: V0, V3, B3, V5**, recorded as `V0-gemini` / `V3-gemini` /
+`B3-gemini` / `V5-gemini`. Not V1/V2 (the retrieval tier already ties, §5.0a),
+not V4−conflict (ties with V5). The `-gemini` suffix plus n=200 keeps these
+runs out of the §5 grid table twice over: `scripts/report.py`'s
+`is_grid_eligible` requires n=500, and `canonical_variant` does not recognise
+a suffixed name.
+
+**The single confirmatory test: V3-gemini vs V5-gemini, accuracy, n=200.**
+One test, one metric. Paired bootstrap, 10k resamples, seed 42, two-sided,
+α = 0.05 — the direct replication of the MedQA confirmatory test (§1.0).
+
+**Exploratory family**, Holm–Bonferroni **within this family only**:
+
+| # | Pair | Metrics tested | count |
+|---|---|---|---|
+| G1 | V0-gemini vs V3-gemini | Acc, Macro-F1 | 2 |
+| G2 | V0-gemini vs V5-gemini | Acc, Macro-F1 | 2 |
+| G3 | V3-gemini vs B3-gemini | Acc, Macro-F1 | 2 |
+| G4 | V5-gemini vs B3-gemini | Acc, Macro-F1 | 2 |
+
+**m_G = 8**, fixed here and in
+`scripts/analysis/gemini_sensitivity_family.py` before any of its p-values
+exists. No halluc-rate cell (B3 has no claim-level NLI data; a V0 pair is
+ungrounded by construction — §1.0b), no P@K/MRR/ECE cell (V0/V3/B3 are
+`single_prediction`). If a cell fails to produce a valid run, its pairs leave
+the family (−2 each); pre-authorised, nothing else may be dropped.
+
+**Descriptive only — displayed, never tested, never Holm-corrected:** B3's
+`verifier_decision_rate` and `n_supported` distribution; V5's ECE and ranking
+metrics against the analytic chance row; per-question 7B-vs-Gemini agreement.
+
+**Pre-registered predictions.** Recorded verbatim, each with what a failure
+would mean:
+
+- **P1: the two-tier structure replicates — V3 beats V5 on accuracy by ≥0.15,
+  significant.** *Failure would mean* the V3 > V5 step is a property of the 7B
+  generator rather than of the architecture, which would undercut §5.0a's
+  central two-tier claim and force it to be restated as model-specific.
+- **P2: every cell scores above its Qwen2.5-7B counterpart on the same 200
+  questions.** *Failure would mean* the pipeline does not simply improve with a
+  stronger generator — a cell that gets *worse* would indicate the scaffold is
+  tuned to 7B-specific behaviour rather than being generator-agnostic.
+- **P3: B3's `verifier_decision_rate` rises above the 7B's 0.19 but stays
+  below 0.50.** *Failure below 0.19* would mean the binary bottleneck is not a
+  weak-model artifact at all; *failure above 0.50* would mean it largely is
+  one, and the C2 verifier-collapse finding — the paper's strongest result —
+  would have to be restated as a small-model phenomenon.
+
+**The 7B numbers these are judged against, on the same pinned 200** (computed
+from the committed grid runs' `predictions.jsonl`, not the n=500 headlines):
+V0 0.540, V3 0.505, B3 0.505, V5 0.325; V3 − V5 = **+0.180**; B3
+`verifier_decision_rate` = **0.185** (0.186 at n=500). These are the paired
+baselines, and P1/P2/P3 are scored against them.
+
+Analysis: `uv run python -m scripts.analysis.gemini_sensitivity_family` →
+`results/phase7_gemini/gemini_sensitivity_family.json`.
+
 ## 2. Factual fidelity
 - **RAGAS faithfulness** — fraction of generated claims entailed by the retrieved
   context. Pin the RAGAS version; run with a fixed judge model recorded in config.
@@ -912,14 +1008,26 @@ runner-timed cells (V1, V3, B3) have a real wall-clock figure.
 
 ### 5.1 Stronger-model sensitivity check (§0.6, robustness only — not a headline row)
 
-**Not run.** No Gemini Flash V3/V5 200-question check exists under
-`results/` — this remains queued, not part of the Phase 7 grid scope
-completed 2026-09-10.
+**Registered 2026-09-12, not yet run.** The analysis plan, question set, cost
+guard and launcher are committed (§1.0d, ADR-047); no Gemini API call has been
+made and no run exists under `results/`. Four cells, not two: V0 and B3 join
+V3 and V5 so the check covers the retrieval floor and the binary-verifier
+baseline as well as the confirmatory pair.
 
-| Variant | Model | Dataset (n) | Acc | run_id |
-|---|---|---|---|---|
-| V3 +KG | Gemini Flash | MedQA (200) | TBD | TBD |
-| V5 full | Gemini Flash | MedQA (200) | TBD | TBD |
+Every number below stays `TBD` until
+`results/phase7_gemini/gemini_sensitivity_family.json` exists. **Robustness
+only — never a headline row, never pooled with the Phase 7 families** (§1.0d).
+
+| Variant | Model | Dataset (n) | Acc | 7B counterpart (same 200) | run_id |
+|---|---|---|---|---|---|
+| V0-gemini zero-shot | TBD (stamped at launch) | MedQA (200) | TBD | 0.540 | TBD |
+| V3-gemini +KG | TBD (stamped at launch) | MedQA (200) | TBD | 0.505 | TBD |
+| B3-gemini binary verifier | TBD (stamped at launch) | MedQA (200) | TBD | 0.505 | TBD |
+| V5-gemini full | TBD (stamped at launch) | MedQA (200) | TBD | 0.325 | TBD |
+
+The 7B column is the committed grid runs restricted to the same pinned 200
+question ids — the paired baseline P2 is scored against, not the n=500
+headline figures (0.582 / 0.546 / 0.538 / 0.316).
 
 ### 5.2 Phase 1 retrieval-infra validation (real numbers, NOT part of the ablation grid)
 
