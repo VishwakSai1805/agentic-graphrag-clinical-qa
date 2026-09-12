@@ -3241,6 +3241,19 @@ only**; B3's verifier metrics, V5's calibration/ranking and 7B-vs-Gemini
 agreement descriptive only. Three predictions (P1/P2/P3) registered verbatim in
 §1.0d with what a failure would mean.
 
+**P3 is scored against 0.185, the paired baseline.** P3's registered wording
+says "above the 7B's 0.19"; 0.19 is the *n=500* figure (0.186), whereas the
+7B's `verifier_decision_rate` on the pinned 200 — the only questions this check
+runs — is **0.185**. Every other comparison here is paired within question, so
+P3 is judged against the paired value too, which is what §1.0d's baseline list
+and `scripts/analysis/gemini_sensitivity_family.py: P3_FLOOR_7B` already
+record. This disambiguates which baseline the prediction is read against; it
+does not change the prediction. Stated plainly because it is not perfectly
+neutral: 0.185 < 0.19, so the floor moves down by 0.005 and the prediction
+becomes marginally easier to satisfy. Recorded before any Gemini call exists,
+so the choice cannot be outcome-driven — and the ceiling (0.50), which carries
+the finding that actually matters, is untouched.
+
 **This measures model dependence, not MedQA.** Same code, same prompts, same
 retrieval config, same scoring rule, same agent graph, same questions — only
 the generator differs. It is never pooled with, and never used to reinterpret
