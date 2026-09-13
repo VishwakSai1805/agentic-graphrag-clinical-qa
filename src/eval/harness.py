@@ -495,6 +495,7 @@ def run_eval(
     llm_model: str | None = None,
     llm_api_version: str | None = None,
     variant_suffix: str = "",
+    allow_warm_cache: bool = False,
     results_dir: Path = RESULTS_DIR,
     nli_scorer=None,
     _pipeline=None,
@@ -521,7 +522,7 @@ def run_eval(
         load_question_sample,
         load_question_sample_excluding,
     )
-    from src.llm.client import default_tracker
+    from src.llm.client import default_tracker, set_active_config
 
     cfg = load_config(config_path)
     seed = seed if seed is not None else cfg.seed
@@ -536,6 +537,12 @@ def run_eval(
 
         cfg.llm.api_version = llm_api_version
         cfg.llm.model_resolved_utc = _dt.datetime.now(_dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    # ADR-048: no feature call site passes `config=` to `chat()`, so without this
+    # every call falls back to the hardcoded configs/base.yaml and this run's
+    # resolved config -- provider, model, cost guard, cache namespace -- is
+    # silently ignored. Must happen before any chat() call.
+    set_active_config(cfg)
     variant = variant or resolve_variant(cfg)
     if variant not in VARIANTS:
         raise ValueError(f"unknown variant {variant!r}; valid: {sorted(VARIANTS)}")
@@ -627,6 +634,12 @@ def run_eval(
     metrics["llm_cache_hits"] = stats.cache_hits
     metrics["prompt_tokens_total"] = stats.prompt_tokens
     metrics["completion_tokens_total"] = stats.completion_tokens
+    # Raises before write_run, so a misattributed run never reaches results/.
+    from src.llm.client import assert_generator_provenance
+
+    metrics["generator_provenance"] = assert_generator_provenance(
+        cfg, stats, run_label=f"{variant}{variant_suffix}", allow_warm_cache=allow_warm_cache
+    )
 
     # `variant_suffix` (ADR-047) is recorded, never dispatched on: `spec` above
     # is resolved from the bare variant name, so a `-gemini` cell runs exactly
@@ -720,6 +733,13 @@ def build_parser() -> argparse.ArgumentParser:
         "affects which code path runs. Pass it as --variant-suffix=-gemini: the "
         "space form is unparseable because the value starts with a dash.",
     )
+    ap.add_argument(
+        "--allow-warm-cache",
+        action="store_true",
+        help="permit a hosted-provider run to be served mostly from cache "
+        "(ADR-048). Use ONLY for a deliberate resume; on a first run a high "
+        "cache-hit rate means the keys collided with another generator's.",
+    )
     return ap
 
 
@@ -753,6 +773,7 @@ def main() -> None:
         llm_model=args.llm_model,
         llm_api_version=args.llm_api_version,
         variant_suffix=args.variant_suffix,
+        allow_warm_cache=args.allow_warm_cache,
     )
     print(run_dir)
 

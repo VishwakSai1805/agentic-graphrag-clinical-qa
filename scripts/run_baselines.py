@@ -45,7 +45,11 @@ from src.eval.contamination import medqa_overlap_check  # noqa: E402
 from src.eval.metrics import accuracy, macro_f1  # noqa: E402
 from src.eval.results import make_run_id, write_run  # noqa: E402
 from src.kg.dataset_questions import Question, load_question_sample  # noqa: E402
-from src.llm.client import StatsTracker  # noqa: E402
+from src.llm.client import (  # noqa: E402
+    StatsTracker,
+    assert_generator_provenance,
+    set_active_config,
+)
 from src.pipeline import TriModalPipeline  # noqa: E402
 from src.retrieval.dense import DenseIndex  # noqa: E402
 from src.retrieval.lexical import BM25Index  # noqa: E402
@@ -236,6 +240,12 @@ def build_parser() -> argparse.ArgumentParser:
         "of the same baseline name. Pass it as --variant-suffix=-gemini: the "
         "space form is unparseable because the value starts with a dash.",
     )
+    ap.add_argument(
+        "--allow-warm-cache",
+        action="store_true",
+        help="permit a hosted-provider run to be served mostly from cache "
+        "(ADR-048). Use ONLY for a deliberate resume.",
+    )
     return ap
 
 
@@ -264,6 +274,10 @@ def main() -> None:
 
         cfg.llm.api_version = args.llm_api_version
         cfg.llm.model_resolved_utc = _dt.datetime.now(_dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    # ADR-048: src/eval/baselines.py calls chat() without `config=`, so without
+    # this every call silently uses configs/base.yaml instead of --config.
+    set_active_config(cfg)
 
     if args.question_ids:
         pinned = json.loads(Path(args.question_ids).read_text(encoding="utf-8"))["question_ids"]
@@ -336,6 +350,13 @@ def main() -> None:
         metrics["contamination_assertion"] = contam
         metrics["llm_calls_total"] = tracker.summary().calls
         metrics["llm_cache_hits"] = tracker.summary().cache_hits
+        # Raises before write_run, so a misattributed run never reaches results/.
+        metrics["generator_provenance"] = assert_generator_provenance(
+            cfg,
+            tracker.summary(),
+            run_label=f"{baseline}{args.variant_suffix}",
+            allow_warm_cache=args.allow_warm_cache,
+        )
         metrics["equal_budget"] = args.equal_budget
         if args.equal_budget:
             metrics["equal_budget_max_evidence"] = cfg.agents.max_evidence

@@ -21,7 +21,7 @@ from threading import Lock
 
 import litellm
 from dotenv import load_dotenv
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from src.config import AppConfig, ProviderConfig, load_config
 
@@ -70,6 +70,25 @@ class LLMContextBudgetError(RuntimeError):
     """
 
 
+class LLMProvenanceError(RuntimeError):
+    """The generator that actually served a run is not the one its config names,
+    or a hosted-provider run served itself entirely from cache (ADR-048).
+
+    The most dangerous failure mode in the system, because it does not look like
+    a failure: the run completes, exits 0, writes a well-formed `metrics.json`,
+    and records a `config.yaml` naming a model that never ran. Nothing
+    downstream can tell it from a real result. It is raised BEFORE `write_run`,
+    so no such run reaches `results/` at all.
+    """
+
+
+# Providers served over the network. A run configured for one of these must
+# make real calls: a 100%-cache-hit "first run" against a hosted provider means
+# the keys collided with some other generator's entries, which is precisely the
+# ADR-048 defect.
+HOSTED_PROVIDERS = frozenset({"gemini", "openai", "anthropic", "groq", "azure", "vertex_ai"})
+
+
 class Usage(BaseModel):
     prompt_tokens: int
     completion_tokens: int
@@ -98,6 +117,11 @@ class CallStats(BaseModel):
     completion_tokens: int = 0
     total_latency_ms: float = 0.0
     cost_usd: float = 0.0
+    # model id -> call count, cache hits included (ADR-048). The record of which
+    # generator ACTUALLY served a run, as opposed to which one its config names.
+    # Those two came apart once already and produced five runs whose config.yaml
+    # said Gemini while Qwen answered every question.
+    models_used: dict[str, int] = Field(default_factory=dict)
 
 
 class StatsTracker:
@@ -116,6 +140,9 @@ class StatsTracker:
             self._stats.completion_tokens += response.usage.completion_tokens
             self._stats.total_latency_ms += response.latency_ms
             self._stats.cost_usd += response.usage.cost_usd
+            self._stats.models_used[response.model] = (
+                self._stats.models_used.get(response.model, 0) + 1
+            )
 
     def summary(self) -> CallStats:
         with self._lock:
@@ -136,6 +163,32 @@ def _get_config() -> AppConfig:
     return _config_cache
 
 
+def set_active_config(cfg: AppConfig | None) -> None:
+    """Install `cfg` as the config every `chat()` call uses by default (ADR-048).
+
+    THE BUG THIS EXISTS TO KILL. `chat()` resolves `config or _get_config()`,
+    and no feature call site passes `config=` -- not the four in
+    `src/eval/baselines.py`, not the agents, which thread an injectable
+    `chat_fn` but never a config. So every call silently fell back to
+    `_get_config()`, i.e. the hardcoded `configs/base.yaml`, regardless of what
+    `--config configs/gemini_base.yaml` had resolved.
+
+    The damage was not a crash. `_cache_key` mixes in the model id, so the
+    fallback computed keys under `ollama/qwen2.5:7b-instruct` that were
+    byte-identical to the committed 7B grid runs' keys: five "Gemini" cells
+    replayed the 7B's cached answers, made zero network calls, exited 0, and
+    reported accuracies identical to their 7B counterparts. `free_tier_only`
+    lived in the same unreached config, so the cost guard never armed either.
+
+    An entrypoint that resolves a config MUST call this before any `chat()`.
+    `run_eval` and `scripts/run_baselines.main` both do. It is still a global,
+    so `assert_generator_provenance` checks the outcome independently rather
+    than trusting that this was called.
+    """
+    global _config_cache
+    _config_cache = cfg
+
+
 def _count_prompt_tokens(model: str, prompt: str, system: str | None) -> int:
     """Best-effort token count of the system+user messages. `litellm.token_counter`
     uses the model's real tokenizer where it can and a tiktoken approximation
@@ -154,6 +207,77 @@ def _cache_key(model: str, prompt: str, system: str | None, params: dict) -> str
     payload = {"model": model, "system": system, "prompt": prompt, "params": params}
     canonical = json.dumps(payload, sort_keys=True)
     return hashlib.sha256(canonical.encode()).hexdigest()
+
+
+def assert_generator_provenance(
+    cfg: AppConfig,
+    stats: CallStats,
+    *,
+    run_label: str,
+    max_cache_hit_rate: float = 0.5,
+    allow_warm_cache: bool = False,
+) -> dict:
+    """Verify the generator that ACTUALLY served a run is the one `cfg` names.
+
+    Called before `write_run`, so a run that fails this never reaches
+    `results/`. Returns a provenance block for `metrics.json`.
+
+    Two independent checks, because either alone can be fooled (ADR-048):
+
+    1. **Model identity.** Every model in `stats.models_used` must be the model
+       `cfg` names. This is what would have caught the original defect outright:
+       the config said `gemini/gemini-3.8-flash` while every call recorded
+       `ollama/qwen2.5:7b-instruct`.
+    2. **A hosted run must actually call out.** Once the config genuinely
+       reaches `chat()`, check 1 becomes near-tautological -- both sides read
+       the same field. So for a hosted provider a first run must also make real
+       network calls: a 100%-cache-hit "first run" means the keys collided with
+       another generator's entries, which is exactly the original bug. Pass
+       `allow_warm_cache=True` for a deliberate resume, where a high hit rate is
+       correct and expected.
+    """
+    provider = cfg.llm.fallback_chain[0] if cfg.llm.fallback_chain else None
+    configured_model = provider.model if provider else None
+    hosted = bool(provider and provider.provider in HOSTED_PROVIDERS)
+    hit_rate = (stats.cache_hits / stats.calls) if stats.calls else 0.0
+
+    block = {
+        "checked": True,
+        "run_label": run_label,
+        "configured_provider": provider.provider if provider else None,
+        "configured_model": configured_model,
+        "hosted_provider": hosted,
+        "models_used": dict(stats.models_used),
+        "llm_calls_total": stats.calls,
+        "llm_cache_hits": stats.cache_hits,
+        "cache_hit_rate": hit_rate,
+        "allow_warm_cache": allow_warm_cache,
+        "max_cache_hit_rate": max_cache_hit_rate,
+    }
+
+    if stats.calls == 0:
+        block["note"] = "no LLM calls in this run -- nothing to verify"
+        return block
+
+    unexpected = sorted(set(stats.models_used) - {configured_model})
+    if unexpected:
+        raise LLMProvenanceError(
+            f"[{run_label}] the config names {configured_model!r} but these models "
+            f"actually served the run: {unexpected}. Counts: {dict(stats.models_used)}. "
+            "Refusing to write a run whose recorded config would misattribute its "
+            "own answers (ADR-048)."
+        )
+
+    if hosted and not allow_warm_cache and hit_rate > max_cache_hit_rate:
+        raise LLMProvenanceError(
+            f"[{run_label}] hosted provider {provider.provider!r} "
+            f"({configured_model!r}) served {stats.cache_hits}/{stats.calls} calls "
+            f"({hit_rate:.1%}) from cache on a run not marked as a resume. A first "
+            "run against a hosted provider must make real calls; this rate means the "
+            "cache keys collided with another generator's entries (ADR-048). If this "
+            "IS a deliberate resume, re-run with --allow-warm-cache."
+        )
+    return block
 
 
 def _supported_params(provider: ProviderConfig, params: dict) -> dict:

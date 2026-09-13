@@ -11,6 +11,13 @@
 # confound "stronger model" with "different scoring rule".
 _extends: gemini_base.yaml
 
+llm:
+  # Inherited from gemini_base.yaml, restated explicitly (ADR-048). Belt and
+  # braces: the cache KEY must be right (it mixes in the model id) and the
+  # directories must also be physically separate, so a key collision with the
+  # Ollama cache cannot silently replay 7B answers into a Gemini cell.
+  cache_namespace_by_provider_model: true
+
 agents:
   enabled: true
   epsilon: 1

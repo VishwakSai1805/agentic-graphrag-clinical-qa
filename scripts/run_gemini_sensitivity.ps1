@@ -41,8 +41,16 @@
 # V3rep is the nondeterminism probe (ADR-047): a SECOND V3 run, descriptive
 # only, never tested. It runs last and uses configs/gemini_v3_repeat.yaml,
 # whose separate cache_dir forces real API calls instead of replaying run 1.
+#
+# -AllowWarmCache is for RESUMING ONLY (ADR-048). A first run against a hosted
+# provider must make real calls: assert_generator_provenance refuses to write a
+# run whose cache-hit rate exceeds 50%, because that is exactly what the
+# five-invalid-cells defect looked like. After a daily-quota stop the Gemini
+# cache is legitimately warm, and the resumed cells would trip that guard --
+# pass this switch then, and only then.
 param(
     [switch]$DryRun,
+    [switch]$AllowWarmCache,
     [ValidateSet("V0", "V3", "B3", "V5", "V3rep")][string[]]$Only = @("V0", "V3", "B3", "V5", "V3rep")
 )
 
@@ -95,7 +103,7 @@ uv run python -m scripts.freeze_gemini_question_ids --check
 if ($LASTEXITCODE -ne 0) { Stop-Check "frozen question set failed its sha256 check" }
 
 # --- 3. cost guard is actually on in both configs -------------------------------
-foreach ($c in @("configs/gemini_base.yaml", "configs/gemini_v5.yaml")) {
+foreach ($c in @("configs/gemini_base.yaml", "configs/gemini_v5.yaml", "configs/gemini_v3_repeat.yaml")) {
     $resolved = uv run python -c "from src.config import load_config; c=load_config('$c'); print(c.llm.free_tier_only); print(len(c.llm.fallback_chain))"
     $lines = @($resolved -split "`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ })
     if ($lines[0] -ne "True") { Stop-Check "$c does not set llm.free_tier_only" }
@@ -147,6 +155,12 @@ Write-Host "[gemini_0.6] model resolved: $Model (api_version $ApiVersion)"
 # tests/test_launcher_argv.py, which parses the real command strings out of
 # THIS file and feeds them to the actual parsers.
 $CommonArgs = "--dataset=medqa --split=test --seed=42 --question-ids=$IdsPath --llm-model=$Model --llm-api-version=$ApiVersion"
+if ($AllowWarmCache) {
+    Write-Host "[gemini_0.6] -AllowWarmCache: the provenance guard's cache-hit ceiling is lifted."
+    Write-Host "[gemini_0.6]   Correct ONLY when resuming after a quota stop. On a first run a warm"
+    Write-Host "[gemini_0.6]   cache means the keys collided with another generator's (ADR-048)."
+    $CommonArgs += " --allow-warm-cache"
+}
 $H = "uv run python -m src.eval.harness $CommonArgs --variant-suffix=-gemini"
 $B = "uv run python -m scripts.run_baselines $CommonArgs --variant-suffix=-gemini"
 

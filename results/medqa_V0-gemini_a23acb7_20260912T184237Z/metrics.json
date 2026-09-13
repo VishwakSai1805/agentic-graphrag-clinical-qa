@@ -1,0 +1,2044 @@
+{
+  "config_hash": "9738865acb7e6b5876b9eaf7863d1a274ec3a9abf1dd24cd9ac29ef44743f818",
+  "dataset": "medqa",
+  "git_diff_sha256": "272a79496723834b025e7856b62120aaccc48e60f82c248862b127629c83ab66",
+  "git_dirty": true,
+  "git_dirty_files": [
+    "results/medqa_V0-gemini_a23acb7_20260912T184237Z/"
+  ],
+  "git_sha7": "a23acb7-dirty",
+  "limit": 200,
+  "metrics": {
+    "accuracy": 0.54,
+    "completion_tokens_total": 0,
+    "contamination_assertion": {
+      "applies": true,
+      "checked": false,
+      "note": "no executed contamination check for dataset='medqa' (pipeline_loaded=False)"
+    },
+    "dataset": "medqa",
+    "ece": null,
+    "ece_note": "null: no calibrated probability vector for this variant (only V5 has one).",
+    "grounded_rate": 0.0,
+    "hallucination": {
+      "hallucination_rate_all_support_cells": 1.0,
+      "hallucination_rate_predicted_option": 1.0,
+      "n_claims_all_support_cells": 220,
+      "n_claims_predicted_option": 220,
+      "n_uncited_all_support_cells": 220,
+      "n_uncited_predicted_option": 220,
+      "n_ungrounded_all_support_cells": 220,
+      "n_ungrounded_predicted_option": 220,
+      "nli_model": "MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli",
+      "per_claim": [
+        {
+          "cited": false,
+          "claim": "Chemotherapy drugs that generate free radicals can cause ototoxicity leading to sensorineural hearing loss.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00001"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's clinical presentation and laboratory findings suggest a severe infection, likely pelvic inflammatory disease.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00003"
+        },
+        {
+          "cited": false,
+          "claim": "The blood culture is most likely to show lactose-fermenting, gram-negative rods forming pink colonies on MacConkey agar, which is consistent with E.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00003"
+        },
+        {
+          "cited": false,
+          "claim": "coli or a similar organism.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00003"
+        },
+        {
+          "cited": false,
+          "claim": "Ketotifen eye drops are antihistamines that can effectively treat allergic conjunctivitis symptoms such as itching and watery eyes.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00004"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's history of peripheral artery disease and right flank pain with ureteral dilation suggest renal artery stenosis, which can lead to renovascular hypertension and subsequent renal pelvis and ureter dilation.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00006"
+        },
+        {
+          "cited": false,
+          "claim": "Active or recurrent pelvic inflammatory disease (PID) increases the risk of complications such as infection at the time of IUD insertion.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00008"
+        },
+        {
+          "cited": false,
+          "claim": "The description suggests nail psoriasis, which is commonly associated with psoriasis, characterized by silvery plaques on the extensor surfaces of the nails.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00009"
+        },
+        {
+          "cited": false,
+          "claim": "Standing increases venous return, reducing diastolic filling time.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00013"
+        },
+        {
+          "cited": false,
+          "claim": "Human immunodeficiency virus (HIV) can undergo genetic recombination, leading to the creation of new viral strains through the co-infection of host cells with different viral genomes.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00014"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms and laboratory findings are consistent with pneumonia, and the presence of neutrophils and a high percentage of bands suggests a bacterial infection.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00023"
+        },
+        {
+          "cited": false,
+          "claim": "Streptococcus pneumoniae is a common cause of bacterial pneumonia.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00023"
+        },
+        {
+          "cited": false,
+          "claim": "The child's lethargy and limpness, along with the decrease in heart rate and blood pressure, suggest the onset of respiratory failure.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00024"
+        },
+        {
+          "cited": false,
+          "claim": "Intubation and mechanical ventilation are the most appropriate next steps to ensure adequate oxygenation and ventilation.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00024"
+        },
+        {
+          "cited": false,
+          "claim": "The nitroblue tetrazolium test assesses the ability of neutrophils to produce superoxide, which is part of the respiratory burst.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00025"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms suggest a possible paralytic ileus or toxic megacolon, which can be associated with pseudomembranous colitis due to Clostridium difficile, leading to increased cerebrospinal fluid protein without a significant cell count increase.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00028"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms and laboratory findings suggest biliary tract disease, with right upper quadrant pain and elevated liver enzymes.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00030"
+        },
+        {
+          "cited": false,
+          "claim": "The inconclusive ultrasonography and the findings on cholescintigraphy point to a possible obstruction of the cystic duct.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00030"
+        },
+        {
+          "cited": false,
+          "claim": "The pattern of weakness that improves with exercise and the presence of bladder incontinence suggest myasthenia gravis, a neuromuscular disorder.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00036"
+        },
+        {
+          "cited": false,
+          "claim": "The inability to repeat verbal instructions suggests damage to the arcuate fasciculus, which connects the inferior frontal gyrus and superior temporal gyrus, crucial for language repetition.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00039"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms of severe inflammatory acne, dark coarse hairs, irregular menstrual cycles, and a family history of type 2 diabetes suggest polycystic ovarian syndrome (PCOS).",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00040"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms of bilious vomiting and lack of meconium passage are most consistent with meconium ileus, which is often associated with cystic fibrosis and can present with decreased AFP and increased beta-hCG on prenatal testing.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00042"
+        },
+        {
+          "cited": false,
+          "claim": "The inferior vena cava receives deoxygenated blood from the body, which would be further depleted of oxygen during exercise.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00043"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms are consistent with methanol poisoning, including confusion, ataxia, and metabolic acidosis.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00045"
+        },
+        {
+          "cited": false,
+          "claim": "Naloxone and naltrexone are for opioid antagonism, while ethanol competes with methanol for alcohol dehydrogenase but would take too long to be effective.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00045"
+        },
+        {
+          "cited": false,
+          "claim": "Fomepizole, a competitive inhibitor of alcohol dehydrogenase, is the appropriate treatment.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00045"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's hypokalemia (low potassium) and metabolic alkalosis (high HCO3-) suggest aldosterone excess, which is a common cause of secondary hypertension.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00051"
+        },
+        {
+          "cited": false,
+          "claim": "The presence of jaundice, scleral icterus, and elevated bilirubin in the urine with low urobilinogen suggests impaired hepatic function, likely due to defective hepatic bile excretion.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00052"
+        },
+        {
+          "cited": false,
+          "claim": "The symptoms described, including smacking motions, lip pursing, and excessive blinking, are characteristic of tardive dyskinesia, which can occur as a side effect of long-term use of antipsychotic medications like haloperidol.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00054"
+        },
+        {
+          "cited": false,
+          "claim": "The presence of schistocytes, hemolytic anemia, thrombocytopenia, and acute kidney injury are characteristic of hemolytic uremic syndrome.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00058"
+        },
+        {
+          "cited": false,
+          "claim": "Patients can have a history of both anorexia and bulimia, which aligns with the patient's history of induced vomiting and concerns about weight gain.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00059"
+        },
+        {
+          "cited": false,
+          "claim": "Acetaldehyde is a toxic metabolite of alcohol that can cause symptoms such as flushing, nausea, tachycardia, dyspnea, headache, and abdominal cramps, known as the disulfiram-like reaction.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00061"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's anemia with low hemoglobin and hematocrit suggests iron deficiency, which can be confirmed by a serum iron level.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00062"
+        },
+        {
+          "cited": false,
+          "claim": "The presentation suggests oral candidiasis, which can be treated with antifungals that disrupt cell membrane permeability.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00064"
+        },
+        {
+          "cited": false,
+          "claim": "Given the patient's history of non-small cell lung cancer, the most likely imaging finding would be lytic lesions of the lumbar spine due to possible metastasis.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00065"
+        },
+        {
+          "cited": false,
+          "claim": "Given the patient's history and the characteristics of the liver lesion, a liver biopsy is indicated to determine the nature of the nodule.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00069"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's elevated ammonia level and signs of hepatic encephalopathy, along with the presence of ascites, suggest spontaneous bacterial peritonitis as the most likely precipitating factor.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00070"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms, including chest pain, elevated troponins, and elevated pulmonary capillary wedge pressure, are most consistent with cardiac contusion.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00071"
+        },
+        {
+          "cited": false,
+          "claim": "Wood lamp examination is commonly used to diagnose tinea infections, which are a likely cause given the patient's travel history and symptoms.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00074"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms, including microcephaly, developmental delay, and a heart murmur, are characteristic of Patau syndrome, which is caused by trisomy of chromosome 18.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00075"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms and lab results suggest inflammatory arthritis, such as rheumatoid arthritis, which is consistent with an inflammatory rheumatological syndrome.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00077"
+        },
+        {
+          "cited": false,
+          "claim": "Acral lentiginous melanoma is more common in individuals with darker skin tones, such as African Americans.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00082"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms of neck stiffness and bilateral shoulder tenderness, along with elevated ESR and CRP, suggest a possible inflammatory condition such as polymyalgia rheumatica, which often presents with a heliotrope rash.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00083"
+        },
+        {
+          "cited": false,
+          "claim": "The widened mediastinum, deviation of the nasogastric tube, and respiratory distress are indicative of a tension pneumothorax.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00088"
+        },
+        {
+          "cited": false,
+          "claim": "Rheumatoid arthritis can lead to vasculitis, which may affect small blood vessels in the brain, leading to conditions like vasculitis-related encephalopathy.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00093"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's muffled heart sounds and jugular venous distention suggest cardiac tamponade, which would be associated with a drop in systolic blood pressure during inspiration.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00094"
+        },
+        {
+          "cited": false,
+          "claim": "The symptoms suggest a pulmonary embolism, which can be caused by autosomal dominant factors such as genetic predisposition to clotting disorders like Factor V Leiden mutation.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00096"
+        },
+        {
+          "cited": false,
+          "claim": "Absent deep tendon reflexes bilaterally suggest magnesium toxicity, and calcium gluconate is used to treat it.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00102"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's hypothermia, bradycardia, hypotension, low sodium, and low thyroid hormone levels are consistent with myxedema coma.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00103"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's history of turbulent relationships, impulsivity, and manipulative behavior aligns with the criteria for Borderline Personality Disorder.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00105"
+        },
+        {
+          "cited": false,
+          "claim": "Given the stable size and characteristics of the nodule, regular follow-up imaging is appropriate.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00106"
+        },
+        {
+          "cited": false,
+          "claim": "The presence of mucoid strings in the stool and weight loss suggest a condition like inflammatory bowel disease, which often shows stool leukocytes.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00109"
+        },
+        {
+          "cited": false,
+          "claim": "The findings of ascitic fluid with elevated neutrophils and low albumin suggest bacterial peritonitis, which is often due to bacterial translocation from the gut in patients with liver disease.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00110"
+        },
+        {
+          "cited": false,
+          "claim": "The clinical presentation is consistent with croup, which is managed with racemic epinephrine and corticosteroids.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00111"
+        },
+        {
+          "cited": false,
+          "claim": "The lab results indicate metabolic acidosis with a low HCO3- and low pH, which is consistent with severe diarrhea leading to volume depletion and subsequent metabolic acidosis.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00114"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's history of smoking and the pulmonary function test results indicating obstructive lung disease are consistent with chronic obstructive pulmonary disease (COPD).",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00118"
+        },
+        {
+          "cited": false,
+          "claim": "The ovarian artery, when ligated, can compromise blood flow to the kidneys, leading to renal dysfunction and oliguria.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00120"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's travel history to Brazil, symptoms consistent with dengue fever, and the timing of symptoms relative to travel suggest Zika virus infection, which can cause fetal microcephaly.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00122"
+        },
+        {
+          "cited": false,
+          "claim": "Diarrhea is not a typical symptom of congenital hypothyroidism.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00124"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms of jaundice, pale stools, and elevated alkaline phosphatase are consistent with breast milk jaundice.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00130"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms suggest hypocalcemia, which can cause ECG changes including QT prolongation.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00131"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms of erectile dysfunction and lower extremity pain relieved by rest are indicative of aortoiliac atherosclerosis, which can affect both the vascular supply to the penis and the lower extremities.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00133"
+        },
+        {
+          "cited": false,
+          "claim": "Chronic glomerulonephritis can lead to secondary hyperparathyroidism, resulting in increased PTH, which in turn can cause decreased calcium, increased phosphate, and decreased calcitriol levels.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00134"
+        },
+        {
+          "cited": false,
+          "claim": "The identified protein likely binds endogenous peptides that have been transported by the TAP channel, as this process is crucial for presenting these peptides to CD8+ T cells during an immune response.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00135"
+        },
+        {
+          "cited": false,
+          "claim": "Systemic corticosteroids can transiently worsen Graves' ophthalmopathy by increasing intraocular pressure.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00137"
+        },
+        {
+          "cited": false,
+          "claim": "Given the absence of daytime incontinence, urinary tract infection symptoms, and normal physical examination, an enuresis alarm is a first-line treatment for primary nocturnal enuresis in children.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00138"
+        },
+        {
+          "cited": false,
+          "claim": "Given the patient's symptoms and laboratory findings, an MRI of the adrenal glands is the best next step to evaluate for adrenal pathology, such as a cortisol-producing adenoma or carcinoma, which could explain the elevated cortisol levels and lack of suppression.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00141"
+        },
+        {
+          "cited": false,
+          "claim": "Vincristine, a vinca alkaloid, inhibits microtubule formation by binding to beta-tubulin, leading to peripheral neuropathy.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00142"
+        },
+        {
+          "cited": false,
+          "claim": "The presence of proteinuria (4+), low albumin, and the history of a preceding infection suggest a post-streptococcal glomerulonephritis, which typically shows deposits of IgG and C3 at the glomerular basement membrane on immunofluorescence.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00145"
+        },
+        {
+          "cited": false,
+          "claim": "The presence of erythroderma and a solid skin lesion greater than 1 cm suggests a cutaneous T-cell lymphoma, which is a tumor arising from cutaneous T cells.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00146"
+        },
+        {
+          "cited": false,
+          "claim": "Theca lutein cysts are typically associated with multiple thin-walled, septated cysts in the ovaries, often seen in pregnancies, which can explain the enlarged ovaries.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00151"
+        },
+        {
+          "cited": false,
+          "claim": "Homozygous mutation in the CCR5 gene can render an individual resistant to certain viruses, such as HIV, which may explain the son's lack of symptoms.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00152"
+        },
+        {
+          "cited": false,
+          "claim": "The presence of fever, generalized rash with macules, papules, and vesicles, and a history of recent camping trip and daycare attendance are most consistent with chickenpox (varicella).",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00154"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms, including perioral numbness and muscle cramping, are consistent with hypocalcemia, which is indicated by the low parathyroid hormone and 25-hydroxyvitamin D levels.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00158"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms of generalized weakness, polyuria, polydipsia, and hypokalemia, along with the elevated urinary calcium excretion, are most consistent with Bartter's syndrome.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00159"
+        },
+        {
+          "cited": false,
+          "claim": "The presence of anti-Ro and anti-La autoantibodies is strongly associated with an increased risk of non-Hodgkin lymphoma.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00161"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms and CSF findings are consistent with herpes simplex virus encephalitis, and PCR for HSV-2 DNA is a common diagnostic test for this condition.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00163"
+        },
+        {
+          "cited": false,
+          "claim": "Increasing the number of screened individuals can help ensure the study's conclusions are more robust and less biased.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00165"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's occupational history, radiographic findings of interstitial fibrosis and eggshell calcification, and the presence of reticulonodular infiltrates are most consistent with asbestosis.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00166"
+        },
+        {
+          "cited": false,
+          "claim": "Given the patient's hypotension, decreased breath sounds, and hyperresonance on percussion, tension pneumothorax is a likely diagnosis, making needle decompression the most appropriate initial step.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00175"
+        },
+        {
+          "cited": false,
+          "claim": "Spastic paralysis is a common finding in spinal cord lesions due to upper motor neuron involvement.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00178"
+        },
+        {
+          "cited": false,
+          "claim": "The clinical presentation of dysuria and increased urinary frequency, along with cloudy and red urine, is more consistent with a viral infection such as adenovirus, which is non-enveloped and has a linear, single-stranded DNA.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00181"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's age, breast lump size and tenderness, and normal testes suggest glandular tissue enlargement, which is common in adolescent boys.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00182"
+        },
+        {
+          "cited": false,
+          "claim": "Elevated serum homocysteine is associated with an increased risk of thrombosis due to impaired endothelial function and increased thrombin production.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00183"
+        },
+        {
+          "cited": false,
+          "claim": "The ribosome may still incorporate the mischarged tRNA with valine into the codons that specify for lysine due to the flexibility of the ribosome in accommodating structurally similar amino acids.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00186"
+        },
+        {
+          "cited": false,
+          "claim": "Binge eating and stress can lead to teeth grinding, which can cause erosion of tooth enamel.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00189"
+        },
+        {
+          "cited": false,
+          "claim": "Propranolol is a beta-blocker that can help manage symptoms of anxiety and palpitations, which are common in this patient's condition.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00190"
+        },
+        {
+          "cited": false,
+          "claim": "Chromosome 18 trisomy is strongly associated with the absence of the sacrum and lumbar vertebrae, known as sacral agenesis, which is present in this case.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00191"
+        },
+        {
+          "cited": false,
+          "claim": "IFN-gamma is the factor secreted by Th1 cells that stimulates phagosome-lysosome fusion and activates macrophages to produce NO.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00193"
+        },
+        {
+          "cited": false,
+          "claim": "The symptoms and laboratory findings suggest\u94c5\u4e2d\u6bd2\uff0c\u5f71\u54cd\u8840\u7ea2\u7d20\u5408\u6210\u4e2d\u7684\u535f\u80c6\u539f\u751f\u6210\u7f9f\u57fa\u7532\u57fa\u80c6\u70f7\uff0c\u5bf9\u5e94\u9009\u9879B\u3002",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00194"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's hemoglobin and hematocrit levels are low, indicating anemia, which is often seen in chronic kidney disease.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00197"
+        },
+        {
+          "cited": false,
+          "claim": "Her BUN and creatinine levels have also increased, further supporting chronic kidney failure.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00197"
+        },
+        {
+          "cited": false,
+          "claim": "The drug is likely clomiphene citrate, which is used for ovulation induction in polycystic ovarian syndrome.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00198"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms suggest alcohol and antifreeze ingestion, which can lead to renal tubular damage, resulting in hyaline casts in the urine.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00200"
+        },
+        {
+          "cited": false,
+          "claim": "Combined oral contraceptive pills have been shown to decrease the risk of ovarian cancer.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00201"
+        },
+        {
+          "cited": false,
+          "claim": "The superior mesenteric artery is posterior to the right kidney and can obstruct its ascent during development.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00204"
+        },
+        {
+          "cited": false,
+          "claim": "A LOD Score > 3 indicates a high probability of linkage between the loci.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00206"
+        },
+        {
+          "cited": false,
+          "claim": "DN501, like darunavir, is likely an HIV protease inhibitor that prevents viral replication by inhibiting viral entry into host cells.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00208"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's history of long-term smoking, outdoor work, and the presence of a painless ulcer near the vermillion border suggest squamous cell carcinoma.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00209"
+        },
+        {
+          "cited": false,
+          "claim": "A digital rectal examination is indicated to assess for prostate enlargement, which can cause urinary frequency and nocturia.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00215"
+        },
+        {
+          "cited": false,
+          "claim": "The absence of fetal cardiac activity suggests a blighted ovum or anembryonic gestation, which is often managed with methotrexate to prevent further bleeding and complications.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00217"
+        },
+        {
+          "cited": false,
+          "claim": "Histologic changes in type I hypersensitivity reactions, such as those causing urticaria, are typically observed in the dermis due to the involvement of mast cells and the release of mediators like histamine.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00218"
+        },
+        {
+          "cited": false,
+          "claim": "Increased gene expression of GLUT-4 leads to increased glucose uptake in muscle and adipose tissue, which is a mechanism of action for some anti-diabetic medications.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00222"
+        },
+        {
+          "cited": false,
+          "claim": "The symptoms are consistent with dysmenorrhea, which is commonly caused by endometrial sloughing and uterine contractions mediated by prostaglandin.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00223"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's history of spelunking in Mexico suggests exposure to the primary vector, which is the infected chigger mite.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00224"
+        },
+        {
+          "cited": false,
+          "claim": "The virus, Rickettsia rickettsii, typically spreads to the CNS via retrograde axonal transport from peripheral nerves.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00224"
+        },
+        {
+          "cited": false,
+          "claim": "Amphotericin B can cause renal impairment, hypokalemia, and metabolic acidosis, which align with the patient's symptoms and lab findings.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00227"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's recent travel history to Southeast Asia, fever, rash, arthralgia, and elevated liver enzymes are consistent with Dengue fever.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00228"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's persistent hypotension despite antibiotic therapy suggests the need to address the underlying septic shock, which remains the primary issue.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00229"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms and skin lesions are characteristic of leprosy, caused by Mycobacterium leprae, which is acid-fast and catalase-negative.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00233"
+        },
+        {
+          "cited": false,
+          "claim": "The presence of granuloma and Reed-Sternberg cells (CD15-positive, CD30-positive) suggests Hodgkin lymphoma, which can produce PTH-related peptide leading to hypercalcemia.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00234"
+        },
+        {
+          "cited": false,
+          "claim": "Neuron-specific enolase is often elevated in small cell lung cancer.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00240"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms suggest Turner syndrome, which is associated with elevated serum TSH levels due to hypothyroidism.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00242"
+        },
+        {
+          "cited": false,
+          "claim": "Type II collagen and chondroitin sulfate are indicative of cartilaginous tissue, which is found in the larynx.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00244"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms and laboratory findings suggest disseminated Mycobacterium avium complex (MAC) infection, which is common in AIDS patients with low CD4 counts.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00247"
+        },
+        {
+          "cited": false,
+          "claim": "Amphotericin B and itraconazole are the standard treatments for MAC infection.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00247"
+        },
+        {
+          "cited": false,
+          "claim": "Cognitive behavioral therapy (CBT) is appropriate for addressing delusional disorders and can help the patient challenge and modify their irrational beliefs.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00250"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's mean sleep latency of 6 minutes on the sleep study indicates narcolepsy, for which sodium oxybate is a common treatment.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00252"
+        },
+        {
+          "cited": false,
+          "claim": "Surgical debridement is necessary to remove necrotic tissue and address the wound dehiscence.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00254"
+        },
+        {
+          "cited": false,
+          "claim": "Thalassemia intermedia typically presents with microcytic red blood cells due to decreased beta-globin production.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00255"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms suggest classical phenylketonuria, and tyrosine supplementation can help prevent further complications by providing an alternative substrate.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00257"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms are consistent with appendicitis, given the localized pain in the RLQ, absence of nausea/vomiting, and a history of a similar episode.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00260"
+        },
+        {
+          "cited": false,
+          "claim": "The laboratory findings, including the elevated CRP and mild leukocytosis, further support this diagnosis.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00260"
+        },
+        {
+          "cited": false,
+          "claim": "Given the clinical presentation, surgical referral is the most appropriate next step.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00260"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's hyponatremia and elevated ADH suggest SIADH, leading to decreased serum osmolality, decreased urine sodium, and decreased aldosterone levels due to reduced renin activity.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00262"
+        },
+        {
+          "cited": false,
+          "claim": "Since the father has hemophilia A, he passes the X-linked recessive gene to all of his daughters, making them carriers with a probability of 100%.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00267"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's inability to repeat the sentence on whisper testing suggests a conductive hearing loss, and the air conduction is greater than bone conduction, indicating a lesion in the cochlea.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00268"
+        },
+        {
+          "cited": false,
+          "claim": "The presence of 14-3-3 protein in cerebrospinal fluid is a strong indicator of neurodegenerative diseases such as Creutzfeldt-Jakob disease, which can present with similar symptoms.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00270"
+        },
+        {
+          "cited": false,
+          "claim": "Urinalysis is indicated to confirm the presence of glucose in the urine.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00271"
+        },
+        {
+          "cited": false,
+          "claim": "Upper gastrointestinal endoscopy is indicated to evaluate the upper abdominal pain and weight loss.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00273"
+        },
+        {
+          "cited": false,
+          "claim": "Given the patient's severe shortness of breath, hypoxemia, and bilateral wheezes, intubation is the most appropriate next step to ensure adequate oxygenation and ventilation.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00278"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms, including fever, cough, sputum production, and a right upper-lobe infiltrate on chest x-ray, are most consistent with Streptococcus pneumoniae infection.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00283"
+        },
+        {
+          "cited": false,
+          "claim": "An ACTH stimulation test is necessary to evaluate for primary or secondary adrenal insufficiency, given the patient's symptoms of fatigue, weakness, abdominal pain, weight loss, and skin discoloration.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00285"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms suggest a possible exacerbation of COPD, which may be due to inflammation rather than a bacterial infection.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00287"
+        },
+        {
+          "cited": false,
+          "claim": "Therefore, antibiotics are not indicated at this time.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00287"
+        },
+        {
+          "cited": false,
+          "claim": "The MRI findings of bilateral ventricular enlargement and subarachnoid space enlargement are indicative of hydrocephalus, which is most likely due to impaired CSF drainage.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00288"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's history of recurrent spontaneous abortions and the presence of a cord-like rash and lacy mottled violaceous rash are indicative of antiphospholipid syndrome, which is associated with positive anti-cardiolipin antibodies.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00291"
+        },
+        {
+          "cited": false,
+          "claim": "A large, pedunculated tumor in the left atrium is most at risk for causing septic embolism due to potential detachment and subsequent embolization to other parts of the body.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00292"
+        },
+        {
+          "cited": false,
+          "claim": "The patient is undergoing normal pubertal development with breast and pubic hair development at Tanner IV, and laboratory values are within normal ranges for a 16-year-old female.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00303"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms and history are more consistent with autosomal recessive polycystic kidney disorder, which can present with abdominal pain and constipation, and is associated with colonic mucosal outpouchings.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00306"
+        },
+        {
+          "cited": false,
+          "claim": "Refer this case to the court as it involves a legal and ethical dilemma regarding the patient's best interest and the daughter's refusal of consent.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00307"
+        },
+        {
+          "cited": false,
+          "claim": "In emergency situations where the patient is unconscious and unable to provide consent, informed consent may be waived.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00309"
+        },
+        {
+          "cited": false,
+          "claim": "The presence of large eosinophilic casts suggests eosinophilia, which can lead to microangiopathic hemolytic anemia, resulting in schistocytes on the peripheral blood smear.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00312"
+        },
+        {
+          "cited": false,
+          "claim": "Oxybutynin is known to cause confusion as a side effect, especially in elderly patients.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00313"
+        },
+        {
+          "cited": false,
+          "claim": "The presence of anti-U1 RNP antibodies and increased creatinine kinase, along with the symptoms of fatigue, muscle weakness, and changing discoloration of the fingers, are most consistent with polymyositis.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00315"
+        },
+        {
+          "cited": false,
+          "claim": "Increased lens elasticity can lead to improved vision in patients with diabetes mellitus, as it allows for better accommodation of the lens.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00317"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's history of multiple ER visits with similar symptoms suggests a somatization disorder, where physical symptoms are present without a clear physical cause, often linked to psychological factors.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00318"
+        },
+        {
+          "cited": false,
+          "claim": "Given the patient's history of recent knee surgery, immobilization, and symptoms suggestive of a pulmonary embolism, a lower extremity Doppler is indicated to assess for deep vein thrombosis.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00321"
+        },
+        {
+          "cited": false,
+          "claim": "The clinical presentation, including bowed legs, wrist changes, and dental abnormalities, is characteristic of achondroplasia, which is caused by a mutation in fibroblast growth factor receptor 3.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00323"
+        },
+        {
+          "cited": false,
+          "claim": "MRI provides the highest soft tissue contrast and can detect early changes in the hip associated with sarcoidosis.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00326"
+        },
+        {
+          "cited": false,
+          "claim": "Epididymitis or orchitis, likely due to a sexually transmitted infection like chlamydia or gonorrhea, can cause testicular swelling and pain.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00327"
+        },
+        {
+          "cited": false,
+          "claim": "The history of recent travel and the past symptoms suggest a possible sexually transmitted infection, which can cause buboes in the inguinal lymph nodes.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00327"
+        },
+        {
+          "cited": false,
+          "claim": "The heavy, red lungs and histology indicative of pulmonary edema suggest interstitial edema.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00330"
+        },
+        {
+          "cited": false,
+          "claim": "Given the multiple injuries, including potential fractures and internal bleeding, an X-ray of the extremities is the most appropriate initial imaging to assess for fractures and alignment issues, especially considering the limb length discrepancy and swelling.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00333"
+        },
+        {
+          "cited": false,
+          "claim": "Comprehensive foot exams are recommended annually in patients with diabetes to prevent foot ulcers and infections due to neuropathy.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00334"
+        },
+        {
+          "cited": false,
+          "claim": "The perivascular lymphocytic infiltration is characteristic of viral encephalitis, and given the patient's history and MRI findings, human herpesvirus is the most likely cause.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00336"
+        },
+        {
+          "cited": false,
+          "claim": "The increase in blood volume during pregnancy is a primary physiological change that can lead to cardiac murmur and cyanosis due to the increased workload on the heart.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00337"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms suggest a possible opioid withdrawal, given the history of constipation and fibromyalgia, along with the physical exam findings.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00338"
+        },
+        {
+          "cited": false,
+          "claim": "Haloperidol can help with nausea, and diphenhydramine can address any associated symptoms like rhinorrhea and lacrimation.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00338"
+        },
+        {
+          "cited": false,
+          "claim": "Desensitization is an effective treatment for phobias and involves gradual exposure to the feared object or situation.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00339"
+        },
+        {
+          "cited": false,
+          "claim": "Given the patient's symptoms of forgetfulness, unsteadiness, and falls, along with the neurological findings such as decreased muscle strength and a positive Babinski sign, cognitive training is a suitable non-pharmacological intervention to address cognitive decline.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00340"
+        },
+        {
+          "cited": false,
+          "claim": "The anesthetized nerve, likely the pudendal nerve, supplies the external anal sphincter.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00341"
+        },
+        {
+          "cited": false,
+          "claim": "The clinical presentation suggests peritonsillar abscess, given the history of sore throat, fever, and deviation of the uvula.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00350"
+        },
+        {
+          "cited": false,
+          "claim": "Incision and drainage with antibiotics is the most appropriate next step.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00350"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms, including fatigue, pale appearance, low hemoglobin, and depressed mood, suggest a psychological condition rather than a physical one.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00351"
+        },
+        {
+          "cited": false,
+          "claim": "The request for a diagnostic laparoscopy despite negative findings and the patient's belief in having cancer are indicative of factitious disorder.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00351"
+        },
+        {
+          "cited": false,
+          "claim": "Bone marrow biopsy is the most definitive test to confirm the diagnosis of aplastic anemia by assessing the hypocellularity of the bone marrow.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00353"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's history of polysubstance abuse and depression, along with the respiratory alkalosis (elevated PaCO2) suggest amitriptyline toxicity, which can cause respiratory depression and metabolic acidosis secondary to hyperventilation.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00357"
+        },
+        {
+          "cited": false,
+          "claim": "A radiograph is needed to rule out a fracture given the mechanism of injury and clinical findings.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00358"
+        },
+        {
+          "cited": false,
+          "claim": "CD8+ lymphocyte infiltration in the endomysium is characteristic of polymyositis.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00359"
+        },
+        {
+          "cited": false,
+          "claim": "The symptoms suggest a reactive arthritis, often associated with Shigella infection, characterized by a rash called erythema nodosum, which is a circular erythematous rash with central clearing.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00362"
+        },
+        {
+          "cited": false,
+          "claim": "Vasoactive intestinal peptide is known to increase secretion and is involved in the pathophysiology of diarrhea.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00365"
+        },
+        {
+          "cited": false,
+          "claim": "Transient ST elevations during episodes of pain suggest ischemic changes, similar to those seen in myocardial infarction.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00366"
+        },
+        {
+          "cited": false,
+          "claim": "The photograph likely shows herpetic keratitis with dendritic ulcer, which is characteristic of herpes simplex keratitis.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00373"
+        },
+        {
+          "cited": false,
+          "claim": "Exchange transfusion is the most appropriate treatment for sickle cell disease associated with stroke or potential stroke, as seen in this case with facial asymmetry and pain.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00375"
+        },
+        {
+          "cited": false,
+          "claim": "The presence of a tympanitic mass in the epigastrium, succussion splash, and reduced bowel sounds suggest a mass lesion, most likely a neoplastic growth.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00378"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms suggest a right cord hemisection, as the deficits are on the left side of the body, indicating injury to the right spinal cord.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00389"
+        },
+        {
+          "cited": false,
+          "claim": "The absence of a pulse during inspiration suggests cardiac tamponade, which requires immediate pericardiocentesis to relieve the pressure on the heart.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00391"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's history of smoking, along with the spirometry results showing an FEV1:FVC ratio of 62% and an FEV1 of 60% of predicted, is most consistent with chronic obstructive pulmonary disease (COPD).",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00392"
+        },
+        {
+          "cited": false,
+          "claim": "Transfer to the NICU for close monitoring and further evaluation of the condition.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00393"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's anemia is likely due to iron deficiency, indicated by low hemoglobin and ferritin levels, which would lead to upregulated serum transferrin receptors.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00394"
+        },
+        {
+          "cited": false,
+          "claim": "Atorvastatin is a statin that reduces LDL cholesterol by inhibiting HMG-CoA reductase, which in turn decreases the production of mevalonate.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00405"
+        },
+        {
+          "cited": false,
+          "claim": "The physician is likely trying to avoid the side effect of increased prostaglandin production, which can lead to gastrointestinal issues.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00407"
+        },
+        {
+          "cited": false,
+          "claim": "HCV genotype 1 requires interferon and ribavirin therapy.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00408"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms and laboratory findings are consistent with pernicious anemia, which is associated with autoimmune atrophic gastritis targeting parietal cells.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00409"
+        },
+        {
+          "cited": false,
+          "claim": "The elevated IgA tissue transglutaminase titer is highly suggestive of celiac disease.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00411"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's hyperchloremic metabolic acidosis, indicated by the low chloride and normal bicarbonate, suggests inadequate fluid replacement with a high chloride content, likely from parenteral nutrition or crystalloids.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00413"
+        },
+        {
+          "cited": false,
+          "claim": "Administering 5% dextrose IV with 0.45% saline IV will help correct the acidosis and reduce chloride load.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00413"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's history of meningitis and Streptococcus pneumoniae infection, along with the presence of Neisseria gonorrhoeae, suggests a defect in the complement system, specifically in the component that creates pores in the cell membrane, such as C5b-9, which is involved in the formation of the membrane attack complex.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00416"
+        },
+        {
+          "cited": false,
+          "claim": "Digoxin should be used with caution in hypotensive patients as it can further decrease myocardial contractility and may precipitate bradyarrhythmias.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00421"
+        },
+        {
+          "cited": false,
+          "claim": "Opioids can depress the respiratory center, leading to respiratory failure.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00422"
+        },
+        {
+          "cited": false,
+          "claim": "Given the presence of a hiatal hernia and failure of medical therapy, surgical intervention is the most appropriate next step.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00429"
+        },
+        {
+          "cited": false,
+          "claim": "Given the patient's confusion, agitation, and history of alcohol use, she is likely experiencing Wernicke-Korsakoff syndrome, which requires immediate treatment with intravenous thiamine to prevent permanent brain damage.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00432"
+        },
+        {
+          "cited": false,
+          "claim": "The presence of frothy white discharge with a malodorous odor and motile organisms in a wet mount is characteristic of Trichomonas vaginalis.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00433"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms suggest an acute asthma exacerbation, which is best treated with inhaled ipratropium to relieve bronchospasm and oxygen to improve oxygenation.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00435"
+        },
+        {
+          "cited": false,
+          "claim": "Invasive ductal carcinoma is often associated with HER2 overexpression.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00437"
+        },
+        {
+          "cited": false,
+          "claim": "Angiotensin-II receptors in the membranes of vascular smooth muscle cells are targeted by medications like ACE inhibitors and ARBs, which can cause constipation as a side effect.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00438"
+        },
+        {
+          "cited": false,
+          "claim": "Epinephrine helps constrict blood vessels and can effectively stop nasal bleeding.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00440"
+        },
+        {
+          "cited": false,
+          "claim": "Given the patient's condition and wishes, it is appropriate to honor his request for all life-saving measures while ensuring he receives the necessary medical care.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00444"
+        },
+        {
+          "cited": false,
+          "claim": "Class I anti-arrhythmic drugs, such as sodium channel blockers, can cause anticholinergic side effects like headache and tinnitus at high doses.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00446"
+        },
+        {
+          "cited": false,
+          "claim": "Hemorrhagic vomiting and signs of shock (pale appearance, tachycardia, hypotension) suggest significant blood loss, leading to decreased systemic vascular resistance.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00447"
+        },
+        {
+          "cited": false,
+          "claim": "Given the small size of the unruptured AAA (4.1 cm) and the patient's stable condition, elective endovascular repair is the best course of treatment to avoid the risks associated with emergency surgery.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00448"
+        },
+        {
+          "cited": false,
+          "claim": "Injury to the recurrent laryngeal nerve can cause hoarseness after thyroid surgery due to its close proximity to the inferior thyroid arteries.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00449"
+        },
+        {
+          "cited": false,
+          "claim": "Cilostazol works by inhibiting phosphodiesterase, which increases cyclic AMP and improves blood flow.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00451"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms and chest radiograph findings are characteristic of pneumonia caused by Mycoplasma pneumoniae, which produces a polyribosyl-ribitol-phosphate capsule.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00452"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms and laboratory findings are consistent with hepatic encephalopathy, which is a diagnosis of exclusion as other causes of altered mental status must be ruled out.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00457"
+        },
+        {
+          "cited": false,
+          "claim": "Obesity can cause gynecomastia due to increased estrogen production.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00460"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's recent weight gain and tender breast tissue are consistent with this diagnosis.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00460"
+        },
+        {
+          "cited": false,
+          "claim": "Excess weight can lead to osteoarthritis and fatigue, explaining the patient's symptoms.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00466"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms suggest opioid overdose, and the drug administered was likely naloxone, which acts as a \u03ba receptor agonist and \u03bc receptor antagonist to reverse the effects.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00468"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms, including shortness of breath, cough, malaise, and bilateral ankle pain, along with a history of travel to Arizona and a ciliary injection in the left eye, are most consistent with histoplasmosis.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00469"
+        },
+        {
+          "cited": false,
+          "claim": "The patient's symptoms of cold intolerance, fatigue, constipation, and heavy menstrual bleeding, along with a stony hard, tender, and asymmetrically enlarged thyroid, suggest Reidel thyroiditis.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00471"
+        },
+        {
+          "cited": false,
+          "claim": "Anaplastic carcinoma is rare and usually presents with rapid growth, medullary carcinoma would show higher TSH levels, and silent thyroiditis typically presents with normal TSH levels.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00471"
+        },
+        {
+          "cited": false,
+          "claim": "The increased fragility in hypotonic solution suggests spherocytosis, which would be expected to show spherocytes on a blood smear.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00476"
+        },
+        {
+          "cited": false,
+          "claim": "Raising the cut-off from 6.5% to 7.0% would miss more cases of diabetes, increasing false negatives.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00481"
+        },
+        {
+          "cited": false,
+          "claim": "The reddened and swollen 2nd toe is most consistent with the hair tourniquet syndrome, where a hair becomes lodged in the toe and causes a constriction leading to swelling and redness.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00484"
+        },
+        {
+          "cited": false,
+          "claim": "The symptoms suggest a neurodegenerative disease such as frontotemporal dementia, characterized by frontotemporal atrophy and tau protein aggregation.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "D",
+          "predicted_option": true,
+          "question_id": "test_00487"
+        },
+        {
+          "cited": false,
+          "claim": "The clinical presentation is consistent with Sj\u00f6gren's syndrome, and SS-B antibodies are commonly associated with this condition.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "A",
+          "predicted_option": true,
+          "question_id": "test_00488"
+        },
+        {
+          "cited": false,
+          "claim": "Impaired migration of GnRH neurons can lead to hypogonadism, which is associated with delayed puberty and olfactory dysfunction.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "C",
+          "predicted_option": true,
+          "question_id": "test_00490"
+        },
+        {
+          "cited": false,
+          "claim": "Ipratropium bromide acts on the muscarinic receptors, affecting the arachidonic acid pathway by reducing inflammation and bronchoconstriction.",
+          "entailed": false,
+          "max_entail_score": 0.0,
+          "option_id": "B",
+          "predicted_option": true,
+          "question_id": "test_00493"
+        }
+      ],
+      "primary": "hallucination_rate_predicted_option",
+      "threshold": 0.5
+    },
+    "hallucination_pending": false,
+    "hallucination_rate": 1.0,
+    "invalid_citation_count": 0,
+    "llm_cache_hits": 200,
+    "llm_calls_total": 200,
+    "macro_f1": 0.5394584846031824,
+    "macro_f1_note": "position-bias check, not a skill metric for 4-option MCQ",
+    "mean_llm_calls": 1.0,
+    "mrr": null,
+    "n_evaluated": 200,
+    "p_at_1": null,
+    "p_at_2": null,
+    "prompt_tokens_total": 0,
+    "ranking_note": "P@K / MRR are null: this variant emits a single predicted option, not a ranked differential (approved Phase 6 plan).",
+    "ranking_source": "single_prediction",
+    "status_counts": {
+      "ok": 200
+    }
+  },
+  "run_id": "medqa_V0-gemini_a23acb7_20260912T184237Z",
+  "seed": 42,
+  "split": "test",
+  "superseded": false,
+  "superseded_by": null,
+  "superseded_reason": null,
+  "variant": "V0-gemini"
+}

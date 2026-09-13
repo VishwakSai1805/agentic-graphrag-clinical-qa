@@ -1,0 +1,77 @@
+﻿{
+    "check":  "docs/04_EVALUATION.md section 1.0d -- section 0.6 stronger-model sensitivity check (ADR-047)",
+    "measures":  "model dependence, not MedQA; robustness only, never a headline row",
+    "launched_utc":  "2026-09-12 18:42:34Z",
+    "launch_head":  "a23acb7176e41e7f6275fe73a9358242225b0a5d",
+    "model":  "gemini/gemini-3.8-flash",
+    "model_candidates":  [
+                             "gemini/gemini-3.8-flash",
+                             "gemini/gemini-2.5-flash",
+                             "gemini/gemini-3.5-flash-lite"
+                         ],
+    "api_version":  "v1beta",
+    "free_tier_only":  true,
+    "dataset":  "medqa",
+    "split":  "test",
+    "n":  200,
+    "seed":  42,
+    "question_ids":  "results/phase7_gemini/question_ids_200.json",
+    "cells":  [
+                  "V0",
+                  "V3",
+                  "B3",
+                  "V5",
+                  "V3rep"
+              ],
+    "commands":  {
+                     "V0":  "uv run python -m src.eval.harness --dataset=medqa --split=test --seed=42 --question-ids=results/phase7_gemini/question_ids_200.json --llm-model=gemini/gemini-3.8-flash --llm-api-version=v1beta --variant-suffix=-gemini --config=configs/gemini_base.yaml --variant=V0",
+                     "V3":  "uv run python -m src.eval.harness --dataset=medqa --split=test --seed=42 --question-ids=results/phase7_gemini/question_ids_200.json --llm-model=gemini/gemini-3.8-flash --llm-api-version=v1beta --variant-suffix=-gemini --config=configs/gemini_base.yaml --variant=V3",
+                     "B3":  "uv run python -m scripts.run_baselines --dataset=medqa --split=test --seed=42 --question-ids=results/phase7_gemini/question_ids_200.json --llm-model=gemini/gemini-3.8-flash --llm-api-version=v1beta --variant-suffix=-gemini --config=configs/gemini_base.yaml --baselines=B3",
+                     "V5":  "uv run python -m src.eval.harness --dataset=medqa --split=test --seed=42 --question-ids=results/phase7_gemini/question_ids_200.json --llm-model=gemini/gemini-3.8-flash --llm-api-version=v1beta --variant-suffix=-gemini --config=configs/gemini_v5.yaml",
+                     "V3rep":  "uv run python -m src.eval.harness --dataset=medqa --split=test --seed=42 --question-ids=results/phase7_gemini/question_ids_200.json --llm-model=gemini/gemini-3.8-flash --llm-api-version=v1beta --variant-suffix=-gemini-rep2 --config=configs/gemini_v3_repeat.yaml --variant=V3"
+                 },
+    "run_dirs":  {
+                     "V0":  "medqa_V0-gemini_a23acb7_20260912T184237Z",
+                     "V3":  "medqa_V3-gemini_a23acb7-dirty_20260912T192135Z",
+                     "B3":  "medqa_B3-gemini_a23acb7-dirty_20260912T200212Z",
+                     "V5":  "medqa_V5-gemini_a23acb7-dirty_20260912T204213Z",
+                     "V3rep":  "medqa_V3-gemini-rep2_a23acb7-dirty_20260912T212223Z"
+                 },
+    "cell_outcomes":  [
+                          {
+                              "Cell":  "V0",
+                              "ExitCode":  0,
+                              "Minutes":  0.1,
+                              "Log":  "C:\\Claude\\AI Project\\logs\\gemini06_V0_20260913_001234.log"
+                          },
+                          {
+                              "Cell":  "V3",
+                              "ExitCode":  0,
+                              "Minutes":  40.3,
+                              "Log":  "C:\\Claude\\AI Project\\logs\\gemini06_V3_20260913_001234.log"
+                          },
+                          {
+                              "Cell":  "B3",
+                              "ExitCode":  0,
+                              "Minutes":  39.2,
+                              "Log":  "C:\\Claude\\AI Project\\logs\\gemini06_B3_20260913_001234.log"
+                          },
+                          {
+                              "Cell":  "V5",
+                              "ExitCode":  0,
+                              "Minutes":  40.5,
+                              "Log":  "C:\\Claude\\AI Project\\logs\\gemini06_V5_20260913_001234.log"
+                          },
+                          {
+                              "Cell":  "V3rep",
+                              "ExitCode":  0,
+                              "Minutes":  40.8,
+                              "Log":  "C:\\Claude\\AI Project\\logs\\gemini06_V3rep_20260913_001234.log"
+                          }
+                      ],
+    "nondeterminism":  "Gemini exposes no seed: these runs are NOT reproducible (ADR-047, docs/00 section 7). temperature pinned to 0.0; V3rep quantifies run-to-run agreement, descriptive only.",
+    "next_steps":  [
+                       "uv run python -m scripts.analysis.gemini_sensitivity_family --v0 \u003cdir\u003e --v3 \u003cdir\u003e --b3 \u003cdir\u003e --v5 \u003cdir\u003e --v3-repeat \u003cdir\u003e",
+                       "fill docs/04 section 5.1 from results/phase7_gemini/gemini_sensitivity_family.json"
+                   ]
+}

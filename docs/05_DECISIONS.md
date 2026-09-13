@@ -3440,3 +3440,89 @@ deliberate decision for whoever needs it, recorded in its own ADR.
 `scripts/analysis/gemini_sensitivity_family.py`;
 `scripts/run_gemini_sensitivity.ps1`; `tests/test_llm_cost_guard.py`,
 `tests/test_gemini_sensitivity_family.py`. Results go to §5.1 and §1.0d.
+
+## ADR-048 — The resolved run config never reached `chat()`: five "Gemini" cells silently replayed the 7B's cached answers, and the guard that makes that unwritable
+Date: 2026-09-13 · Phase: 7 (§0.6 check) · Status: accepted
+
+**What happened.** All five §0.6 cells completed, exited 0, and wrote
+well-formed runs. Every one was **100% cache hits with zero network calls**,
+and every accuracy was byte-identical to its 7B counterpart: V0 200/200 @
+0.540, V3 200/200 @ 0.505, B3 963/963 @ 0.505, V5 1091/1091 @ 0.325, V3rep
+200/200 @ 0.505. The 40-minute runtimes were retrieval; V0, which retrieves
+nothing, took 6 seconds. No Gemini API call was made by any cell.
+
+**Mechanism, established not inferred.** `chat()` resolves
+`cfg = config or _get_config()` (`src/llm/client.py`). **No feature call site
+passes `config=`** — not the four calls in `src/eval/baselines.py` (395, 436,
+550, 586), and not the agents, which thread an injectable `chat_fn` but never a
+config. So every call fell through to `_get_config()`, which loads the
+hardcoded `_DEFAULT_CONFIG_PATH = configs/base.yaml` and memoises it. Verified:
+`_cache_key` *does* mix in the model id (`key(gemini)=43ffdda7…` vs
+`key(qwen)=f80bc9ab…`), and `--llm-model` *did* reach `cfg` before the key was
+computed. The defect is neither of those — the resolved config simply never
+arrived. Keys were therefore computed under `ollama/qwen2.5:7b-instruct`,
+matching the committed 7B grid runs' keys exactly, so the cache answered
+everything.
+
+**Two aggravations.** `free_tier_only` lives in the same unreached config, so
+**the cost guard never armed**. And `--llm-model` reached `cfg`, which is what
+`write_run` serialises — so all five `config.yaml` files recorded
+`gemini/gemini-3.8-flash`, `api_version: v1beta`, `free_tier_only: true` while
+Qwen answered every question. **The provenance actively lied.** A run like this
+is indistinguishable from a real result by filename, by `metrics.json`, or by
+its own recorded config.
+
+**No committed result is affected.** The defect only bites when `--config`
+resolves an `llm` block differing from `base.yaml`. Checked: `agents.yaml`,
+`v5.yaml` and `v4_no_conflict.yaml` override only `agents` / `calibration` and
+carry an `llm` block identical to `base.yaml`, so every Phase 7 grid cell used
+exactly the config it recorded. Only the Gemini configs differ, and only the
+five Gemini cells were wrong. Those five run dirs are deleted; they are not
+superseded-marked, because a run that never called its own model is not a
+result to retain.
+
+**Decision — three layers, because any one of them alone is defeatable.**
+
+1. **`set_active_config(cfg)`** (`src/llm/client.py`), called by `run_eval` and
+   `scripts/run_baselines.main` immediately after the config is resolved and
+   before any `chat()`. This is the root-cause fix: it makes the resolved
+   config the one feature code actually uses. Threading `config=` through every
+   baseline and agent call site would be more principled, but it is a wide
+   refactor of code that produced committed results, and the guard below covers
+   the residual risk at far lower cost.
+2. **Physically separate cache directories.**
+   `cache_namespace_by_provider_model: true` is now stated explicitly in all
+   three Gemini configs, so Gemini entries live under
+   `.cache/llm/gemini__<model>/`. Belt and braces: the key must be right *and*
+   the directories must be separate, so a key collision cannot replay 7B
+   answers even if layer 1 regresses.
+3. **`assert_generator_provenance`**, called before `write_run` so a failing
+   run never reaches `results/`. Two independent checks: (a) every model in
+   `StatsTracker.models_used` must be the model the config names — this alone
+   would have caught the original defect outright; (b) a hosted-provider run
+   must actually call out, because once layer 1 works, check (a) reads the same
+   field on both sides and becomes near-tautological. A first run against a
+   hosted provider whose cache-hit rate exceeds 0.5 is refused; `--allow-warm-cache`
+   opts in for a deliberate resume, where a high rate is correct. Local
+   providers are exempt — the 7B grid replays from cache by design.
+
+`CallStats.models_used` (model id → call count) is the new record of which
+generator *actually* served a run, written into every `metrics.json` as
+`generator_provenance` alongside the config that names it. The two came apart
+once; from now on they are compared, not assumed to agree.
+
+**Why the guard is non-negotiable.** This is the most dangerous failure mode in
+the system precisely because it does not look like one. A crash is safe — it
+stops. This exited 0, produced plausible numbers, and would have entered §5.1
+as "Gemini reproduces the 7B result exactly", which is both false and the most
+persuasive possible form of the claim the check exists to test.
+
+**Consequences.** `src/llm/client.py` (`set_active_config`,
+`LLMProvenanceError`, `HOSTED_PROVIDERS`, `assert_generator_provenance`,
+`CallStats.models_used`); `--allow-warm-cache` on the harness and
+`scripts/run_baselines.py`; explicit `cache_namespace_by_provider_model` in the
+three Gemini configs; `tests/test_generator_provenance.py`, which reproduces
+the defect end to end rather than asserting on one field. The five invalid run
+dirs are deleted and all five cells must be re-run; before anything else is
+read from them, `llm_cache_hits` must be ~0 and each `config.yaml` must record
+`gemini/gemini-3.8-flash`.

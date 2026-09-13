@@ -16,4 +16,8 @@
 # than reporting a fake 1.000.
 _extends: gemini_base.yaml
 
+llm:
+  # Restated explicitly (ADR-048), as in gemini_v5.yaml.
+  cache_namespace_by_provider_model: true
+
 cache_dir: .cache/llm_gemini_rep2
