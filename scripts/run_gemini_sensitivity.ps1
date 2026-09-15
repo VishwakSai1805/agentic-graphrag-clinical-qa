@@ -127,7 +127,13 @@ cfg = load_config('configs/gemini_base.yaml')
 cfg.llm.fallback_chain[0].model = '$cand'
 if f'gemini:$cand' not in cfg.llm.free_tier_allowed:
     print('not on the free-tier allowlist'); sys.exit(1)
-r = chat('Reply with the single word OK.', config=cfg, max_tokens=512)
+# use_cache=False is load-bearing (ADR-049 Decision 7). This gate exists to
+# confirm the free tier is SERVING the model right now. The probe prompt is
+# fixed, so with caching on it hits the previous run's entry, prints its reply
+# and passes while the API is returning 503s -- which is exactly what happened
+# on 2026-09-15. A gate satisfied by cache instead of by reality is the
+# ADR-048 defect wearing a different hat.
+r = chat('Reply with the single word OK.', config=cfg, max_tokens=512, use_cache=False)
 txt = (r.text or '').strip()
 if not txt:
     print('probe returned EMPTY text -- served but produced no visible output'); sys.exit(1)

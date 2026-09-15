@@ -3756,3 +3756,33 @@ but are planned for removal in a future release."* ADR-047 pins `temperature:
 0.0` as the only determinism lever Gemini offers. If that removal lands, §0.6
 loses its last determinism control and the nondeterminism disclosure must widen
 accordingly. Recorded now so it is not a surprise later.
+
+**Decision 7 — the launcher's model probe ran against cache, not the API. Fixed
+with `use_cache=False`.** Found by running the canary on 2026-09-15. Check 5 of
+`scripts/run_gemini_sensitivity.ps1` exists to confirm *"a model probe confirms
+which allowlisted model the free tier actually serves AND returns non-empty
+text"*. It printed `probe reply: OK` and passed. It made no API call: the probe
+prompt is a fixed string, so its cache key matched the entry written by the
+2026-09-12/13 dry runs, and `chat()` served it from
+`.cache/llm/gemini__gemini-gemini-3.8-flash/`. Established, not inferred — every
+one of the 9 entries in that namespace has an mtime of 2026-09-12 or 09-13, no
+cache file anywhere was written on 09-15, and `use_cache` defaults to `True`
+with no call site overriding it.
+
+**This is the ADR-048 defect in a different place.** Not the same mechanism —
+the config reached `chat()` correctly this time and the key was computed under
+the right model — but the same shape: **a check whose job is to verify reality
+was satisfied by a replay of an earlier reality.** The gate is meant to fail
+when the tier is not serving; instead it passed while the tier was returning
+503s, and the run proceeded to burn its first cell against a dead endpoint.
+
+The fix is one argument: the probe now calls `chat(..., use_cache=False)`, so
+check 5 always costs one live call and can only pass on a live reply. That is
+the correct trade — a gate that cannot touch the thing it certifies is not a
+gate. Generalised: **any check that asserts a live external dependency must
+bypass the cache; caching is for the workload, never for the gate.**
+
+**Also noted:** the same namespace still holds one cached *empty-text* entry
+from the pre-fix `max_tokens=8` probe (ADR-047). It is harmless now — the
+post-ADR-047 gate fails hard on empty text — but it is a reminder that a cache
+written by a known-broken configuration outlives the fix.
