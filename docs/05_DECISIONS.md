@@ -3705,3 +3705,54 @@ run ever made, so V5's share cannot exceed 21 regardless.
 calibrated softmax selecting a zero-SUPPORT option, established without
 reference to truncation. No number in §5.0a moves and no verdict changes. This
 is recorded as a disclosure with a measured bound, not as a retraction.
+
+**Decision 6 — the asymmetry was tested for removal, and cannot be removed.
+`max_tokens: 1024` stands, and the disclosure stands with it.** Gemini's API
+does expose a thinking budget separately from `max_output_tokens`
+(`thinkingConfig.thinkingBudget`), which would be strictly better than
+disclosing an asymmetry: give reasoning its own allowance, hold visible output
+at the 7B's 512, and the two arms match exactly. Tested rather than assumed —
+`scripts/probe_gemini_thinking_budget.py` →
+`results/phase7_gemini/thinking_budget_probe.json`, four real calls.
+
+**It does not reach `gemini-3.8-flash` through LiteLLM.** The decisive evidence
+is the static mapping, not the token counts:
+
+| attempt | what LiteLLM actually puts in `thinkingConfig` | reasoning tokens |
+|---|---|---|
+| baseline (no thinking param) | *(none)* | 133 |
+| `thinking={"type":"enabled","budget_tokens":128}` | `{includeThoughts: true}` | 119 |
+| `reasoning_effort="low"` | `{thinkingLevel: "low", includeThoughts: true}` | 100 |
+| raw `thinkingConfig={"thinkingBudget":128}` kwarg | *(none — silently dropped)* | 103 |
+
+`litellm.llms.vertex_ai.gemini…: _map_thinking_param` routes Gemini 3+ models
+(`_is_gemini_3_or_newer("gemini-3.8-flash")` is `True`) to `thinkingLevel` and
+**discards `budget_tokens` entirely** — the same call against `gemini-2.5-flash`
+does emit `thinkingBudget: 128`. So no numeric budget is ever sent, and the raw
+kwarg is not a supported param and never reaches the request either. The
+reasoning-token spread (100/103/119/133) is corroboration only and is not
+load-bearing: Gemini exposes no seed, so a four-sample spread in that band is
+noise, not a cap.
+
+**`reasoning_effort="low"` is not the escape hatch it looks like.** It does
+lower reasoning tokens — but it is a coarse behavioural setting that makes the
+generator think *less*, which changes precisely the thing §0.6 exists to
+measure. Using it to buy budget parity would trade a disclosed token asymmetry
+for an undisclosed capability change. Rejected on those grounds, not on
+mechanics.
+
+**Consequence.** `configs/gemini_base.yaml` keeps `max_tokens: 1024`, and
+Decision 3's asymmetry disclosure stands exactly as written — now with the
+addition that removal was attempted and is blocked at the provider/gateway
+layer, which is a stronger disclosure than the original. Re-test if LiteLLM
+adds a `thinking_level`/budget passthrough for Gemini 3+, or if the §0.6 model
+resolves to `gemini-2.5-flash` instead (the candidate list in
+`scripts/run_gemini_sensitivity.ps1` allows it, and 2.5 *does* accept
+`thinkingBudget`) — on that model the asymmetry could be removed outright.
+
+**Noted in passing, not acted on.** LiteLLM emits a deprecation warning on this
+model: *"`temperature`, `top_p`, and `top_k` continue to function for Gemini 3+
+but are planned for removal in a future release."* ADR-047 pins `temperature:
+0.0` as the only determinism lever Gemini offers. If that removal lands, §0.6
+loses its last determinism control and the nondeterminism disclosure must widen
+accordingly. Recorded now so it is not a surprise later.

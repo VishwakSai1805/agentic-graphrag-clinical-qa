@@ -1,0 +1,104 @@
+{
+  "generated_utc": "2026-09-15T125806Z",
+  "verdict_recomputed_utc": "2026-09-15T132236Z",
+  "verdict_recomputed_without_new_calls": true,
+  "adr": "ADR-049",
+  "model": "gemini/gemini-3.8-flash",
+  "visible_budget_tested": 512,
+  "question": "can the reasoning budget be set separately from max_output_tokens, so visible output can be held at the 7B's 512 and the asymmetry removed?",
+  "reasoning_budget_separable": false,
+  "numeric_thinking_budget_reaches_api": false,
+  "token_evidence_consistent_with_a_cap": false,
+  "reasoning_tokens_observed": [
+    100,
+    103,
+    119,
+    133
+  ],
+  "verdict_basis": "static mapping first: litellm routes Gemini 3+ to thinkingLevel and drops budget_tokens, so no request carries a numeric thinkingBudget. Reasoning-token counts are corroboration only -- Gemini has no seed, so single-call differences sit within noise (ADR-047).",
+  "caveat_reasoning_effort": "reasoning_effort=low DOES lower reasoning tokens, but it is a coarse behavioural setting, not a budget: it makes the generator think less, which changes the very thing section 0.6 measures. Not a legitimate fix.",
+  "attempts": [
+    {
+      "attempt": "baseline",
+      "hypothesis": "no thinking parameter: reasoning and visible text share max_tokens",
+      "call_kwargs": {
+        "max_tokens": 512
+      },
+      "thinking_config_litellm_would_send": null,
+      "ok": true,
+      "api_attempts": 1,
+      "prompt_tokens": 96,
+      "completion_tokens": 180,
+      "reasoning_tokens": 133,
+      "visible_tokens_approx": 47,
+      "finish_reason": "stop",
+      "text_empty": false,
+      "text_head": "```json\n{\"answer\": \"C\", \"rationale\": \"Carvedilol is a beta-blocker proven to reduce mortality and improve long-term surv"
+    },
+    {
+      "attempt": "thinking_budget_128",
+      "hypothesis": "if budget_tokens reaches the API, reasoning should be capped near 128",
+      "call_kwargs": {
+        "max_tokens": 512,
+        "thinking": {
+          "type": "enabled",
+          "budget_tokens": 128
+        }
+      },
+      "thinking_config_litellm_would_send": {
+        "includeThoughts": true
+      },
+      "ok": true,
+      "api_attempts": 1,
+      "prompt_tokens": 96,
+      "completion_tokens": 166,
+      "reasoning_tokens": 119,
+      "visible_tokens_approx": 47,
+      "finish_reason": "stop",
+      "text_empty": false,
+      "text_head": "```json\n{\"answer\": \"C\", \"rationale\": \"Carvedilol is a beta-blocker proven to reduce mortality and improve long-term surv"
+    },
+    {
+      "attempt": "reasoning_effort_low",
+      "hypothesis": "Gemini 3 maps effort to thinkingLevel, not a token budget",
+      "call_kwargs": {
+        "max_tokens": 512,
+        "reasoning_effort": "low"
+      },
+      "thinking_config_litellm_would_send": {
+        "thinkingLevel": "low",
+        "includeThoughts": true
+      },
+      "ok": true,
+      "api_attempts": 1,
+      "prompt_tokens": 96,
+      "completion_tokens": 148,
+      "reasoning_tokens": 100,
+      "visible_tokens_approx": 48,
+      "finish_reason": "stop",
+      "text_empty": false,
+      "text_head": "```json\n{\"answer\": \"C\", \"rationale\": \"Carvedilol is a beta-blocker with well-established evidence demonstrating a signif"
+    },
+    {
+      "attempt": "raw_thinking_config",
+      "hypothesis": "escape hatch: push thinkingBudget straight through as a raw kwarg",
+      "call_kwargs": {
+        "max_tokens": 512,
+        "thinkingConfig": {
+          "thinkingBudget": 128,
+          "includeThoughts": false
+        }
+      },
+      "thinking_config_litellm_would_send": null,
+      "ok": true,
+      "api_attempts": 6,
+      "prompt_tokens": 96,
+      "completion_tokens": 158,
+      "reasoning_tokens": 103,
+      "visible_tokens_approx": 55,
+      "finish_reason": "stop",
+      "text_empty": false,
+      "text_head": "```json\n{\"answer\": \"C\", \"rationale\": \"Carvedilol is a guideline-directed beta-blocker that provides a proven mortality b"
+    }
+  ]
+}

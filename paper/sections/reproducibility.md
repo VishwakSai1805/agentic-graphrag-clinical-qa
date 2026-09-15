@@ -58,9 +58,16 @@ those or to the artifacts they cite; nothing here is typed from memory.
 > calls; the cache is keyed by content hash and carries no run identifier, so
 > we can say which pipeline stage truncated but not which evaluation cell. On
 > that small fraction of calls the hosted arm has more room than the local arm
-> had, not equal room. The sensitivity check is reported as robustness only and
-> is never pooled with our primary results, which is what makes a residual
-> asymmetry of this size tolerable; disclosing it is what makes it honest.
+> had, not equal room. We attempted to remove the asymmetry rather than disclose
+> it: the provider's API does expose a reasoning budget separate from the output
+> budget, which would let visible output be pinned to 512 on both arms. For this
+> model generation the parameter is not reachable — our gateway routes newer
+> models to a coarse reasoning *level* and discards the numeric budget, and the
+> level setting is not a substitute, since lowering it makes the model reason
+> less and so changes the capability under test. The sensitivity check is
+> reported as robustness only and is never pooled with our primary results,
+> which is what makes a residual asymmetry of this size tolerable; disclosing it,
+> having failed to eliminate it, is what makes it honest.
 >
 > One further detail is worth reporting because it defeats the obvious check.
 > Truncation in this pipeline does not surface as a parse failure. Our prompts
