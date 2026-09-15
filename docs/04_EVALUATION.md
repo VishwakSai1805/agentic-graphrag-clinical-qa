@@ -998,18 +998,55 @@ significantly better than the whole agent tier, and, post-hoc, than B3.
 
 **Grounding vs. accuracy: a trade-off, stated as one.** Accuracy and
 `grounded_rate` per cell, from each run's `metrics.json` (also the `Grounded`
-column of `paper/tables/results_grid.md`):
+column of `paper/tables/results_grid.md`).
 
-| variant | Acc | grounded_rate | what "grounded" means for this row |
-|---|---|---|---|
-| V0 | 0.582 | 0.000 | nothing to cite: no retrieval, by construction |
-| V1 | 0.566 | 1.000 | ≥1 valid citation (cited id is in the retrieved bundle) |
-| V2 | 0.556 | 0.998 | ≥1 valid citation |
-| V3 | 0.546 | 0.984 | ≥1 valid citation |
-| B3 | 0.538 | 0.972 | ≥1 valid citation |
-| V4−conflict | 0.358 | 0.856 | predicted option has ≥1 SUPPORT audit cell |
-| V5 | 0.316 | 0.756 | predicted option has ≥1 SUPPORT audit cell |
-| V5-refit | 0.292 | 0.652 | predicted option has ≥1 SUPPORT audit cell |
+The `ok`+0-cit column is the **truncation exposure ceiling** (ADR-049,
+`scripts/analysis/empty_citation_exposure.py` →
+`results/phase7_grid/empty_citation_exposure.json`): rows scored `ok` that
+carry no citation on any option. That is the exact footprint a completion
+truncated at `llm.max_tokens` leaves, because these prompts emit the answer
+letter before the citation list — the letter parses, the severed citation array
+recovers nothing, and `status_counts` never moves. It is a **ceiling, not an
+estimate**: every such row is a candidate, none is a confirmed truncation, since
+a model may simply cite nothing.
+
+| variant | Acc | grounded_rate | ungrounded | `ok`+0 cit | ceiling | what "grounded" means for this row |
+|---|---|---|---|---|---|---|
+| V0 | 0.582 | 0.000 | 500 | 500 | — | nothing to cite: no retrieval, by construction |
+| V1 | 0.566 | 1.000 | 0 | 0 | n/a | ≥1 valid citation (cited id is in the retrieved bundle) |
+| V2 | 0.556 | 0.998 | 1 | 0 | **0.0%** | ≥1 valid citation |
+| V3 | 0.546 | 0.984 | 8 | 3 | 37.5% | ≥1 valid citation |
+| B3 | 0.538 | 0.972 | 14 | 9 | 64.3% | ≥1 valid citation |
+| V4−conflict | 0.358 | 0.856 | 72 | 15 | — | predicted option has ≥1 SUPPORT audit cell |
+| V5 | 0.316 | 0.756 | 122 | 15 | — | predicted option has ≥1 SUPPORT audit cell |
+| V5-refit | 0.292 | 0.652 | 174 | 15 | — | predicted option has ≥1 SUPPORT audit cell |
+
+**`—` means the ratio is not meaningful for that row, and the reason differs by
+tier.** V0 retrieves nothing, so all 500 rows are `ok` with zero citations *by
+construction* — a 100% "ceiling" there is an artefact of the variant, not an
+exposure. On the **agent tier** `grounded` is defined as a SUPPORT audit cell,
+not as a citation on the answer call, so **truncating an answer call cannot make
+an agent-tier row ungrounded at all**; only a truncated *audit* call could, which
+is a different footprint this measurement does not claim to capture. The ceiling
+is a real bound only on the retrieval tier, where `grounded` = ≥1 valid citation
+and truncation takes exactly that route.
+
+**What this bounds, stated as the disclosure it is.** Truncation can account for
+**at most 15 of V5's 122 ungrounded rows (12.3%)**, and that figure is already
+too generous twice over: the agent-tier ceiling is not a valid route to
+ungroundedness (above), and independently only **21 agent-stage truncations
+exist in the entire 8,237-call cache**, shared across every agent-tier run ever
+made (V4, V4−conflict ×2, V5 ×3, V5-refit), so V5's share cannot exceed 21 and
+is realistically a small fraction of that. On the retrieval tier the absolute
+numbers are 3 rows (V3) and 9 rows (B3) out of 500 — 0.6% and 1.8% of each run.
+
+**The §5.0a(c) mechanism is unaffected, and the trade-off table's conclusions
+stand unchanged.** All 122 of V5's ungrounded rows have `pred_option_s_pos == 0`
+and all 122 are `abstained`; that is a property of the calibrated softmax
+picking a zero-SUPPORT option, established independently of any truncation.
+**This is a bound, not a correction** — no number in this section moves, no
+verdict changes, and the disclosure exists so a reader can see the exposure was
+measured rather than assumed.
 
 - **V0 has the highest accuracy point estimate and grounds nothing.** Its
   answers carry no citation a reader could check. Under CLAUDE.md §2 an

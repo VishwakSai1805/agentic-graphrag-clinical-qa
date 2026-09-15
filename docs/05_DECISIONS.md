@@ -3672,3 +3672,36 @@ committed metric changes: the truncation affects `grounded_rate` on agent-tier
 cells at a rate below 0.3% of calls, is disclosed rather than corrected, and no
 §0.6 number exists yet to be affected. The five invalid run dirs from 2026-09-13
 are deleted and committed as deleted.
+
+### ADR-049 addendum (2026-09-15) — the exposure is bounded, and the asymmetry cannot be removed
+
+Two follow-ups to the decisions above, both measured rather than argued.
+
+**Decision 5 — the truncation exposure on `grounded_rate` is quantified per
+cell, and it is a bound, not a correction.** Decision 4 established that a
+truncated answer call is scored `ok` with an empty citation set, which degrades
+`grounded_rate` invisibly. Leaving that qualitative would have been an
+open-ended doubt over every grounding number in §5.0a, so it is counted:
+`scripts/analysis/empty_citation_exposure.py` →
+`results/phase7_grid/empty_citation_exposure.json` counts `ok` rows carrying no
+citation on any option, per cell, and the figures are stated beside each cell's
+`grounded_rate` in the §5.0a trade-off table.
+
+The measurement's own validity differs by tier, which is the substantive part.
+On the **retrieval tier** `grounded` = ≥1 valid citation, so the count is a true
+ceiling: V2 0 rows, V3 3, B3 9, out of 500 each. On the **agent tier**
+`grounded` = the predicted option has ≥1 SUPPORT audit cell, so an answer call's
+citations are not the route to groundedness at all — **answer-call truncation
+cannot produce an ungrounded agent-tier row**, and the 15 `ok`+0-citation rows
+in V4−conflict/V5/V5-refit are not evidence of one. V0's 500/500 is an artefact
+of having no retrieval to cite. So the headline bound — **at most 15 of V5's 122
+ungrounded rows (12.3%)** — is deliberately the most generous reading available,
+and it is still small. A second, independent bound agrees: only **21 agent-stage
+truncations exist in the whole 8,237-call cache**, shared across every agent-tier
+run ever made, so V5's share cannot exceed 21 regardless.
+
+**§5.0a(c) stands unchanged.** All 122 of V5's ungrounded rows have
+`pred_option_s_pos == 0` and all 122 are `abstained` — a property of the
+calibrated softmax selecting a zero-SUPPORT option, established without
+reference to truncation. No number in §5.0a moves and no verdict changes. This
+is recorded as a disclosure with a measured bound, not as a retraction.
