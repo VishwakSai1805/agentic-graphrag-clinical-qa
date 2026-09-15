@@ -1067,6 +1067,65 @@ The 7B column is the committed grid runs restricted to the same pinned 200
 question ids — the paired baseline P2 is scored against, not the n=500
 headline figures (0.582 / 0.546 / 0.538 / 0.316).
 
+**2026-09-13: the first attempt at these five cells produced five invalid runs
+and they are deleted (ADR-048).** All five completed, exited 0, wrote
+well-formed `config.yaml`/`metrics.json` recording `gemini/gemini-3.8-flash`,
+and were served **100% from the local 7B's cache with zero network calls** —
+the resolved run config never reached `chat()`, so every cache key was computed
+under `ollama/qwen2.5:7b-instruct`. Each cell reproduced its 7B counterpart's
+accuracy exactly. Nothing in the run record contradicted the provenance the
+runs claimed; the only signal was an implausible wall clock (V0, which
+retrieves nothing, "ran" 200 questions in 6 seconds). The three-layer guard
+(`set_active_config`, per-provider cache namespaces, `assert_generator_provenance`)
+now makes a run like that unwritable. Every number in the table above stayed
+`TBD` — no invalid figure was ever transcribed here.
+
+**Read-gate: five canary criteria, all five required before any number below is
+filled in.** These are checked against the re-run *before* the analysis script
+is allowed to matter. They are ordered weakest-to-strongest deliberately: 1-3
+read fields that the defect itself falsified, so they are necessary but not
+sufficient; 4 and 5 trust no counter.
+
+1. **Generator provenance.** `metrics.json: generator_provenance`
+   (`CallStats.models_used`) attributes **every** call to
+   `gemini/gemini-3.8-flash` and **zero** calls to any `ollama/*` model.
+2. **Cold cache.** `llm_cache_hits` is 0 on a first run (the guard refuses
+   >0.5), and `.cache/llm/gemini__gemini-gemini-3.8-flash/` has grown by
+   roughly one entry per call the cell made. `--allow-warm-cache` is legitimate
+   only when resuming after a quota stop; a run that used it is read under
+   criterion 4, never under this one. Two notes on that path: the doubled
+   `gemini-gemini` is correct rather than a bug (the slug is `provider` +
+   `_model_slug(model)` = `gemini` + `gemini-gemini-3.8-flash`), and as of
+   2026-09-15 it holds 9 entries, all of them dry-run probe calls — so it is
+   already non-empty and "exists and is non-empty" is NOT the check. Growth is.
+3. **Config agreement.** `config.yaml` records `gemini/gemini-3.8-flash`,
+   `api_version: v1beta`, `free_tier_only: true` - and now *agrees* with
+   criterion 1. In the invalid runs it recorded all three and was a lie; this
+   criterion is worth nothing alone and is listed to say so.
+4. **Accuracy is not the 7B's accuracy.** V0 != 0.540, V3 != 0.505,
+   B3 != 0.505, V5 != 0.325. **This is the sharpest criterion because it trusts
+   no counter, no field and no config** - it reads only the result. A different
+   generator that reproduces four accuracies to three decimals is a replay, not
+   a finding. An exact tie on one cell is not impossible, but it is treated as
+   a failed canary until a per-question diff against the 7B predictions shows
+   genuinely different answers summing to the same score.
+5. **The thinking-model budget did not truncate the generator.**
+   `gemini-3.8-flash` spends reasoning tokens against the same completion
+   budget (~117 of 170 on a realistic tri-modal prompt, ADR-047), so a cell can
+   be starved of room to answer. **`status_counts` alone does NOT detect this**
+   - see ADR-049: a truncated answer emits its letter before it runs out of
+   budget, so the parser returns `ok` and silently drops the citation list.
+   Check all three: `status_counts` is dominated by `ok` with no unexplained
+   `no_answer`/`parse_error`; `grounded_rate` and the empty-citation-set rate
+   are not anomalous against the 7B counterpart; and no completion sits at the
+   `max_tokens` cap. If this criterion trips, raising `llm.max_tokens` for the
+   Gemini configs is the correct fix and does not change the method - but the
+   new value and the resulting budget asymmetry must be stated in ADR-049,
+   never changed silently.
+
+A cell failing any criterion is deleted, not annotated. A run that did not call
+its own model is not a result to retain (ADR-048).
+
 ### 5.2 Phase 1 retrieval-infra validation (real numbers, NOT part of the ablation grid)
 
 These are retrieval-quality checks that validate the tri-modal plumbing

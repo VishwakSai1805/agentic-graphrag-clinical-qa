@@ -1,0 +1,204 @@
+{
+  "generated_utc": "2026-09-15T123459Z",
+  "adr": "ADR-049",
+  "question": "did the local 7B runs truncate at configs/base.yaml llm.max_tokens=512?",
+  "answer": "yes, rarely -- see truncated_fraction",
+  "tokenizer": "Qwen/Qwen2.5-7B-Instruct",
+  "cache_dir": ".cache/llm",
+  "local_max_tokens": 512,
+  "n_completions": 8237,
+  "distribution": {
+    "mean": 99.7,
+    "median": 88,
+    "p95": 242,
+    "p99": 327,
+    "max": 512
+  },
+  "n_at_exact_cap": 22,
+  "n_at_or_above": 24,
+  "truncated_fraction": 0.00291,
+  "occupied_lengths_460_to_cap": [
+    465,
+    466,
+    478,
+    511,
+    512
+  ],
+  "truncated_by_shape": {
+    "agent_json": 12,
+    "agent_prose": 9,
+    "answer": 3
+  },
+  "attribution_to_runs": "IMPOSSIBLE with the current cache format, stated rather than guessed: entries are keyed by hash and carry no run id, and the evidence they quote is shared across variants, so content matching returns nearly every run. Shape says which STAGE truncated; nothing says which CELL.",
+  "truncated_entries": [
+    {
+      "cache_entry": ".cache/llm/06/0644257e2cc7bb6d55240811f39076fd5b59c59c2e0fde9970acb79d112365dd.json",
+      "completion_tokens": 511,
+      "shape": "agent_json",
+      "head": "{\"cells\": [{\"claim_idx\": 0, \"evidence_id\": \"chunk::textbook::InternalMed_Harriso",
+      "tail": " - term abstinence. however, should the alcoholic continue to drink heavily, the"
+    },
+    {
+      "cache_entry": ".cache/llm/09/09c937bf239c8496a0b8b7f468b4975425c04c7ee7b1e0406d2577d9b64574aa.json",
+      "completion_tokens": 512,
+      "shape": "agent_prose",
+      "head": "Here's the analysis for each statement based on the provided knowledge graph (KG",
+      "tail": "D\n   - **Evidence ID:** kg::Bortezomib|drug_effect|Joint stiffness\n   - **Reason"
+    },
+    {
+      "cache_entry": ".cache/llm/0e/0e0c4e98f1125d4d51aec9dda08c2323a4c60b8e7bf415d81f9a4713fa1ea572.json",
+      "completion_tokens": 512,
+      "shape": "answer",
+      "head": "```json\n{\n  \"answer\": \"A\",\n  \"citations\": [\"chunk::textbook::InternalMed_Harriso",
+      "tail": "drug_effect|Dyspnea\", \"kg::Ciclesonide|drug_effect|Dyspnea\", \"kg::Ciprofloxacin|"
+    },
+    {
+      "cache_entry": ".cache/llm/26/2660fb9ca89c749c33a295b1b35d11a473af1b70be5a852cf944fd7d90ef7df0.json",
+      "completion_tokens": 512,
+      "shape": "agent_prose",
+      "head": "Here's the analysis for each statement based on the provided knowledge graph (KG",
+      "tail": "D\n   - **Evidence ID:** kg::Bortezomib|drug_effect|Joint stiffness\n   - **Reason"
+    },
+    {
+      "cache_entry": ".cache/llm/2b/2b7c705777ccec8dc6a7f802357bb087283f6746c446173023c215a1cd0d6571.json",
+      "completion_tokens": 512,
+      "shape": "agent_prose",
+      "head": "Here's the analysis for each statement based on the provided knowledge graph (KG",
+      "tail": "D\n   - **Evidence ID:** kg::Bortezomib|drug_effect|Joint stiffness\n   - **Reason"
+    },
+    {
+      "cache_entry": ".cache/llm/41/4185900d6dafbafdd2855aaf60539ce7661734180719616033403c62c8f8dffb.json",
+      "completion_tokens": 512,
+      "shape": "agent_prose",
+      "head": "Based on the information provided, let's analyze the drugs and substances mentio",
+      "tail": " in Hypotensive Disorder, Causes Lethargy.\n     - **Atazanavir:** Causes Myalgia"
+    },
+    {
+      "cache_entry": ".cache/llm/53/53d5468002a1006a2674824db62b7c2002bfc1c6ae82c5b7e92b988b22a40ffb.json",
+      "completion_tokens": 512,
+      "shape": "answer",
+      "head": "```json\n{\"answer\": \"A\", \"citations\": [\"kg::Alendronic acid|indication|gastroesop",
+      "tail": "udication\", \"kg::Beclomethasone dipropionate|drug_effect|Pain\", \"kg::Benazepril|"
+    },
+    {
+      "cache_entry": ".cache/llm/57/578b81e7a8c580c134c5346d832bce2fd1dbc18c7c70b92ccd21a7efa3c76414.json",
+      "completion_tokens": 512,
+      "shape": "agent_json",
+      "head": "Here is the structured output for each knowledge point in the format requested:\n",
+      "tail": "},\n    {\"verdict\": \"SUPPORTED\", \"evidence_id\": \"38\"},\n    {\"verdict\": \"SUPPORTED"
+    },
+    {
+      "cache_entry": ".cache/llm/5c/5c1d27069a1aaddcbe7b6343347954151e5bd6512119c93995e47ae3bb7a823a.json",
+      "completion_tokens": 511,
+      "shape": "agent_json",
+      "head": "{\"cells\": [{\"claim_idx\": 0, \"evidence_id\": \"chunk::textbook::InternalMed_Harriso",
+      "tail": "sts myocardial rupture. by contrast, an isolated grade 1 or 2 mid - systolic mur"
+    },
+    {
+      "cache_entry": ".cache/llm/5d/5dff4231e34f19fbf0aab5b97c2256d42ad548414d48d351846dddeb4e2b2d77.json",
+      "completion_tokens": 512,
+      "shape": "agent_prose",
+      "head": "Based on the information provided, let's analyze the drugs and substances mentio",
+      "tail": " in Hypotensive Disorder, Causes Lethargy.\n     - **Atazanavir:** Causes Myalgia"
+    },
+    {
+      "cache_entry": ".cache/llm/62/622b1c4180e5ad083b68ffa275c8e7a1ecb31b16291c0a236adcc6c53c783efb.json",
+      "completion_tokens": 512,
+      "shape": "agent_json",
+      "head": "Here is the structured output for each knowledge point in the format requested:\n",
+      "tail": "},\n    {\"verdict\": \"SUPPORTED\", \"evidence_id\": \"38\"},\n    {\"verdict\": \"SUPPORTED"
+    },
+    {
+      "cache_entry": ".cache/llm/68/683a47f1bb089659f372acc6a55b667ce1a293803ba91ac5bf4537be10238078.json",
+      "completion_tokens": 512,
+      "shape": "agent_json",
+      "head": "{\"cells\": [{\"claim_idx\": 0, \"evidence_id\": \"chunk::textbook::Psichiatry_DSM-5#47",
+      "tail": "tient psychotherapy is a standard response for patients meeting the criteria for"
+    },
+    {
+      "cache_entry": ".cache/llm/69/6988d3698db246e25ff76e6fb1e37c306bcd705d2fb79b5d07f277e842202650.json",
+      "completion_tokens": 512,
+      "shape": "agent_prose",
+      "head": "Based on the information provided, let's analyze the drugs and substances mentio",
+      "tail": "Aripiprazole:** Is contraindicated in hypotensive disorder and has the effect of"
+    },
+    {
+      "cache_entry": ".cache/llm/75/7561a44d253a999890df8b5e6d189ae0dd05081c43db47783524277c8aeb3e7d.json",
+      "completion_tokens": 512,
+      "shape": "agent_json",
+      "head": "Here are the verdicts and evidence IDs for the provided drug effects and contrai",
+      "tail": "\"SUPPORTED\", \"evidence_id\": \"36\"},\n    {\"verdict\": \"SUPPORTED\", \"evidence_id\": \""
+    },
+    {
+      "cache_entry": ".cache/llm/86/869295eed16f3dfb3c89637d359649ceb83866b51c1e004c9be35669285a6e7c.json",
+      "completion_tokens": 512,
+      "shape": "agent_json",
+      "head": "Here is the structured output for the provided knowledge points:\n\n```json\n[\n    ",
+      "tail": "  {\"verdict\": \"SUPPORTED\", \"evidence_id\": \"38\"},\n    {\"verdict\": \"SUPPORTED\", \"e"
+    },
+    {
+      "cache_entry": ".cache/llm/89/89781268e3d52cdec800bcebb8e7af0ca8f52374a22d6471734f6071fc9ba39a.json",
+      "completion_tokens": 512,
+      "shape": "agent_json",
+      "head": "Here are the verdicts and evidence IDs for the provided drug effects and contrai",
+      "tail": "\"SUPPORTED\", \"evidence_id\": \"36\"},\n    {\"verdict\": \"SUPPORTED\", \"evidence_id\": \""
+    },
+    {
+      "cache_entry": ".cache/llm/b3/b3ade97792a528ee0054ef5b2426d4bcf5224d74aeebf9c41859f22769319c95.json",
+      "completion_tokens": 512,
+      "shape": "agent_json",
+      "head": "Here are the verdicts and evidence IDs for the provided drug effects and contrai",
+      "tail": "\"SUPPORTED\", \"evidence_id\": \"36\"},\n    {\"verdict\": \"SUPPORTED\", \"evidence_id\": \""
+    },
+    {
+      "cache_entry": ".cache/llm/cb/cbdf28806c0ed5b68d436ab498179664883d828407bafd9007fbab889951fed4.json",
+      "completion_tokens": 512,
+      "shape": "agent_json",
+      "head": "Here is the structured output for each knowledge point in the format requested:\n",
+      "tail": "},\n    {\"verdict\": \"SUPPORTED\", \"evidence_id\": \"38\"},\n    {\"verdict\": \"SUPPORTED"
+    },
+    {
+      "cache_entry": ".cache/llm/d3/d37d52d7f6d7ac2e49260a4f3c18634a294d026aa5aba4a826541a1f28470520.json",
+      "completion_tokens": 512,
+      "shape": "agent_json",
+      "head": "Here are the verdicts and evidence IDs for the provided drug effects and contrai",
+      "tail": "\"SUPPORTED\", \"evidence_id\": \"36\"},\n    {\"verdict\": \"SUPPORTED\", \"evidence_id\": \""
+    },
+    {
+      "cache_entry": ".cache/llm/d6/d6bab86eef43e3c4bb64cceb0231ea430997228f41b23c375c33f71811bd32c5.json",
+      "completion_tokens": 512,
+      "shape": "agent_prose",
+      "head": "Here's the analysis for each statement based on the provided knowledge graph (KG",
+      "tail": "-linked adrenoleukodystrophy\n\n6. **Betamethasone and Diamond-Blackfan anemia:**\n"
+    },
+    {
+      "cache_entry": ".cache/llm/d9/d9bb8c0a4c7727e86a5513466b6208e6555aba410e0e7acf3f8df1ae1d18bf01.json",
+      "completion_tokens": 512,
+      "shape": "agent_prose",
+      "head": "Here's the analysis for each chunk in the context of whether the statements are ",
+      "tail": "nthem (disease).\"\n   - **Support:** This is supported by the contraindication of"
+    },
+    {
+      "cache_entry": ".cache/llm/e2/e22e88a0d60b2815e20623ca613d877834f07474adedecd7fda7ee812ebefe13.json",
+      "completion_tokens": 512,
+      "shape": "answer",
+      "head": "{\n  \"answer\": \"C\",\n  \"citations\": [\"chunk::textbook::InternalMed_Harrison#2128\",",
+      "tail": "cin B|drug_effect|Bradycardia\", \"kg::Amphotericin B|drug_effect|Cardiac arrest\","
+    },
+    {
+      "cache_entry": ".cache/llm/ee/eed455a68267e36d88ba0d1b119cb0352caecb8df90f7a13cc1fee1c731511be.json",
+      "completion_tokens": 512,
+      "shape": "agent_json",
+      "head": "{\"cells\": [{\"claim_idx\": 0, \"evidence_id\": \"chunk::textbook::InternalMed_Harriso",
+      "tail": "el\": \"NEUTRAL\", \"rationale\": \"The evidence discusses drug effects, not bilateral"
+    },
+    {
+      "cache_entry": ".cache/llm/f7/f78bb23d929f52c6d466ef57fc107d56a3835b0a9ab46518b8a26d8c9e561482.json",
+      "completion_tokens": 512,
+      "shape": "agent_prose",
+      "head": "Based on the information provided, let's analyze the drugs and substances mentio",
+      "tail": " in Hypotensive Disorder, Causes Lethargy.\n     - **Atazanavir:** Causes Myalgia"
+    }
+  ],
+  "note": "status_counts does not move for these: the answer letter precedes the citation list, so a truncated completion parses as ok with an empty citation set (ADR-049 Decision 4)."
+}

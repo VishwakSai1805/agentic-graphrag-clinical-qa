@@ -3360,10 +3360,18 @@ reasoning. Three consequences:
    tri-modal prompt (3090 prompt tokens): 170 completion tokens = **117
    reasoning + 53 visible text**. Leaving the budget at the 7B's 512 would give
    Gemini roughly 120 tokens *less* room to answer than the 7B had, so equal
-   `max_tokens` is not equal answer room. Disclosed here because it is a real
+   `max_tokens` is not equal answer room. [AMENDED 2026-09-15 by ADR-049: this
+   assumed the 7B never reached 512. Measured — it did, on 24 of 8,237 calls
+   (0.29%), all agent-tier. On those calls 1024 gives Gemini *more* room than
+   the 7B had, not equal room. The asymmetry stands and is stated, rather than
+   being claimed away.] Disclosed here because it is a real
    difference between the two arms, and it is the generator's budget only — no
    prompt, retrieval knob, scoring rule or agent setting changes.
-3. **Truncation cannot masquerade as a wrong answer.** A `length` finish yields
+3. **Truncation cannot masquerade as a wrong answer.** [CORRECTED 2026-09-15 by
+   ADR-049 — this is true of the *answer letter* and false of the *citation
+   set*. A truncation landing after the answer letter parses as `ok` with an
+   empty citation set, i.e. silently ungrounded, and `status_counts` does not
+   move. Read this item with ADR-049 Decision 4.] A `length` finish yields
    empty or partial text, which `_parse_answer` records as `no_answer` /
    `parse_error` in the run's `status_counts`. Verified empirically, along with
    the fact that Gemini returns its JSON wrapped in ```` ```json ```` fences,
@@ -3526,3 +3534,141 @@ the defect end to end rather than asserting on one field. The five invalid run
 dirs are deleted and all five cells must be re-run; before anything else is
 read from them, `llm_cache_hits` must be ~0 and each `config.yaml` must record
 `gemini/gemini-3.8-flash`.
+
+## ADR-049 — The §0.6 read-gate: five canary criteria, and a measured token-budget asymmetry (the 7B was truncated too, in 0.29% of calls)
+Date: 2026-09-15 · Phase: 7 (§0.6 check) · Status: accepted
+
+**Context.** ADR-048 makes the cache-replay defect unwritable at write time.
+This ADR governs *read* time: what must hold before any number from the re-run
+enters docs/04 §5.1. The two are deliberately separate — the guard can regress,
+and the read-gate is checked against the artifact rather than against the code
+that produced it.
+
+**Decision 1 — the five canary criteria are a read-gate, recorded in
+docs/04 §5.1.** Not repeated here; §5.1 is the operational copy and this ADR is
+the rationale. The ordering is the point: criteria 1–3 read
+`generator_provenance`, `llm_cache_hits` and `config.yaml`, all of which the
+ADR-048 defect either falsified outright (the config recorded Gemini while Qwen
+answered) or would have satisfied trivially. They are necessary, not
+sufficient, and criterion 3 is listed mainly to state that it is worth nothing
+alone. **Criterion 4 — accuracy must not equal the 7B counterpart's accuracy —
+is the sharpest, because it reads only the result and trusts no counter, no
+field and no config.** Had it existed on 2026-09-13, it would have failed all
+five cells instantly, on the same evidence that made the runs look
+*persuasive*: V0 at exactly 0.540, V3 and B3 at exactly 0.505, V5 at exactly
+0.325. Every field-based check can be fooled by a defect upstream of the field;
+the identity of four accuracies to three decimals cannot.
+
+**Decision 2 — criterion 5 (thinking-model truncation) is kept, and the fix, if
+it trips, is to raise `llm.max_tokens` for the Gemini configs only.** That is a
+generator-budget change, not a method change: it makes the generator able to
+answer at all, and touches no prompt, retrieval knob, scoring rule or agent
+setting. The current value is **`max_tokens: 1024` in `configs/gemini_base.yaml`,
+against `512` in `configs/base.yaml`** — already a 2x asymmetry, adopted in
+ADR-047 as a parity correction because ~117 of a measured 170 completion tokens
+on a realistic tri-modal prompt are invisible reasoning. Any further increase is
+recorded here with its value and its date. An asymmetry in token budget is
+defensible only if it is stated, and this is where it is stated.
+
+**Decision 3 — the parity claim is corrected: the 7B runs WERE truncated at
+their own budget, in a small and now-quantified fraction of calls.** ADR-047
+argued the 1024 budget merely restores what 512 gave the 7B. That argument
+assumed the 7B never hit 512. Checked rather than assumed, against the full
+Ollama cache (`.cache/llm/`, 8,237 completions, every 7B call the project has
+ever made), tokenised with the generator's own tokenizer
+(`Qwen/Qwen2.5-7B-Instruct`). Reproduce with
+`uv run python -m scripts.audit_completion_truncation`; every figure below is
+read from `results/phase7_gemini/completion_truncation_audit.json`, none is
+typed by hand:
+
+| statistic | completion tokens |
+|---|---|
+| mean | 99.7 |
+| median | 88 |
+| p95 | 242 |
+| p99 | 327 |
+| max | 512 |
+| completions at exactly 512 | 22 |
+| completions ≥ 511 | 24 (0.29%) |
+
+The distribution has a clean gap — the only occupied lengths in [460, 512] are
+465, 466, 478, 511 and 512, so **nothing at all sits between 490 and 510 and
+then 24 pile up at the cap.** That is truncation, not a heavy tail: these
+responses stop mid-word ("…kg::Benazepril|", "…Causes Myalgia",
+"…mid - systolic mur").
+
+**Where it lands — and the limit of what can be established.** By response
+shape the 24 split **21 agent-stage** (12 structured audit/hypothesis JSON, 9
+audit prose that never reached its JSON block) and **3 answer-shaped**. That
+says which *stage* truncated. It does not say which *cell*, and **per-run
+attribution is impossible with the current cache format** — stated here rather
+than finessed, because the first attempt at this ADR asserted otherwise and was
+wrong. Cache entries are keyed by hash and carry no run id, and content
+matching cannot substitute: the retrieved evidence a completion quotes is
+shared across variants by construction, so searching every committed
+`predictions.jsonl` for KG triples drawn from the truncated texts returns 7 of
+24 entries matching ~20 runs apiece and 17 matching nothing usable. An earlier
+three-marker spot check appeared to place them in `V4-conflict`/`V5`/`V5-refit`
+only; the full sweep shows that was an artefact of which markers were picked.
+
+So the honest scope is: **V0, V3 and B3 cannot be certified clean.** They each
+recorded `status_counts: {ok: 500}`, but Decision 4 below establishes that `ok`
+is exactly what a truncated answer produces, so their own records are weak
+evidence, not proof. What bounds the blast radius is the rate — 0.29% of all
+calls ever made — and the shape split, which puts 21 of 24 in stages that only
+the agent-tier variants execute at all. V5's 4 `agent_error` rows (0.8% of 500)
+are *consistent with* a truncated agent JSON failing schema validation after one
+repair; not proven, because `predictions.jsonl` does not persist the agent
+`notes` field carrying the parse-failure reason.
+
+**Gap left open deliberately.** The cache should stamp the `run_id` that first
+wrote each entry, which would make this attributable in one pass instead of
+unanswerable. Not done now: it changes the cache entry schema, and every
+existing entry predates it, so it would be a migration in the middle of a
+Phase 7 re-run. Logged here so it is a known gap rather than a silent one.
+
+**Consequence for the asymmetry.** The honest framing is therefore *not* "1024
+gives Gemini the same room the 7B had". On the ~0.3% of calls where the 7B ran
+out of room, Gemini at 1024 (≈900 visible after reasoning) has **more** room
+than the 7B had. The asymmetry is real, it is small, it is concentrated
+in agent-tier calls (21 of 24), and it runs in the direction of slightly
+favouring the stronger-model arm. §0.6 is a robustness check that is never a headline row and
+is never pooled with the Phase 7 families (§1.0d), which is what makes this
+tolerable — but it is disclosed, not buried, and it is disclosed in the paper's
+reproducibility section as well as here.
+
+**Decision 4 — ADR-047's "truncation cannot masquerade as a wrong answer" is
+retracted. It can masquerade as a *grounded* answer.** ADR-047 item 3 claimed a
+`length` finish yields empty or partial text that `_parse_answer` records as
+`no_answer`/`parse_error`. That holds only when the truncation lands before the
+answer letter. It does not hold for the answer-first JSON these prompts elicit.
+Verified by running the real parser over the three answer-shaped truncated
+cache entries:
+
+```
+_parse_answer(truncated_text, {'A','B','C','D'})
+  -> letter='A' status='ok' n_citations_recovered=0
+  -> letter='A' status='ok' n_citations_recovered=0
+  -> letter='C' status='ok' n_citations_recovered=0
+```
+
+`_first_json_obj` fails on the unterminated object, the regex fallback finds
+`"answer": "A"` near the start of the text, and `_citations_from_regex`
+recovers **nothing** from the severed citation array. The row is scored `ok`
+with an **empty citation set** — which under CLAUDE.md §2 is a bug and is
+scored as ungrounded. So truncation does not inflate or deflate accuracy; it
+silently degrades `grounded_rate`. This is why criterion 5 in §5.1 requires
+three checks and not just `status_counts`: **`status_counts` is exactly the
+field this failure mode does not touch.**
+
+**Consequences.** docs/04 §5.1 gains the incident note and the five-criterion
+read-gate; ADR-047 item 3 is corrected in place with a pointer here;
+`paper/sections/reproducibility.md` states the incident and the budget
+asymmetry as a transferable finding for multi-generator evaluations;
+`scripts/audit_completion_truncation.py` +
+`results/phase7_gemini/completion_truncation_audit.json` make every truncation
+figure in this ADR reproducible rather than asserted. No
+committed metric changes: the truncation affects `grounded_rate` on agent-tier
+cells at a rate below 0.3% of calls, is disclosed rather than corrected, and no
+§0.6 number exists yet to be affected. The five invalid run dirs from 2026-09-13
+are deleted and committed as deleted.
