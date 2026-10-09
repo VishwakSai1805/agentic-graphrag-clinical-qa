@@ -38,11 +38,23 @@ Notes:
 
 ## Retrieval corpora
 
-| Corpus | Source | Use |
-|---|---|---|
-| PubMed abstracts subset | MedCPT/BioASQ dumps or PubMed baseline | dense + BM25 index |
-| MedQA textbooks (18 books) | shipped with MedQA | dense + BM25, essential for USMLE-style items |
-| StatPearls | open access | optional breadth |
+What was actually indexed for the Phase 7 runs (`data/MANIFEST.json: corpus`,
+built 2026-09-05, never rebuilt since — Phase 7 runs started 2026-09-08):
+
+| Corpus | Source | Docs | Chunks | Use |
+|---|---|---|---|---|
+| PubMed abstracts subset | `pqa_artificial` (PubMedQA's unlabeled train split, 211k rows) — a fixed-seed (`seed=42`) 20,000-doc subsample, **not** a raw PubMed baseline or BioASQ dump | 20,000 | 32,683 | dense + BM25 index |
+| MedQA textbooks (18 books) | shipped with MedQA, indexed in full, not subsampled (ADR-009) | 18 | 80,782 | dense + BM25, essential for USMLE-style items |
+
+Total: 113,465 chunks. Chunking: `chunk_tokens=256`, `chunk_overlap=32`,
+tokenizer `ncbi/MedCPT-Article-Encoder` (`configs/base.yaml`). Dense index:
+MedCPT dual encoder (`ncbi/MedCPT-Query-Encoder` for queries,
+`ncbi/MedCPT-Article-Encoder` for articles), FAISS `IndexIVFFlat`, dim 768,
+inner-product metric, `nlist=100`/`nprobe=16`.
+
+**StatPearls is not indexed.** No StatPearls file exists under
+`data/raw/textbooks/en/` and `scripts/build_corpus.py` has no StatPearls
+loader — it was never built, not merely "optional."
 
 **Contamination rule:** when evaluating PubMedQA, the abstract that *is* the
 question's context must not also be retrievable as an independent corpus doc.
