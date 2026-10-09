@@ -3787,6 +3787,73 @@ from the pre-fix `max_tokens=8` probe (ADR-047). It is harmless now — the
 post-ADR-047 gate fails hard on empty text — but it is a reminder that a cache
 written by a known-broken configuration outlives the fix.
 
+## ADR-050 — The §0.6 stronger-model sensitivity check is closed as infeasible on the free tier, not abandoned
+Date: 2026-10-06 · Phase: 7 (deferred §0.6 item, closing ADR-047) · Status: accepted
+
+**Context.** ADR-047 registered the check, ADR-048 fixed the silent
+cache-replay defect, ADR-049 fixed the launcher's cache-serviced canary and
+quantified the token-budget asymmetry. With every known defect in the
+read-gate and launcher fixed, the check was relaunched on 2026-10-05
+(`results/phase7_gemini/gemini_launch_20261005_122736.json`) and again on
+2026-10-06 (`gemini_launch_20261006_020121.json`). Both failed before any
+cell produced a usable run.
+
+**Decision.** Close the check as **attempted and blocked by provider quota**,
+not dropped for convenience, and not re-attempted this cycle. Evidence:
+
+- **2026-10-05 launch, cell V0:** `gemini/gemini-3.8-flash` returned HTTP 503
+  (`status: UNAVAILABLE`, *"This model is currently experiencing high demand"*)
+  — a transient provider outage, not quota. (`logs/gemini06_V0_20261005_122736.log`)
+- **2026-10-06 launch, all five cells (V0, V3, B3, V5, V3rep), each
+  `ExitCode: 1`:** HTTP 429, `status: RESOURCE_EXHAUSTED`,
+  `quotaId: GenerateRequestsPerDayPerProjectPerModel-FreeTier`,
+  `quotaValue: 20`, `model: gemini-3.8-flash`, `retryDelay: 11470s`. The
+  message states explicitly: *"Quota exceeded for metric:
+  generativelanguage.googleapis.com/generate_content_free_tier_requests,
+  limit: 20, model: gemini-3.8-flash."* (`logs/gemini06_*_20261006_020121.log`,
+  `results/phase7_gemini/gemini_launch_20261006_020121.json`)
+
+Google AI Studio's free tier caps `gemini-3.8-flash` at **20 requests per
+calendar day, per project, per model** — observed directly, not read off a
+pricing page that could be stale. The check's four-cell, 200-question design
+(§1.0d) needs on the order of ~2,650 model calls across V0/V3/B3/V5/V3rep
+(V0/V3/B3 at ~1 call/question, V5 and the repeat cell costing several agent
+calls/question). At 20 requests/day that is **~132 days** of continuous,
+uninterrupted daily draw — against a single free-tier project, with no paid
+key in the zero-cost provider stack (ADR-004) to fall back to. That is not a
+budget the project can absorb inside the paper timeline.
+
+**Alternatives considered and rejected.**
+- *Spread the run across 132+ days.* Technically possible, but the question
+  set, code, and even the model id could drift under us before the last cell
+  lands, and ADR-047 already flags this model as giving no seed (non-
+  reproducible run-to-run); stretching one "run" across four months does not
+  square with calling it one measurement.
+- *Switch to a different free-tier Gemini model with a larger daily cap.*
+  Rejected — ADR-047 pinned `gemini-3.8-flash` specifically, with
+  `gemini-2.5-flash` / `gemini-3.5-flash-lite` as same-tier fallbacks only; the
+  fallbacks share the same per-model 20/day free-tier quota class, so this
+  does not change the arithmetic.
+- *Pay for the API tier.* Out of scope — ADR-004's zero-API-spend constraint
+  is a project-level decision, not something this one check gets to override.
+- *Drop the check silently and omit it from the paper.* Rejected — the check
+  was pre-registered (§1.0d) before any API call, specifically so a null
+  result (including "could not run") is reported, not quietly dropped.
+
+**Consequences.** §0.6 / §1.0d / §5.1 close as: attempted, blocked by
+provider quota, evidence filed. The pre-registration, cost guard, and
+launcher (`scripts/run_gemini_sensitivity.ps1`, `configs/gemini_*.yaml`,
+`results/phase7_gemini/question_ids_200.json`) stay committed as-is — anyone
+with a paid Gemini key or more calendar time can run the check exactly as
+specified, which is what turns this from a dropped experiment into a
+reproducible open question (see `paper/sections/reproducibility.md` and the
+limitations note added to the paper). All five run dirs implied by the two
+launch records were invalid (no cell produced a non-error run) and are
+deleted from `results/phase7_gemini/`; the two launch-manifest JSONs
+(`gemini_launch_20261005_122736.json`, `gemini_launch_20261006_020121.json`)
+and the `logs/gemini06_*_2026100[56]*.log` files are kept as the quota
+evidence this ADR cites.
+
 ## ADR-051 — Table 1's per-variant intervals: a Wilson formula computed outside this repo, replaced with a traceable marginal bootstrap added after the fact
 
 Date: 2026-10-09 · Phase: 7 (paper, Table 1) · Status: accepted

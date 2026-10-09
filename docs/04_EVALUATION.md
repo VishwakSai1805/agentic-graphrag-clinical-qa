@@ -1163,6 +1163,25 @@ retrieves nothing, "ran" 200 questions in 6 seconds). The three-layer guard
 now makes a run like that unwritable. Every number in the table above stayed
 `TBD` — no invalid figure was ever transcribed here.
 
+**2026-10-06: closed as infeasible on the free tier, not run (ADR-050).**
+With the ADR-048 and ADR-049 defects fixed, the check was relaunched twice —
+2026-10-05 (503 `UNAVAILABLE`, transient provider outage, cell V0 only) and
+2026-10-06 (all five cells, HTTP 429 `RESOURCE_EXHAUSTED`,
+`quotaId: GenerateRequestsPerDayPerProjectPerModel-FreeTier`, `quotaValue: 20`,
+model `gemini-3.8-flash`). Google AI Studio's free tier caps this model at
+**20 requests/day/project**, observed directly in the API error, not read off
+a pricing page. The check's design needs roughly 2,650 calls across its five
+cells — **~132 days** of uninterrupted daily draw at that cap, against a
+project with no paid key (ADR-004's zero-spend constraint). That is not
+runnable inside the paper timeline. **Status: attempted, blocked by provider
+quota — not dropped for convenience.** Every number in the table above stays
+`TBD` permanently for this project; the pre-registration (§1.0d, ADR-047),
+cost guard and launcher stay committed so the check remains runnable by
+anyone with a paid key or more calendar time (ADR-050). The two invalid
+2026-10-05/06 launch attempts left no valid run directories under
+`results/phase7_gemini/`; the launch-manifest JSONs and logs are kept as the
+quota evidence ADR-050 cites.
+
 **Read-gate: five canary criteria, all five required before any number below is
 filled in.** These are checked against the re-run *before* the analysis script
 is allowed to matter. They are ordered weakest-to-strongest deliberately: 1-3

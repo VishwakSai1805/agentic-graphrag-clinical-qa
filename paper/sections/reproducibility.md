@@ -1,8 +1,9 @@
 # Reproducibility — draft prose
 
 Source of record for every claim here: `docs/05_DECISIONS.md` ADR-047, ADR-048,
-ADR-049 and `docs/04_EVALUATION.md` §5.1. Numbers in this file are traceable to
-those or to the artifacts they cite; nothing here is typed from memory.
+ADR-049, ADR-050 and `docs/04_EVALUATION.md` §5.1. Numbers in this file are
+traceable to those or to the artifacts they cite; nothing here is typed from
+memory.
 
 ## Paragraph: silent cache replay in multi-generator evaluation
 
@@ -81,11 +82,41 @@ those or to the artifacts they cite; nothing here is typed from memory.
 > not move. Detecting it requires checking the completion-length distribution
 > against the cap and the empty-citation rate against the comparison arm.
 
+## Paragraph: single-generator dependence (limitations)
+
+> **Generator dependence.** All results in this paper use a single, locally
+> hosted generator, Qwen2.5-7B-Instruct, without fine-tuning. Whether our
+> findings — the relative ordering of variants, the calibration behaviour, the
+> hallucination rates — hold for a materially stronger generator is therefore
+> untested. We designed and pre-registered a sensitivity check for exactly this
+> question before running it (Appendix, §1.0d): the same code, prompts,
+> retrieval configuration, scoring rule and agent graph, re-run on the same 200
+> pinned questions with a hosted frontier-class model substituted for the
+> local 7B. We attempted this check twice against Google AI Studio's free
+> tier. The first attempt failed on a transient provider outage (HTTP 503). The
+> second failed on the provider's daily free-tier quota for the target model —
+> 20 requests per project per day — confirmed directly in the API's own error
+> response, not inferred from documentation. The check's four-cell, 200-
+> question design requires on the order of 2,650 model calls, which at that
+> quota is roughly 132 days of uninterrupted daily draw against a project with
+> no paid key, which our zero-API-spend constraint rules out. We therefore
+> report the generator-dependence question as untested rather than negative:
+> we did not find that our results fail to generalise to a stronger generator,
+> we were unable to obtain the quota needed to check. The pre-registration,
+> cost guard and launcher remain committed in the repository exactly as
+> specified, so this is a reproducible open question rather than a gap —
+> anyone with paid API access, or more free-tier calendar time than this
+> project's timeline allowed, can run the check as designed and report the
+> result against our pinned question set and our 7B baseline figures.
+
 ## Placement notes
 
 - Paragraph 1 belongs in the reproducibility/limitations section, not in a
   footnote: the recommendation at the end is the transferable part.
 - Paragraph 2 belongs wherever the sensitivity check's setup is described, so
   the asymmetry is stated before the result is read.
-- Both are framed as findings for anyone running multi-generator evaluations.
-  Neither is an apology, and neither should be softened into one.
+- Paragraph 3 belongs in the paper's Limitations section (not Reproducibility
+  proper): it is the honest scope statement on generator dependence, not a
+  methods note. Source: ADR-050, `docs/04_EVALUATION.md` §5.1.
+- All three are framed as findings for anyone running multi-generator
+  evaluations. None is an apology, and none should be softened into one.

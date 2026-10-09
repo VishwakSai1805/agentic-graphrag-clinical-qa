@@ -1,0 +1,41 @@
+﻿{
+    "check":  "docs/04_EVALUATION.md section 1.0d -- section 0.6 stronger-model sensitivity check (ADR-047)",
+    "measures":  "model dependence, not MedQA; robustness only, never a headline row",
+    "launched_utc":  "2026-10-05 06:57:36Z",
+    "launch_head":  "34073166c5782844d2bf3d58822f436ffca7dc23",
+    "model":  "gemini/gemini-3.8-flash",
+    "model_candidates":  [
+                             "gemini/gemini-3.8-flash",
+                             "gemini/gemini-2.5-flash",
+                             "gemini/gemini-3.5-flash-lite"
+                         ],
+    "api_version":  "v1beta",
+    "free_tier_only":  true,
+    "dataset":  "medqa",
+    "split":  "test",
+    "n":  200,
+    "seed":  42,
+    "question_ids":  "results/phase7_gemini/question_ids_200.json",
+    "cells":  [
+                  "V0"
+              ],
+    "commands":  {
+                     "V0":  "uv run python -m src.eval.harness --dataset=medqa --split=test --seed=42 --question-ids=results/phase7_gemini/question_ids_200.json --llm-model=gemini/gemini-3.8-flash --llm-api-version=v1beta --variant-suffix=-gemini --config=configs/gemini_base.yaml --variant=V0"
+                 },
+    "run_dirs":  {
+                     "V0":  null
+                 },
+    "cell_outcomes":  [
+                          {
+                              "Cell":  "V0",
+                              "ExitCode":  1,
+                              "Minutes":  23.1,
+                              "Log":  "C:\\Claude\\AI Project\\logs\\gemini06_V0_20261005_122736.log"
+                          }
+                      ],
+    "nondeterminism":  "Gemini exposes no seed: these runs are NOT reproducible (ADR-047, docs/00 section 7). temperature pinned to 0.0; V3rep quantifies run-to-run agreement, descriptive only.",
+    "next_steps":  [
+                       "uv run python -m scripts.analysis.gemini_sensitivity_family --v0 \u003cdir\u003e --v3 \u003cdir\u003e --b3 \u003cdir\u003e --v5 \u003cdir\u003e --v3-repeat \u003cdir\u003e",
+                       "fill docs/04 section 5.1 from results/phase7_gemini/gemini_sensitivity_family.json"
+                   ]
+}
