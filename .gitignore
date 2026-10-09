@@ -5,11 +5,37 @@ data/*
 !data/MANIFEST.json
 indexes/
 .cache/
-logs/
+
+# logs/* not logs/, for the same reason as data/* above -- so the negations
+# below can re-include the specific files docs/05_DECISIONS.md's ADRs
+# (ADR-038/039/050) cite as evidence. Every other log stays ignored.
+logs/*
+!logs/phase7_V1_20260909_020855.log
+!logs/phase7_V3_20260909_020855.log
+!logs/phase7_B3_20260909_020855.log
+!logs/phase7_V2_20260911_132820.log
+!logs/gemini06_V0_20261005_122736.log
+!logs/gemini06_B3_20261006_020121.log
+!logs/gemini06_V0_20261006_020121.log
+!logs/gemini06_V3_20261006_020121.log
+!logs/gemini06_V3rep_20261006_020121.log
+!logs/gemini06_V5_20261006_020121.log
+
 paper/build/
 
-# results: keep configs + metrics, drop bulk predictions
+# results: keep configs + metrics, drop bulk predictions -- except the eight
+# Phase 7 grid variants, which scripts/analysis/marginal_cis.py (and
+# confirmatory_v3_v5.py, exploratory_family.py, etc.) need to reproduce
+# Table 1 and the significance tests from a fresh clone.
 results/**/predictions.jsonl
+!results/medqa_V0_b24015a-dirty_20260911T080323Z/predictions.jsonl
+!results/medqa_V1_41f7e14_20260908T212655Z/predictions.jsonl
+!results/medqa_V2_b24015a-dirty_20260911T104513Z/predictions.jsonl
+!results/medqa_V3_41f7e14-dirty_20260908T230633Z/predictions.jsonl
+!results/medqa_B3_41f7e14-dirty_20260909T023658Z/predictions.jsonl
+!results/medqa_V4-conflict_41f7e14-dirty_20260909T220306Z/predictions.jsonl
+!results/medqa_V5_41f7e14-dirty_20260909T103452Z/predictions.jsonl
+!results/medqa_V5-refit_b24015a_20260911T074318Z/predictions.jsonl
 results/**/traces/
 
 # python
