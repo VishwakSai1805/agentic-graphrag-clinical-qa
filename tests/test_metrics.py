@@ -5,6 +5,7 @@ import pytest
 from src.retrieval.metrics import (
     dcg_at_k,
     holm_bonferroni,
+    marginal_bootstrap_ci,
     mean_ndcg_at_k,
     mean_recall_at_k,
     mean_reciprocal_rank,
@@ -131,6 +132,54 @@ def test_paired_bootstrap_ci_deterministic_given_seed():
     diffs = [0.02, -0.01, 0.03, 0.0, -0.02, 0.01]
     result_a = paired_bootstrap_ci(diffs, n_resamples=500, seed=42)
     result_b = paired_bootstrap_ci(diffs, n_resamples=500, seed=42)
+    assert result_a == result_b
+
+
+# --------------------------------------------------------------------------
+# marginal_bootstrap_ci (ADR-051 -- descriptive per-variant CIs for Table 1)
+# --------------------------------------------------------------------------
+
+
+def test_marginal_bootstrap_ci_rejects_empty():
+    with pytest.raises(ValueError, match="non-empty"):
+        marginal_bootstrap_ci([])
+
+
+def test_marginal_bootstrap_ci_point_estimate_is_exact_mean():
+    correct = [1.0, 1.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0]
+    point, _lo, _hi = marginal_bootstrap_ci(correct, n_resamples=500, seed=42)
+    assert point == sum(correct) / len(correct)
+
+
+def test_marginal_bootstrap_ci_high_accuracy_sits_high_away_from_half():
+    # 90% correct over 200 questions -- CI should sit entirely above 0.5.
+    correct = [1.0] * 180 + [0.0] * 20
+    point, lo, hi = marginal_bootstrap_ci(correct, n_resamples=2000, seed=1)
+    assert math.isclose(point, 0.9, abs_tol=1e-6)
+    assert lo > 0.5
+    assert hi < 1.0
+
+
+def test_marginal_bootstrap_ci_low_accuracy_sits_low_away_from_half():
+    correct = [1.0] * 20 + [0.0] * 180
+    point, lo, hi = marginal_bootstrap_ci(correct, n_resamples=2000, seed=1)
+    assert math.isclose(point, 0.1, abs_tol=1e-6)
+    assert hi < 0.5
+    assert lo > 0.0
+
+
+def test_marginal_bootstrap_ci_near_chance_straddles_half():
+    # noisy, slightly-above-chance accuracy -- CI should still include 0.5.
+    correct = ([1.0, 0.0] * 3) + [1.0, 1.0, 0.0, 0.0, 1.0, 1.0]
+    point, lo, hi = marginal_bootstrap_ci(correct, n_resamples=2000, seed=7)
+    assert lo <= 0.5 <= hi
+    assert point != 0.5  # point estimate isn't exactly chance, but still a tie-like spread
+
+
+def test_marginal_bootstrap_ci_deterministic_given_seed():
+    correct = [1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0]
+    result_a = marginal_bootstrap_ci(correct, n_resamples=500, seed=42)
+    result_b = marginal_bootstrap_ci(correct, n_resamples=500, seed=42)
     assert result_a == result_b
 
 

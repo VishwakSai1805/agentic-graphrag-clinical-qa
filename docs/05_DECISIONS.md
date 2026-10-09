@@ -3786,3 +3786,74 @@ bypass the cache; caching is for the workload, never for the gate.**
 from the pre-fix `max_tokens=8` probe (ADR-047). It is harmless now — the
 post-ADR-047 gate fails hard on empty text — but it is a reminder that a cache
 written by a known-broken configuration outlives the fix.
+
+## ADR-051 — Table 1's per-variant intervals: a Wilson formula computed outside this repo, replaced with a traceable marginal bootstrap added after the fact
+
+Date: 2026-10-09 · Phase: 7 (paper, Table 1) · Status: accepted
+
+**Context.** The paper displays a 95% interval beside each variant's
+accuracy in Table 1. Those intervals were computed with a Wilson-score
+formula outside this repo — no corresponding artifact exists under
+`results/`, and a repo-wide check (`grep -rn "Wilson"` across `src/`,
+`scripts/`, `results/`) turns up nothing but incidental matches of "Wilson
+disease" in clinical NLI claim text. That is a direct violation of CLAUDE.md
+§2: "Every number that appears in a doc, table, chat message or README must
+be traceable to a JSON file under `results/`... If a run hasn't happened,
+write `TBD`, not a plausible-looking figure." A Wilson interval computed in
+an external notebook and typed into the paper is exactly the failure mode
+that rule exists to prevent, even though the underlying accuracy point
+estimates it decorates are themselves traceable.
+
+**Decision.** Add `marginal_bootstrap_ci` to `src/retrieval/metrics.py`,
+mirroring `paired_bootstrap_ci`'s seeding (`random.Random(seed)`),
+resample-with-replacement loop, and symmetric percentile trim exactly, so
+the two are numerically comparable. Add `scripts/analysis/marginal_cis.py`,
+which loads each of the eight Phase 7 grid variants' (V0, V1, V2, V3, B3,
+V4-conflict, V5, V5-refit) own `results/<run_id>/predictions.jsonl`, computes
+a marginal bootstrap CI on each variant's per-question accuracy vector (plus
+P@2 and MRR for the three variants that emit a real ranking:
+V4-conflict/V5/V5-refit), asserts every recomputed point estimate against
+that run's published `metrics.json` before writing anything (hard failure on
+mismatch, not a warning), and writes `results/phase7_marginal_cis.json` and
+`.md`. Table 1's intervals are now sourced from that file instead of an
+external notebook. Recorded as descriptive in `docs/04_EVALUATION.md` §5.0b.
+
+**This mechanism was added after the paper already displayed the
+intervals it now produces.** That ordering is disclosed here rather than
+silently backfilled: the paper's Table 1 existed with Wilson numbers before
+this repo could reproduce anything like them, and this ADR is the record
+that the replacement mechanism was built specifically to close that gap, not
+part of the original Phase 6/7 evaluation design.
+
+**These intervals are descriptive, not inferential, and sit outside the
+pre-registered plan.** A marginal CI on one variant's own mean is not a
+paired comparison between two systems — it must never be read as "do these
+two intervals overlap" in place of `paired_bootstrap_ci`/`paired_bootstrap_p`
+(§1's actual significance test), and it is not added to the §1.0
+pre-registered family (m=35), the unplanned exploratory family (§1.0b), or
+the post-hoc tier-boundary family (§1.0c). None of those families' Holm
+corrections, ranks, or reject sets change.
+
+**Alternatives considered and rejected.**
+- *Keep reporting the externally-computed Wilson numbers, cited to wherever
+  they came from.* Rejected outright — CLAUDE.md §2 does not carve out an
+  exception for "computed correctly, just not here."
+- *Fold these into the existing paired-bootstrap family as additional
+  tests.* Rejected — a marginal CI is not a comparison and does not belong
+  in a multiplicity-corrected family built for A-vs-B claims; adding it
+  there would either inflate the family size for no inferential reason or
+  misrepresent a display statistic as a hypothesis test.
+- *Re-implement the Wilson-score formula here instead of a bootstrap.*
+  Rejected — a second CI method with different coverage properties and
+  binomial assumptions would need its own justification and testing, where
+  reusing `paired_bootstrap_ci`'s already-audited (AUDIT 2026-09-06 §6.8)
+  resampling machinery keeps the project to one bootstrap convention end to
+  end and makes the two kinds of interval directly comparable.
+
+**Consequences.** Table 1 cites `results/phase7_marginal_cis.json`.
+`scripts/analysis/marginal_cis.py` hardcodes all eight run_ids by exact name
+(not "latest") because several stale/invalid run dirs exist for V2/V4/V5
+under the same variant letter; any future variant added to the grid needs a
+corresponding entry added there and in the `RANKING_VARIANTS` tuple if it
+emits a ranking. `tests/test_metrics.py` gained a `marginal_bootstrap_ci`
+test block mirroring the existing `paired_bootstrap_ci` tests.

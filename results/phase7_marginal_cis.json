@@ -1,0 +1,125 @@
+{
+  "kind": "descriptive_marginal_bootstrap_ci",
+  "note": "Descriptive only -- not part of any multiplicity-corrected family (docs/04_EVALUATION.md \u00a71.0 pre-registered family, the unplanned exploratory family, or the post-hoc tier-boundary family). See docs/04_EVALUATION.md \u00a75.0b and ADR-051 in docs/05_DECISIONS.md.",
+  "n_resamples": 10000,
+  "seed": 42,
+  "alpha": 0.05,
+  "variants": {
+    "V0": {
+      "run_id": "medqa_V0_b24015a-dirty_20260911T080323Z",
+      "n": 500,
+      "accuracy": {
+        "point": 0.582,
+        "ci_lo": 0.538,
+        "ci_hi": 0.626,
+        "n": 500
+      }
+    },
+    "V1": {
+      "run_id": "medqa_V1_41f7e14_20260908T212655Z",
+      "n": 500,
+      "accuracy": {
+        "point": 0.566,
+        "ci_lo": 0.522,
+        "ci_hi": 0.608,
+        "n": 500
+      }
+    },
+    "V2": {
+      "run_id": "medqa_V2_b24015a-dirty_20260911T104513Z",
+      "n": 500,
+      "accuracy": {
+        "point": 0.556,
+        "ci_lo": 0.512,
+        "ci_hi": 0.598,
+        "n": 500
+      }
+    },
+    "V3": {
+      "run_id": "medqa_V3_41f7e14-dirty_20260908T230633Z",
+      "n": 500,
+      "accuracy": {
+        "point": 0.546,
+        "ci_lo": 0.502,
+        "ci_hi": 0.59,
+        "n": 500
+      }
+    },
+    "B3": {
+      "run_id": "medqa_B3_41f7e14-dirty_20260909T023658Z",
+      "n": 500,
+      "accuracy": {
+        "point": 0.538,
+        "ci_lo": 0.494,
+        "ci_hi": 0.582,
+        "n": 500
+      }
+    },
+    "V4-conflict": {
+      "run_id": "medqa_V4-conflict_41f7e14-dirty_20260909T220306Z",
+      "n": 500,
+      "accuracy": {
+        "point": 0.358,
+        "ci_lo": 0.316,
+        "ci_hi": 0.4,
+        "n": 500
+      },
+      "p_at_2": {
+        "point": 0.606,
+        "ci_lo": 0.562,
+        "ci_hi": 0.648,
+        "n": 500
+      },
+      "mrr": {
+        "point": 0.5980000000000003,
+        "ci_lo": 0.5710000000000004,
+        "ci_hi": 0.6253333333333335,
+        "n": 500
+      }
+    },
+    "V5": {
+      "run_id": "medqa_V5_41f7e14-dirty_20260909T103452Z",
+      "n": 500,
+      "accuracy": {
+        "point": 0.316,
+        "ci_lo": 0.276,
+        "ci_hi": 0.356,
+        "n": 500
+      },
+      "p_at_2": {
+        "point": 0.582,
+        "ci_lo": 0.54,
+        "ci_hi": 0.624,
+        "n": 500
+      },
+      "mrr": {
+        "point": 0.5713333333333338,
+        "ci_lo": 0.5446666666666672,
+        "ci_hi": 0.5976666666666668,
+        "n": 500
+      }
+    },
+    "V5-refit": {
+      "run_id": "medqa_V5-refit_b24015a_20260911T074318Z",
+      "n": 500,
+      "accuracy": {
+        "point": 0.292,
+        "ci_lo": 0.252,
+        "ci_hi": 0.332,
+        "n": 500
+      },
+      "p_at_2": {
+        "point": 0.53,
+        "ci_lo": 0.486,
+        "ci_hi": 0.574,
+        "n": 500
+      },
+      "mrr": {
+        "point": 0.5506666666666675,
+        "ci_lo": 0.5243333333333341,
+        "ci_hi": 0.5771666666666669,
+        "n": 500
+      }
+    }
+  }
+}

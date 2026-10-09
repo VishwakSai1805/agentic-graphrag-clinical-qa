@@ -142,6 +142,37 @@ def paired_bootstrap_ci(
     return sum(diffs) / n, boot_means[lo_idx], boot_means[hi_idx]
 
 
+def marginal_bootstrap_ci(
+    correct_vector: Sequence[float], n_resamples: int = 10_000, seed: int = 42, alpha: float = 0.05
+) -> tuple[float, float, float]:
+    """95%-style percentile bootstrap CI for the mean of a single variant's
+    per-question outcome vector (e.g. per-question accuracy 0/1, or a P@K/MRR
+    term). DESCRIPTIVE ONLY -- unlike `paired_bootstrap_ci`, this bootstraps
+    one system's marginal mean, not a paired difference between two systems,
+    and must never be used to claim A beats B. See docs/04_EVALUATION.md
+    §5.0b and ADR-051 in docs/05_DECISIONS.md: these per-variant intervals
+    (added for the paper's Table 1, replacing externally-computed Wilson
+    intervals that broke the traceability rule) are a display of estimation
+    uncertainty, outside the pre-registered inference and never Holm-
+    corrected alongside it.
+
+    Returns (point_estimate, ci_lo, ci_hi). Mirrors `paired_bootstrap_ci`'s
+    seeding and resampling convention exactly -- the same `random.Random(seed)`
+    resample-with-replacement loop and the same symmetric percentile trim --
+    so the two are numerically comparable for a reader who checks both.
+    """
+    if not correct_vector:
+        raise ValueError("correct_vector must be non-empty")
+    n = len(correct_vector)
+    rng = random.Random(seed)
+    boot_means = sorted(
+        sum(correct_vector[rng.randrange(n)] for _ in range(n)) / n for _ in range(n_resamples)
+    )
+    lo_idx = int((alpha / 2) * n_resamples)
+    hi_idx = n_resamples - 1 - lo_idx
+    return sum(correct_vector) / n, boot_means[lo_idx], boot_means[hi_idx]
+
+
 def paired_bootstrap_p(diffs: Sequence[float], n_resamples: int = 10_000, seed: int = 42) -> float:
     """Two-sided percentile-bootstrap p-value for the mean of paired differences.
 
