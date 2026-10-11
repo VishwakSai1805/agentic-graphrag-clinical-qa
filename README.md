@@ -154,7 +154,7 @@ This is a research artifact. It is **not** a clinical decision support system an
 
 ## Development note
 
-This project was developed with AI assistance (Claude, Anthropic) for experimental design discussion, code review and implementation, and manuscript drafting and editing. Development was AI-assisted; see ADR-052. All experiments were designed, executed and verified by the authors, who take full responsibility for the content of this repository and the accompanying paper.
+This project was developed with AI assistance (Claude, Anthropic) for experimental design discussion, code review and implementation, and manuscript drafting and editing. The commit history records that assistance at the level of individual commits. All experiments were designed, executed and verified by the authors, who take full responsibility for the content of this repository and the accompanying paper.
 
 ## License
 
