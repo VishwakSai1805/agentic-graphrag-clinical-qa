@@ -459,7 +459,7 @@ def score_hallucination_into(run_dir: Path, nli_scorer=None) -> dict | None:
 
 
 def _contamination(dataset: str, questions, pipeline) -> dict:
-    """Executed contamination check (CLAUDE.md §2 -- run in code, not a
+    """Executed contamination check (PROJECT_RULES.md §2 -- run in code, not a
     comment). Mirrors `scripts.run_baselines.contamination_assertion`: a real
     MedQA stem-vs-retrieved-chunk n-gram overlap distribution; other datasets
     / a retrieval-free run record `checked: false` honestly."""

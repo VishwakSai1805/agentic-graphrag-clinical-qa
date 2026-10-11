@@ -16,14 +16,14 @@ card: query side gets the fixed instruction prefix
 "Represent this sentence for searching relevant passages: " (passages get no
 prefix), embeddings L2-normalised and compared by inner product (== cosine).
 
-Indexes are build artifacts (CLAUDE.md: never hand-edited, always gitignored,
+Indexes are build artifacts (PROJECT_RULES.md: never hand-edited, always gitignored,
 always rebuildable) written under `indexes/<name>/` with a `manifest.json`
 recording the embedding model(s), chunk params, and corpus doc/chunk counts.
 
 Embedding is checkpointed every `checkpoint_every` batches
 (`embeddings.npy` + `embed_checkpoint.json` in out_dir) so an interrupted
 multi-hour build resumes from the last checkpoint instead of restarting from
-zero, per CLAUDE.md's "a 2-hour index build that dies at 90% must restart
+zero, per PROJECT_RULES.md's "a 2-hour index build that dies at 90% must restart
 from a checkpoint."
 """
 

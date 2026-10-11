@@ -35,7 +35,7 @@ list in this script.
 Neo4j schema and all Cypher: src/kg/queries.py.
 
 No torch/CUDA anywhere in this script -- loading CSV rows into Neo4j is not a
-GPU task (CLAUDE.md's unconditional CUDA-status-print rule is scoped to
+GPU task (PROJECT_RULES.md's unconditional CUDA-status-print rule is scoped to
 GPU-relevant scripts; this one has no such path).
 
 Usage:

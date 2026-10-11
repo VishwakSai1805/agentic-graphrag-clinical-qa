@@ -1,5 +1,5 @@
 """Tokenizer-based chunking, shared by every corpus source (PubMed abstracts and
-USMLE textbooks alike -- CLAUDE.md/roadmap: identical chunking policy for both).
+USMLE textbooks alike -- PROJECT_RULES.md/roadmap: identical chunking policy for both).
 
 Chunk size and overlap are config-driven (configs/base.yaml:
 retrieval.chunk_tokens / retrieval.chunk_overlap), not hardcoded here.
@@ -9,7 +9,7 @@ list[int]` and `decode(ids) -> str]` works. `load_default_tokenizer()` lazily
 wraps a real HF `AutoTokenizer` (only imported/downloaded on first use), so
 `tests/test_chunking.py` can inject a lightweight in-memory stub and never
 needs network access in CI -- the same "never hit a provider in CI" principle
-CLAUDE.md states for LLM calls applies to downloading a tokenizer from the
+PROJECT_RULES.md states for LLM calls applies to downloading a tokenizer from the
 HF Hub in a unit test.
 """
 

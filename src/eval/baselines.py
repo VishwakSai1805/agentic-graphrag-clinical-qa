@@ -14,7 +14,7 @@ Each `run_baseline` call returns exactly one `Prediction`; the eval harness
 
 B3 deliberately gets the SAME model, temperature=0, retrieval budget and
 prompt care as B2 -- it is the "binary bottleneck" this project claims to
-remove (CLAUDE.md section 1), not a crippled strawman.
+remove (PROJECT_RULES.md section 1), not a crippled strawman.
 
 All model access goes through `src.llm.client.chat`, imported into this module
 so tests can monkeypatch `src.eval.baselines.chat`. No provider SDK is touched.
@@ -395,8 +395,8 @@ def _run_b0(
     resp = chat(prompt, system=_SYSTEM, temperature=0, seed=seed, tracker=tracker)
     letter, _cites, status = _parse_answer(resp.text, set(options), synonyms)
     rationale = _rationale_from_text(resp.text)
-    # --- CLAUDE.md grounding carve-out ------------------------------------
-    # CLAUDE.md: "An answer with an empty citation set is a bug, and is scored
+    # --- PROJECT_RULES.md grounding carve-out ------------------------------------
+    # PROJECT_RULES.md: "An answer with an empty citation set is a bug, and is scored
     # as ungrounded." B0 is the documented exception: it runs zero retrieval,
     # so it has nothing to cite. citations=[] and grounded=False here are BY
     # CONSTRUCTION, not a pipeline failure -- B0 is our un-grounded floor.
@@ -660,7 +660,7 @@ def run_baseline(
             )
         return _run_b3(question, gold_option, pipeline, dataset, tracker, seed, agents_cfg)
     except LLMContextBudgetError:
-        # Hard stop, not a silent truncation (CLAUDE.md budget-guard rule).
+        # Hard stop, not a silent truncation (PROJECT_RULES.md budget-guard rule).
         # n_llm_calls=0: a multi-call B3 may have made several calls before the
         # oversized one, but we don't thread that count out -- 0 is the honest
         # floor. verifier_decided / n_supported / per_option_verdict stay None.

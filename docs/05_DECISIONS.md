@@ -216,7 +216,7 @@ handled.
 
 ## ADR-010 — MedCPT is a dual encoder: separate Query- and Article-Encoders
 Date: 2026-09-05 · Phase: 1 · Status: accepted
-Context: CLAUDE.md §3 originally listed dense-retrieval embeddings as a
+Context: PROJECT_RULES.md §3 originally listed dense-retrieval embeddings as a
 single model, `ncbi/MedCPT-Article-Encoder`. MedCPT is actually an asymmetric
 dual encoder — NCBI trained separate `MedCPT-Query-Encoder` and
 `MedCPT-Article-Encoder` models on PubMed search logs specifically because
@@ -225,7 +225,7 @@ Article-Encoder for queries too would silently degrade dense retrieval
 quality with no error raised.
 Decision: `src/retrieval/dense.py` uses `ncbi/MedCPT-Query-Encoder` to embed
 queries and `ncbi/MedCPT-Article-Encoder` to embed indexed documents at build
-time. CLAUDE.md §3's stack table is corrected to name both models. The
+time. PROJECT_RULES.md §3's stack table is corrected to name both models. The
 symmetric fallback `BAAI/bge-large-en-v1.5` is unaffected (one model, both
 sides, with its standard query-instruction-prefix convention).
 Alternatives: single-encoder MedCPT usage as originally written (rejected —
@@ -396,7 +396,7 @@ result that matches or beats hybrid/agent variants is reported as such.
 ## ADR-013 — Small implementation choices made silently during Phase 1
 Date: 2026-09-05 · Phase: 1 · Status: accepted
 
-Recorded per CLAUDE.md's decision-log discipline — these weren't discussed
+Recorded per PROJECT_RULES.md's decision-log discipline — these weren't discussed
 explicitly but are decisions, not accidents.
 
 **Textbook corpus is always standardized to raw per-book text, regardless of
@@ -518,13 +518,13 @@ nodes, 740,674 edges.
    logged per `docs/03_DATASETS.md`'s existing instruction, not hidden.
 
 **Alternatives considered:** silently "fixing" the allowlist spelling in
-`docs/03_DATASETS.md` with no record (rejected — CLAUDE.md requires
+`docs/03_DATASETS.md` with no record (rejected — PROJECT_RULES.md requires
 non-obvious deviations logged here, and a future reader hitting zero
 `off_label_use` rows deserves the real explanation, not a quiet edit);
 trusting Neo4j's raw per-row direction and accepting backwards sentences
 (rejected — an evidence object handed to the audit/conflict agents in Phase 4
 with a factually-reversed relation is exactly the kind of silent correctness
-bug CLAUDE.md's hygiene rules exist to prevent); loading APOC to get native
+bug PROJECT_RULES.md's hygiene rules exist to prevent); loading APOC to get native
 per-relation Neo4j types (rejected — adds a plugin dependency for a cosmetic
 schema preference with no query-correctness benefit given the allowlist is
 fixed and small); pursuing a paid/licensed UMLS Metathesaurus crosswalk to
@@ -618,7 +618,7 @@ phase closed, not discovered later. This ADR is written from the corrected,
 final run.
 
 **Implementation problems, real and fixed:**
-1. **The NLI model CLAUDE.md/`docs/04_EVALUATION.md` §3 pin does not exist.**
+1. **The NLI model PROJECT_RULES.md/`docs/04_EVALUATION.md` §3 pin does not exist.**
    `MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli` was verified (via a live
    `HfApi.model_info` call, not memory) to 404 on the real Hugging Face Hub.
    Substituted `MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli` —
@@ -626,7 +626,7 @@ final run.
    entailment/neutral/contradiction head (verified via `AutoConfig.id2label`
    against the real downloaded config). Recorded as `src/kg/novelty.py:
    NLI_MODEL_NAME`, the single source of truth Phase 6 should import rather
-   than re-typing CLAUDE.md's (incorrect) string; CLAUDE.md §3's stack table
+   than re-typing PROJECT_RULES.md's (incorrect) string; PROJECT_RULES.md §3's stack table
    needs a follow-up correction to match.
 2. **The 96% aggregate "KG-hit rate" is a permissive-definition arithmetic
    artifact, not evidence of PrimeKG content coverage.** The linker resolves
@@ -785,7 +785,7 @@ variants on the same 200 real MedQA test questions.
 **Per the project owner's explicit instruction, this is reported as a
 measured ablation result, not folded in as a silent improvement — including
 running it through the exact same paired-bootstrap significance discipline
-ADR-012 already established for this project, since CLAUDE.md forbids any
+ADR-012 already established for this project, since PROJECT_RULES.md forbids any
 "A beats B" claim from a raw mean inequality alone.** Real point estimates
 (n=200 MedQA test, naive traversal-order vs. kg_rerank):
 
@@ -828,7 +828,7 @@ strong enough to justify changing already-committed baseline behavior.
 
 **Alternatives considered:** shipping `kg_rerank=True` as the new default on
 the strength of the raw point estimate (rejected outright — exactly the
-methodology CLAUDE.md's significance rule and ADR-012 exist to prevent);
+methodology PROJECT_RULES.md's significance rule and ADR-012 exist to prevent);
 declaring the feature a failure and dropping it because the primary metric
 tied (rejected — the secondary metric's real, if narrow, significant win is
 genuine signal that the underlying mechanism is doing something real; a tie
@@ -856,7 +856,7 @@ imperfect, categorization step.
 plain keyword-bucket heuristic (a dict of category → keyword list, no ML)
 over six fixed categories: `pharmacology`, `physiology`,
 `pathology_diagnosis`, `anatomy`, `treatment_management`, `other` (fallback).
-Deliberately simple and inspectable — CLAUDE.md's "don't add abstractions
+Deliberately simple and inspectable — PROJECT_RULES.md's "don't add abstractions
 beyond what the task requires" applies here; this is a diagnostic label, not
 a modeling contribution, and dressing it up as more sophisticated than a
 keyword match would misrepresent its evidentiary weight.
@@ -881,7 +881,7 @@ observed directly, not hypothesized:
    reader's judgment.
 
 **Alternatives considered:** using an LLM call to classify each question
-(rejected — CLAUDE.md's zero-cost/determinism constraints make an
+(rejected — PROJECT_RULES.md's zero-cost/determinism constraints make an
 LLM-in-the-loop classifier for a diagnostic label disproportionate, and it
 would need its own accuracy validation against hand-labels, which a 6-bucket
 keyword heuristic doesn't need to claim); leaving MedQA unbroken-down by
@@ -969,7 +969,7 @@ guarantee.
 
 **Decision.**
 - **Dev slice = MedQA train split, `load_question_sample("medqa", "train",
-  limit, seed=42)`.** The Phase 3 exit test runs on 20 of these (CLAUDE.md §5
+  limit, seed=42)`.** The Phase 3 exit test runs on 20 of these (PROJECT_RULES.md §5
   "20-question dev slice"); a KG cache for the 20 was precomputed
   (`--split train --limit 20`, Neo4j already loaded, 88 s). The official test
   split stays untouched until Phase 7. The alternative (reuse the existing
@@ -978,7 +978,7 @@ guarantee.
   saved. (This did not hold for the KG layer at the time — see the correction
   above and ADR-027.)
 - **Baseline → retrieval mapping.** B0 zero-shot (no retrieval, ungrounded by
-  construction — a documented carve-out from CLAUDE.md's "empty citation set
+  construction — a documented carve-out from PROJECT_RULES.md's "empty citation set
   is a bug" rule, since B0 is the ungrounded floor). B1 dense-only
   (`modalities={"dense"}`). B2 hybrid, no agents (`{"dense","lexical","kg"}`,
   one generation call). B3 as below. B2 maps to Phase 7's V3 (tri-modal, no
@@ -997,7 +997,7 @@ guarantee.
   a high fallback rate is *direct empirical evidence for the binary
   bottleneck*, and per the project owner may be the most useful number B3
   produces.
-- **Small decisions, recorded per CLAUDE.md discipline.** (a) No separate
+- **Small decisions, recorded per PROJECT_RULES.md discipline.** (a) No separate
   `configs/baseline.yaml` — all four baselines resolve the same
   `configs/base.yaml`; the only thing that varies (which modalities feed the
   bundle) is a code-level property of the baseline, not a config knob.
@@ -1018,7 +1018,7 @@ guarantee.
 
 **Consequences:** Phase 3's baseline numbers are a plumbing/parity check on
 n=20, never a comparison result — `scripts/run_baselines.py` makes no
-"A beats B" claim and n=20 forbids one (CLAUDE.md significance rule). Phase 7
+"A beats B" claim and n=20 forbids one (PROJECT_RULES.md significance rule). Phase 7
 re-runs all baselines fresh on the seeded 500-question test slice; the Phase 3
 `results/` dirs are development artifacts, not paper inputs. A dev KG cache
 for the full 500-question MedQA train slice is still outstanding (tracked
@@ -1091,7 +1091,7 @@ noise B2/B3 signal: `parse_error` 12/20 → 0/20 and `grounded_rate`
 `parse_error` 2 → 0 belongs to that same categorical evidence; B1's accuracy
 number does not. Any future n=20 comparison in this project must clear this
 measured ±0.05 floor before it is called an effect, or be reported as a tie
-(CLAUDE.md: "A tie is reported as a tie, never as a win").
+(PROJECT_RULES.md: "A tie is reported as a tie, never as a win").
 
 The B2/B3 collapse under truncation (0.15) is entirely an artifact: 12/20
 prompts were cut mid-output so the model never emitted a parseable answer.
@@ -1116,7 +1116,7 @@ neither of which matched a bundle id; now items render as `[id] text` and
 4. Hard guard: before any cache read or network call, `chat()` token-counts
    `system + prompt` (via `litellm.token_counter`, model-real tokenizer where
    available) and raises `LLMContextBudgetError` if it exceeds
-   `num_ctx - context_completion_reserve`. Per CLAUDE.md's budget-guard rule
+   `num_ctx - context_completion_reserve`. Per PROJECT_RULES.md's budget-guard rule
    this is a **recorded hard stop, never a silent truncation**. Feature code
    that batches calls (`src/eval/baselines.py`) catches it and records the
    item as `status="context_exceeded"` (new `Prediction.status` member), which
@@ -1354,7 +1354,7 @@ the codebase held an opinion about the fitting set at all.
    test half, from the same single-source-of-truth split function.
 2. `assert_calibration_fit_set_uncontaminated(corpus_path)` hard-raises
    `ContaminationError` if any fit PMID is indexed. **Phase 5 must call this
-   before fitting** — per CLAUDE.md this is an assertion in code, not a comment.
+   before fitting** — per PROJECT_RULES.md this is an assertion in code, not a comment.
 3. `pqa_artificial` is reclassified as a retrieval-corpus source only: never a
    reporting set, and no longer a fitting set.
 
@@ -1550,7 +1550,7 @@ judged sound. But soundness of the reasons is not the point pre-registration
 guards against — the point is that a rule abandoned after seeing favorable
 data, for reasons that were not part of the rule, is exactly how motivated
 post-hoc reasoning enters a project that otherwise holds itself to a strict
-"decide before you look" discipline (CLAUDE.md §2, ADR-012's whole point).
+"decide before you look" discipline (PROJECT_RULES.md §2, ADR-012's whole point).
 Recording it as a plain default-vs-decision distinction, without naming the
 deviation, would have let this ADR read as compliant with ADR-018 when it is
 not. **The Phase 7 grid's `kg_rerank` row is therefore the thing that actually
@@ -1609,7 +1609,7 @@ LiteLLM's native `ollama/` provider path rejects `logprobs` outright
 (`/v1/chat/completions`) returns real per-token logprobs. `src.llm.client.chat`
 now accepts `logprobs=True`, routing an Ollama call through LiteLLM's
 `openai/` provider type at the same server's `/v1` path when logprobs are
-requested — still through LiteLLM (CLAUDE.md: never call a provider SDK
+requested — still through LiteLLM (PROJECT_RULES.md: never call a provider SDK
 directly), just a different LiteLLM provider type. `scripts/raw_logprob_baseline.py`
 asks the model for a single-letter answer (so the option letter is the first
 generated token) given the **same EvidenceBundle** the V4 agent pipeline saw
@@ -1814,7 +1814,7 @@ variant: agents + calibration). The abstention threshold
 (`tau=0.5458` at a 10% target risk on the held-out coverage-risk curve) and
 the full per-question ranked output (all 120 questions, all options, with
 citations — 63.1% of option-rows carry at least one real citation, the rest
-legitimately ungrounded per CLAUDE.md's carve-out) are in
+legitimately ungrounded per PROJECT_RULES.md's carve-out) are in
 `results/phase5_calibration/medqa_dev_calibration.json`. `src.eval.metrics`
 gains `paired_bootstrap_ece_diff`; `src.calibration.softmax_rank` gains
 `fit_temperature_only` (with the boundary-saturation lesson from Decision 5
@@ -3116,7 +3116,7 @@ explains the anomaly in MEGA-RAG's Table 2", where LLM+RAG 0.6281 < LLM
 adjacent step is significant, and the step where the drop sits (V3 →
 V4−conflict) was never tested, so "curve" asserts a gradient the tests do
 not show. (2) "Retrieval actively hurts": unsupported. U1 is a tie,
-and U2 does not survive Holm. CLAUDE.md §2: a tie is reported as a tie.
+and U2 does not survive Holm. PROJECT_RULES.md §2: a tie is reported as a tie.
 (3) "Reproduces and explains MEGA-RAG's anomaly": "reproduces" overstates a
 tie, and "explains" would borrow ADR-041's agent-layer mechanism for a
 retrieval-step effect this project did not detect.
@@ -3655,7 +3655,7 @@ _parse_answer(truncated_text, {'A','B','C','D'})
 `_first_json_obj` fails on the unterminated object, the regex fallback finds
 `"answer": "A"` near the start of the text, and `_citations_from_regex`
 recovers **nothing** from the severed citation array. The row is scored `ok`
-with an **empty citation set** — which under CLAUDE.md §2 is a bug and is
+with an **empty citation set** — which under PROJECT_RULES.md §2 is a bug and is
 scored as ungrounded. So truncation does not inflate or deflate accuracy; it
 silently degrades `grounded_rate`. This is why criterion 5 in §5.1 requires
 three checks and not just `status_counts`: **`status_counts` is exactly the
@@ -3863,7 +3863,7 @@ accuracy in Table 1. Those intervals were computed with a Wilson-score
 formula outside this repo — no corresponding artifact exists under
 `results/`, and a repo-wide check (`grep -rn "Wilson"` across `src/`,
 `scripts/`, `results/`) turns up nothing but incidental matches of "Wilson
-disease" in clinical NLI claim text. That is a direct violation of CLAUDE.md
+disease" in clinical NLI claim text. That is a direct violation of PROJECT_RULES.md
 §2: "Every number that appears in a doc, table, chat message or README must
 be traceable to a JSON file under `results/`... If a run hasn't happened,
 write `TBD`, not a plausible-looking figure." A Wilson interval computed in
@@ -3903,7 +3903,7 @@ corrections, ranks, or reject sets change.
 
 **Alternatives considered and rejected.**
 - *Keep reporting the externally-computed Wilson numbers, cited to wherever
-  they came from.* Rejected outright — CLAUDE.md §2 does not carve out an
+  they came from.* Rejected outright — PROJECT_RULES.md §2 does not carve out an
   exception for "computed correctly, just not here."
 - *Fold these into the existing paired-bootstrap family as additional
   tests.* Rejected — a marginal CI is not a comparison and does not belong

@@ -10,7 +10,7 @@ gave any reader -- or Phase 8's `scripts/report.py` -- a coin-flip chance of
 tabulating the corrupt run.
 
 This script exists so that fix does not become a hand-edit of `results/`
-(CLAUDE.md: "Don't touch `results/` by hand. Ever."). It rewrites only the
+(PROJECT_RULES.md: "Don't touch `results/` by hand. Ever."). It rewrites only the
 three `superseded*` keys defined on `src.eval.results.RunResult`, leaves every
 measured value untouched, and is idempotent.
 

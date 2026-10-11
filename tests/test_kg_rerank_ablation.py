@@ -127,7 +127,7 @@ def test_compute_significance_detects_consistent_win_as_significant():
 def test_compute_significance_reports_tie_when_noise_dominates():
     # Small, noisy, alternating-sign differences -- must resolve to a tie,
     # not a false "win" just because the raw mean happens to be nonzero --
-    # this is exactly the ADR-012 scenario CLAUDE.md warns against.
+    # this is exactly the ADR-012 scenario PROJECT_RULES.md warns against.
     values = [0.5, 0.1, 0.6, 0.05, 0.55, 0.5]
     naive_vals = values
     reranked_vals = [0.5, 0.6, 0.55, 0.1, 0.5, 0.55]  # small alternating diffs, no consistent

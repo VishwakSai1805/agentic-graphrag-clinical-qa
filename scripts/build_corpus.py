@@ -4,7 +4,7 @@ chunk it, dedupe, and build the dense (FAISS/MedCPT) and BM25 indexes.
 Usage:
     uv run python -m scripts.build_corpus [--force] [--pubmed-limit N]
 
-Idempotent / resumable (CLAUDE.md: "a 2-hour index build that dies at 90%
+Idempotent / resumable (PROJECT_RULES.md: "a 2-hour index build that dies at 90%
 must restart from a checkpoint"):
   - If data/processed/corpus.jsonl already exists and --force is not passed,
     the corpus-build step (sampling, chunking, dedupe) is skipped entirely.
@@ -16,7 +16,7 @@ must restart from a checkpoint"):
 
 After building, asserts no PubMedQA-test-blocklisted pubid made it into the
 corpus (src/eval/contamination.py) -- hard failure, not a warning, per
-CLAUDE.md. Then merges a "corpus" key into data/MANIFEST.json (preserving the
+PROJECT_RULES.md. Then merges a "corpus" key into data/MANIFEST.json (preserving the
 existing "datasets" key written by scripts/fetch_datasets.py).
 """
 

@@ -37,7 +37,7 @@ dependencies = [
     # confirmed reachable via a real HTTP HEAD request before pinning.
     "en_core_sci_lg @ https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_core_sci_lg-0.5.4.tar.gz",
     # Phase 4 (multi-agent consensus): deterministic, checkpointable state
-    # graph for Hypothesis->Audit->Conflict (ADR-001, CLAUDE.md section 3).
+    # graph for Hypothesis->Audit->Conflict (ADR-001, PROJECT_RULES.md section 3).
     # Pure-Python; pulls langchain-core. 1.x is the stable line.
     "langgraph>=1.2,<2",
 ]

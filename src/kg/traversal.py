@@ -142,7 +142,7 @@ def traverse_live(
         produced 15,212 triples at max_hops=2/degree_cap=200, because hop 1
         alone can produce a frontier of up to `len(node_ids) * degree_cap`
         distinct new nodes, and hop 2 then expands *each of those* by up to
-        `degree_cap` again. This is CLAUDE.md's "unbounded traversal on a hub
+        `degree_cap` again. This is PROJECT_RULES.md's "unbounded traversal on a hub
         node is a bug, not a slow query" surfacing for real, just via
         multi-seed compounding rather than one single famous hub (e.g.
         aspirin) -- both are the same underlying failure mode. When set,

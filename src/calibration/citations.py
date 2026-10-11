@@ -16,7 +16,7 @@ def cite(option_id: str, matrix: SupportMatrix) -> list[str]:
     option is being presented as a candidate, and a CONTRADICT cell is
     evidence AGAINST the option, not a citation for it. Empty list (not an
     error) for an option with no SUPPORT cells -- an ungrounded option is a
-    real, reportable outcome (CLAUDE.md's grounding rule), not a bug here.
+    real, reportable outcome (PROJECT_RULES.md's grounding rule), not a bug here.
     """
     ids = {
         cell.evidence_id

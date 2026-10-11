@@ -1,4 +1,4 @@
-"""Reproducible run-output writer (CLAUDE.md "Every eval run is reproducible").
+"""Reproducible run-output writer (PROJECT_RULES.md "Every eval run is reproducible").
 
 `run_id = <dataset>_<variant>_<git_sha7>_<utc_ts>`; each run writes
 `results/<run_id>/{config.yaml,predictions.jsonl,metrics.json}`. Only

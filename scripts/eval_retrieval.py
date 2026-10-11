@@ -101,7 +101,7 @@ def write_phase1_metrics(dataset: str, metrics: dict) -> Path:
     """AUDIT 2026-09-06 §1.2: this script used to print to stdout only, with
     no persisted artifact per mode -- the Phase 1 gate/floor numbers existed
     only in a gitignored log. Writes `results/phase1_retrieval_<dataset>/
-    metrics.json`, the real numbers CLAUDE.md §2 requires."""
+    metrics.json`, the real numbers PROJECT_RULES.md §2 requires."""
     path = REPO_ROOT / "results" / f"phase1_retrieval_{dataset}" / "metrics.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     out = {"generated_at_utc": datetime.now(UTC).isoformat(), "dataset": dataset, **metrics}

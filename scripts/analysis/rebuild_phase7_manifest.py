@@ -11,7 +11,7 @@ launch commit (`41f7e14`) and completed -- their `results/` dirs exist,
 non-superseded, with real `predictions.jsonl` + `metrics.json`.
 
 This script does not re-run anything. It is the auditable, script-generated
-replacement for a hand-edited manifest (CLAUDE.md: "Don't touch `results/` by
+replacement for a hand-edited manifest (PROJECT_RULES.md: "Don't touch `results/` by
 hand. Ever.") -- every field below is read from a committed `metrics.json` or
 from `logs/`, never typed in.
 

@@ -14,7 +14,7 @@
 #
 # Nothing here needs a Claude Code session -- every job is `uv run python -m
 # scripts.<name>` exactly as documented in each script's own module
-# docstring/CLAUDE.md SS6. Run this from PowerShell:
+# docstring/PROJECT_RULES.md SS6. Run this from PowerShell:
 #
 #   cd "C:\Claude\AI Project"
 #   .\scripts\run_overnight.ps1

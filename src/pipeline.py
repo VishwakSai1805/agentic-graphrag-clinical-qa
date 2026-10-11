@@ -1,5 +1,5 @@
 """Tri-modal EvidenceBundle assembly (Phase 3) + the end-to-end agent
-entrypoint (Phase 4, CLAUDE.md section 4).
+entrypoint (Phase 4, PROJECT_RULES.md section 4).
 
 `python -m src.pipeline --config configs/agents.yaml --limit 20` builds a
 tri-modal bundle per question, runs the multi-agent consensus graph
@@ -69,7 +69,7 @@ class EvidenceBundle(BaseModel):
 
     def valid_citation_ids(self) -> set[str]:
         """The set a generated citation id must be in to count as grounded
-        (docs/01_ARCHITECTURE.md "Evidence object"; CLAUDE.md grounding rule).
+        (docs/01_ARCHITECTURE.md "Evidence object"; PROJECT_RULES.md grounding rule).
         """
         return {e.id for e in self.evidence()}
 

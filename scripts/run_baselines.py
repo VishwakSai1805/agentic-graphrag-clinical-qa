@@ -10,7 +10,7 @@ dict-driven over whatever `options` it's given, so no change was needed there.
     uv run python -m scripts.run_baselines --dataset pubmedqa --split dev --limit 20
 
 Roadmap Phase 3 exit test wording is "200-item MedQA dev slice"; the working
-agreement (CLAUDE.md §5) runs phase exit tests on a 20-question dev slice.
+agreement (PROJECT_RULES.md §5) runs phase exit tests on a 20-question dev slice.
 MedQA "dev" = a seeded sample of the train split (docs/03_DATASETS.md) -- the
 official test split stays unseen until Phase 7. The KG cache for this slice is
 precomputed by `scripts/precompute_kg_cache.py --dataset medqa --split train`.
@@ -23,7 +23,7 @@ and (B3 only) verifier_decision_rate + n_supported distribution -- the last is
 direct evidence for the binary-bottleneck the C2 contribution targets.
 
 No cross-baseline comparison claim is made here: n=20 is far too small, and
-CLAUDE.md forbids "A beats B" from a raw mean. Significance is Phase 7's job.
+PROJECT_RULES.md forbids "A beats B" from a raw mean. Significance is Phase 7's job.
 """
 
 from __future__ import annotations
@@ -126,7 +126,7 @@ def contamination_assertion(dataset: str, questions: list[Question], pipeline) -
     anything, and that unearned `checked: true` was written into every
     `results/medqa_B*/metrics.json` while `docs/04_EVALUATION.md` listed
     "contamination assertion passed" as a precondition for believing the
-    results. CLAUDE.md §2 requires the assertion to run in code.
+    results. PROJECT_RULES.md §2 requires the assertion to run in code.
 
     MedQA genuinely has no source-abstract blocklist (`blocklisted_pmids`
     raises for it by design), but the corpus does contain the 18 USMLE

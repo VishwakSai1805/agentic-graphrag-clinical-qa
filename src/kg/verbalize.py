@@ -1,5 +1,5 @@
 """Verbalises a PrimeKG `Triple` into a citable `Evidence(modality="kg")`
-object -- see docs/01_ARCHITECTURE.md "Evidence object" and CLAUDE.md
+object -- see docs/01_ARCHITECTURE.md "Evidence object" and PROJECT_RULES.md
 ("Verbalise triples into natural clinical phrasing for the LLM, but keep the
 structured triple in Evidence.source_meta so citations stay
 machine-checkable").
@@ -37,7 +37,7 @@ def verbalize_triple(triple: Triple) -> Evidence:
     `Evidence(modality="kg")`. The structured triple (head/relation/tail/
     source_db) is preserved verbatim in `source_meta` so a downstream
     citation check can verify the rendered text against the graph fact it
-    claims to come from, per CLAUDE.md.
+    claims to come from, per PROJECT_RULES.md.
     """
     template = _TEMPLATES.get(triple.relation, _FALLBACK_TEMPLATE)
     text = template.format(head=triple.head, relation=triple.relation, tail=triple.tail)

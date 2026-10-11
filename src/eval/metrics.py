@@ -2,7 +2,7 @@
 
 This module started deliberately small (Phase 3: a headline accuracy number
 and a position-bias sniff test for the multi-choice baselines in
-`src/eval/baselines.py`). `ece()` is Phase 5's addition -- CLAUDE.md's stack
+`src/eval/baselines.py`). `ece()` is Phase 5's addition -- PROJECT_RULES.md's stack
 table and `docs/02_ROADMAP.md`'s file layout both place ECE here, not in
 `src/calibration/`, so Phase 6's P@K/MRR/faithfulness additions extend this
 same file rather than duplicating calibration logic elsewhere.

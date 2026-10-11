@@ -1,6 +1,6 @@
 """KG triple selection for the `kg_rerank` ablation (Phase 2 follow-up,
 docs/05_DECISIONS.md -- the ADR this module's addition records). See
-CLAUDE.md's owning-agent principle: every Cypher string still lives in
+PROJECT_RULES.md's owning-agent principle: every Cypher string still lives in
 `src/kg/queries.py` only -- this module does no traversal/Cypher, it just
 selects *which* already-traversed triples survive `KGConfig.
 max_triples_per_question`'s cap.

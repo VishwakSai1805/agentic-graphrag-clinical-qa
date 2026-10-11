@@ -4,7 +4,7 @@ evidence (`docs/04_EVALUATION.md` §3).
 A generated claim is *grounded* iff at least one piece of evidence the answer
 cited for it entails it (NLI P(entailment) >= 0.5). A claim with no citation,
 or whose cited ids do not resolve to any evidence text, is ungrounded by
-construction (CLAUDE.md: "An answer with an empty citation set is a bug, and is
+construction (PROJECT_RULES.md: "An answer with an empty citation set is a bug, and is
 scored as ungrounded").
 
 Two denominators are reported, from the **same** NLI pass (ADR-029):
@@ -165,7 +165,7 @@ def score_hallucination(
     if scorer is None:
         # get_default_scorer() -> the lazy singleton; src.kg.novelty._load_model
         # prints torch.cuda.is_available() unconditionally on first load
-        # (CLAUDE.md §2), so no extra CUDA print is needed here.
+        # (PROJECT_RULES.md §2), so no extra CUDA print is needed here.
         from src.kg.novelty import get_default_scorer
 
         scorer = get_default_scorer()

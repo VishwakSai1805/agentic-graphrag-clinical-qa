@@ -6,7 +6,7 @@ generator both run on CPU here (no `torch`/CUDA path in this file at all --
 there is nothing to gate on `torch.cuda.is_available()`, unlike
 src/retrieval/dense.py). If GPU support is ever wired in (spaCy can use a
 transformer-backed pipeline on GPU via `spacy.require_gpu()`), that must add
-the same unconditional CUDA-status print CLAUDE.md requires of GPU-relevant
+the same unconditional CUDA-status print PROJECT_RULES.md requires of GPU-relevant
 scripts -- it is deliberately absent now because this path is CPU-only.
 
 CUI -> PrimeKG crosswalk, honestly partial (see docs/03_DATASETS.md "Entity

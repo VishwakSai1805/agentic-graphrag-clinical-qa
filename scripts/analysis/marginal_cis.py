@@ -1,7 +1,7 @@
 """Descriptive, per-variant marginal bootstrap confidence intervals for the
 paper's Table 1 (docs/04_EVALUATION.md §5.0b, ADR-051 in docs/05_DECISIONS.md).
 
-These replace externally-computed Wilson intervals that broke CLAUDE.md §2's
+These replace externally-computed Wilson intervals that broke PROJECT_RULES.md §2's
 traceability rule (every reported number must come from a committed
 results/ artifact). They are DESCRIPTIVE ONLY: an uncertainty display around
 one variant's own accuracy (and, for the three ranking variants, P@2/MRR),

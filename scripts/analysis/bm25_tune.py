@@ -12,7 +12,7 @@ touches `indexes/`.
 
     uv run python -m scripts.analysis.bm25_tune
 
-Judged the project way (CLAUDE.md / ADR-012): the best grid cell is only
+Judged the project way (PROJECT_RULES.md / ADR-012): the best grid cell is only
 adopted if its per-query nDCG@10 gain over the current default survives a
 paired bootstrap (10k, seed 42). Because "best" is selected on the same
 NFCorpus sample it is then tested on, that CI is optimistic — so the bar is

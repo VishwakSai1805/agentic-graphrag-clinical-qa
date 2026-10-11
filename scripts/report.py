@@ -1,5 +1,5 @@
 """Phase 7: regenerate the results tables from `results/` -- zero hand-typed
-numbers (CLAUDE.md §7, `docs/04_EVALUATION.md` §5).
+numbers (PROJECT_RULES.md §7, `docs/04_EVALUATION.md` §5).
 
     uv run python -m scripts.report
 

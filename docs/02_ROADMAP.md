@@ -31,7 +31,7 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done (add run_id/commit)
 - `scripts/build_nfcorpus.py` — separate small NFCorpus (BEIR) index under `indexes/nfcorpus/`, the
   fusion-quality sanity-check corpus (see ADR-012) — not part of the project's actual retrieval corpus.
 - `src/retrieval/dense.py` — MedCPT **dual encoder**: `MedCPT-Query-Encoder` for queries,
-  `MedCPT-Article-Encoder` for indexed documents (see ADR-010, correcting CLAUDE.md §3) + FAISS;
+  `MedCPT-Article-Encoder` for indexed documents (see ADR-010, correcting PROJECT_RULES.md §3) + FAISS;
   `lexical.py` (BM25), `fusion.py` (RRF), `rerank.py` (MedCPT cross-encoder), `metrics.py` (Recall@k,
   MRR, nDCG@k, `paired_bootstrap_ci` — all pure, tested functions).
 - `src/eval/contamination.py` — assert no test-item abstract in the index (passed on the real build).
@@ -101,7 +101,7 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done (add run_id/commit)
 - `llm.num_ctx` (8192) + hard `LLMContextBudgetError` guard in `src/llm/client.py`
   — a 4096-token window was silently truncating the KG-triple block; ADR-021.
 - Dev slice = MedQA **train** split (seed 42), test stays unseen till Phase 7 (ADR-020).
-- **Exit test:** `python -m scripts.run_baselines --dataset medqa --split train --limit 20 --baselines B0,B1,B2,B3` — all four score end-to-end, one `results/<run_id>/` each. Roadmap wording says "200-item"; run on 20 per CLAUDE.md §5. Real numbers: `docs/04_EVALUATION.md` §5.4 (B0 .55 / B1 .60 / B2 .65 / B3 .65 acc, grounded 0.95; n=20, plumbing check, no comparison claim).
+- **Exit test:** `python -m scripts.run_baselines --dataset medqa --split train --limit 20 --baselines B0,B1,B2,B3` — all four score end-to-end, one `results/<run_id>/` each. Roadmap wording says "200-item"; run on 20 per PROJECT_RULES.md §5. Real numbers: `docs/04_EVALUATION.md` §5.4 (B0 .55 / B1 .60 / B2 .65 / B3 .65 acc, grounded 0.95; n=20, plumbing check, no comparison claim).
 
 ## Phase 4 — Multi-agent consensus network  `[x]` (e75de9c, ADR-025 fix 30700f9, 2026-09-06)
 - `src/agents/graph.py` LangGraph state machine + checkpointer
@@ -126,7 +126,7 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done (add run_id/commit)
   dev-20, seed 42, post the ADR-025 claim-level conflict fix). 20 SupportMatrices
   + traces; 0 surviving cells cite a non-bundle id; RAW citation hallucination 6
   cells (5.3%, filtered at audit). status {ok 19, insufficient_evidence 1};
-  `budget_exceeded` 0/20; mean 5.8 calls/Q, 1.05 rounds. Ran on 20 per CLAUDE.md
+  `budget_exceeded` 0/20; mean 5.8 calls/Q, 1.05 rounds. Ran on 20 per PROJECT_RULES.md
   §5, not the literal 200. **Findings** (`docs/04_EVALUATION.md` §5.5): (1) under
   a correct claim-level conflict definition the Conflict agent fires 0× on this
   slice — genuine evidence contradictions are rare here, so C2 reframes around
@@ -136,13 +136,13 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done (add run_id/commit)
   (ADR-022); modality-reserved evidence trim + backfill (ADR-023); 3-tier
   precedence, recency dropped, Hypothesis deterministic by default (ADR-024);
   conflict is claim-level, semantic-check-first (ADR-025, amends docs/01);
-  CLI in `src/pipeline.py: main()` (CLAUDE.md §4). ADR-022…ADR-025.
+  CLI in `src/pipeline.py: main()` (PROJECT_RULES.md §4). ADR-022…ADR-025.
 
 ## Phase 5 — Evidential calibration & ranking  `[x]` DONE 2026-09-07 (a0060cf; ablation & corrected framing b9bcda9)
 - `src/calibration/scoring.py` (logit assembly), `softmax_rank.py` (temperature
   scaling + fitting — hand-rolled analytic-gradient Adam, not `scipy.optimize`,
   which segfaults on bare import in this environment), `citations.py`. ECE
-  itself lives in `src/eval/metrics.py` per CLAUDE.md's file layout, not
+  itself lives in `src/eval/metrics.py` per PROJECT_RULES.md's file layout, not
   `softmax_rank.py` — `ece()` (equal-width 15 bins for the Phase 7 grid,
   equal-mass 5 bins for dev-scale runs) and `paired_bootstrap_ece_diff()`
   (the ADR-012-style significance check for an ECE comparison).
@@ -318,7 +318,7 @@ deferred to this batch and **must be closed before the grid runs**:
     exists as of Phase 6 (ADR-029).
 - **AUDIT MINORs, docs half** (§1.10–1.14, §2.7–2.9, §3.5, §3.6, §4.4–4.6,
   §6.9): still a one-pass docs sweep — quote 5.75 not 5.8; the `-ling-wanli`
-  NLI id in CLAUDE.md §3 (already correct there); `off-label use` in
+  NLI id in PROJECT_RULES.md §3 (already correct there); `off-label use` in
   `docs/03_DATASETS.md`; ADR-018's status line; per-variant `configs/B*.yaml`;
   `models_used` in the call-stats; the B3 "19/20 identical to B2 by
   construction" annotation.

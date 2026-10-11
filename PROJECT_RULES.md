@@ -1,4 +1,4 @@
-# CLAUDE.md — Agentic Multi-Evidence GraphRAG for Healthcare
+# PROJECT_RULES.md — Agentic Multi-Evidence GraphRAG for Healthcare
 
 This file is auto-loaded into every Claude Code session in this repo. It is the
 project constitution: read it before proposing or writing anything.

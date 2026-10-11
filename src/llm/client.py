@@ -60,7 +60,7 @@ class LLMContextBudgetError(RuntimeError):
     """The prompt plus the reserved completion space exceeds the configured
     context window (`llm.num_ctx - llm.context_completion_reserve`).
 
-    This is a *recorded hard stop*, never a silent truncation (CLAUDE.md
+    This is a *recorded hard stop*, never a silent truncation (PROJECT_RULES.md
     budget-guard rule). Silent truncation of an over-long prompt would drop
     whatever sits at the tail of the prompt -- for the tri-modal pipeline that
     is the KG-triple block, i.e. exactly the modality the hybrid baselines
@@ -369,7 +369,7 @@ def _logprobs_kwargs_and_routing(
     (also confirmed empirically), so a logprobs request against the ollama
     provider is routed through LiteLLM's `openai/` provider type pointed at
     that same server's `/v1` path instead of the native `ollama/` type. This
-    still goes through LiteLLM (CLAUDE.md: "never call a provider SDK
+    still goes through LiteLLM (PROJECT_RULES.md: "never call a provider SDK
     directly") -- it changes which LiteLLM provider *type* serves the call,
     not who serves it. Non-Ollama providers get `logprobs`/`top_logprobs`
     passed through as-is; if a fallback provider doesn't support them,
@@ -556,7 +556,7 @@ def chat(
         params["logprobs"] = True
         params["top_logprobs"] = top_logprobs
 
-    # Hard context guard (CLAUDE.md budget-guard rule). Counted against the
+    # Hard context guard (PROJECT_RULES.md budget-guard rule). Counted against the
     # first chain entry's tokenizer -- the local Ollama model is the binding
     # constraint; larger-window cloud fallbacks make this conservative, never
     # wrong. Raised before any cache read or network call.

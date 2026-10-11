@@ -44,7 +44,7 @@ class LLMConfig(BaseModel):
     num_ctx: int = 8192
     # Tokens held back for the completion. A prompt that would leave less than
     # this raises LLMContextBudgetError -- a recorded hard stop, never a silent
-    # tail truncation (which would drop the KG-triple block). See CLAUDE.md
+    # tail truncation (which would drop the KG-triple block). See PROJECT_RULES.md
     # budget-guard rule.
     context_completion_reserve: int = 512
 
@@ -195,7 +195,7 @@ class KGConfig(BaseModel):
     # question with 8 resolved seed entities produced 15,212 triples at
     # degree_cap=200/max_hops=2 (several broad disease/anatomy seed nodes
     # each independently near-saturating the per-node cap, compounding over
-    # 2 hops) -- CLAUDE.md's "unbounded traversal on a hub node is a bug"
+    # 2 hops) -- PROJECT_RULES.md's "unbounded traversal on a hub node is a bug"
     # rule, just triggered by seed-set compounding rather than one classic
     # hub node. See src/kg/traversal.py: traverse_live's max_triples
     # docstring and the ADR this phase adds. 40 is a practical ceiling given
@@ -223,7 +223,7 @@ class KGConfig(BaseModel):
     kg_rerank: bool = False
     # Candidate pool size handed to the live traversal before kg_rerank's
     # selection step narrows it down to max_triples_per_question. Only
-    # consulted when kg_rerank=True. Bounded (not unlimited) per CLAUDE.md's
+    # consulted when kg_rerank=True. Bounded (not unlimited) per PROJECT_RULES.md's
     # traversal-boundedness rule -- the pool is a wider candidate set for the
     # reranker to choose from, not a return to unbounded traversal.
     kg_rerank_pool_size: int = 150
@@ -306,7 +306,7 @@ class CalibrationConfig(BaseModel):
     ece_binning: str = "equal_width"
     # The dev slice these weights were fit on -- recorded here (not just in
     # the fitting script's own output) so a resolved config.yaml alone shows
-    # provenance for a V5 run's weights, per CLAUDE.md's reproducibility rule.
+    # provenance for a V5 run's weights, per PROJECT_RULES.md's reproducibility rule.
     fit_dataset: str = "medqa"
     fit_split: str = "train"
     fit_limit: int = 60

@@ -3,7 +3,7 @@
 ADR-049. A completion cut at `llm.max_tokens` still parses: these prompts emit
 the answer letter before the citation list, so `_parse_answer` returns `ok` and
 `_citations_from_regex` recovers nothing from the severed array. The row is
-scored `ok` with an EMPTY citation set -- ungrounded under CLAUDE.md section 2,
+scored `ok` with an EMPTY citation set -- ungrounded under PROJECT_RULES.md section 2,
 and invisible in `status_counts`.
 
 So `ok` + zero citations is the observable footprint a truncated answer call

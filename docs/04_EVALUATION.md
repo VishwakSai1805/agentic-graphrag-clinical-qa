@@ -521,7 +521,7 @@ ECE are `–`).
 | V5 full | PubMedQA | TBD | TBD | TBD | TBD | – | – | – | TBD | TBD |
 
 ¶ **By construction, not a measurement.** V0 retrieves nothing and cites
-nothing (`src/eval/baselines.py`, the CLAUDE.md grounding carve-out for the
+nothing (`src/eval/baselines.py`, the PROJECT_RULES.md grounding carve-out for the
 zero-shot floor), so every claim it makes is ungrounded under §3's criterion
 and its `grounded_rate` is 0.000. No V0 pair tests halluc-rate (§1.0b).
 
@@ -738,7 +738,7 @@ system does emit a probabilistically ranked differential with citations, but
 that ranking is barely better than shuffling the four options at random.**
 These chance comparisons are post-hoc — not pre-registered, outside both the
 m=35 family and the unplanned V0/V2 family — and are shown only so that
-"barely above chance" rests on a test rather than a raw inequality (CLAUDE.md
+"barely above chance" rests on a test rather than a raw inequality (PROJECT_RULES.md
 §2). (d) below gives the mechanism.
 
 **(d) Decomposition of V5's calibrated score — what actually decides the
@@ -1049,7 +1049,7 @@ verdict changes, and the disclosure exists so a reader can see the exposure was
 measured rather than assumed.
 
 - **V0 has the highest accuracy point estimate and grounds nothing.** Its
-  answers carry no citation a reader could check. Under CLAUDE.md §2 an
+  answers carry no citation a reader could check. Under PROJECT_RULES.md §2 an
   uncited answer is ungrounded, so V0 fails the project's grounding
   requirement by construction, however accurate it is.
 - **V1, V2 and V3 ground 0.98–1.00 of answers at slightly lower accuracy.**
@@ -1086,7 +1086,7 @@ runner-timed cells (V1, V3, B3) have a real wall-clock figure.
 Table 1 of the paper displays a 95% interval beside each variant's accuracy.
 Those were originally computed outside this repo with a Wilson-score
 formula — a number with no corresponding artifact under `results/`, which
-breaks CLAUDE.md §2's traceability rule. `marginal_bootstrap_ci`
+breaks PROJECT_RULES.md §2's traceability rule. `marginal_bootstrap_ci`
 (`src/retrieval/metrics.py`, added alongside `paired_bootstrap_ci` and
 mirroring its seeding/resampling/percentile-trim convention exactly) and
 `scripts/analysis/marginal_cis.py` → `results/phase7_marginal_cis.json` /
@@ -1238,7 +1238,7 @@ doesn't exist yet). Reproduce via `scripts/eval_retrieval.py` and
 
 **Traceability fix (2026-09-08, AUDIT 2026-09-06 §1.1/§1.2):** both scripts
 previously printed to stdout only, so these numbers existed solely in a
-gitignored log — a CLAUDE.md §2 violation. Both now write a committed
+gitignored log — a PROJECT_RULES.md §2 violation. Both now write a committed
 artifact: `scripts/analysis/nfcorpus_significance.py` →
 `results/phase1_nfcorpus/metrics.json` (means, all three pairwise CIs,
 `n_resamples`, `seed`); `scripts/eval_retrieval.py` →
@@ -1321,7 +1321,7 @@ the verdict flipped at n=500.** Reusing the Phase 1 MedCPT cross-encoder
 40-triple cap (instead of raw traversal order) was tested as an off-by-default
 config flag, with a real paired-bootstrap significance check (10k resamples,
 seed 42, paired by `question_id`, n_paired=477, n_excluded=23 zero-triple
-questions excluded identically in both variants) per CLAUDE.md's "never claim A
+questions excluded identically in both variants) per PROJECT_RULES.md's "never claim A
 beats B from a raw mean alone" rule. Artifact:
 `results/phase2_kg_probe/medqa_train_n500_kg_rerank_ablation.json`.
 
@@ -1582,7 +1582,7 @@ given the **same EvidenceBundle** the agent pipeline saw. Ranked output
 (`results/phase5_calibration/medqa_dev_calibration.json`) carries all 120
 questions × 4 options with per-option citations structurally present for every
 row (63.1% of option-rows carry ≥1 real citation; the rest are legitimately
-ungrounded per CLAUDE.md's carve-out, not missing data).
+ungrounded per PROJECT_RULES.md's carve-out, not missing data).
 
 **But this comparison does not isolate what C3 claims, and a direct ablation
 shows the gap above is almost entirely a temperature effect, not an

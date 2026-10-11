@@ -1,6 +1,6 @@
 """Unit tests for src/kg/linker.py.
 
-Per CLAUDE.md's "mock the LLM" spirit extended to heavy models generally:
+Per PROJECT_RULES.md's "mock the LLM" spirit extended to heavy models generally:
 these tests never load the real en_core_sci_lg model or the real UMLS KB --
 `link_entities`'s scispaCy pipeline is monkeypatched with fakes, and
 `PrimeKGCrosswalk` is exercised against small on-disk fixture files instead

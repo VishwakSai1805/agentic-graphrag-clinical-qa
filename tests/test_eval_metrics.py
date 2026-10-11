@@ -259,7 +259,7 @@ def test_paired_bootstrap_ece_diff_detects_a_clearly_worse_a():
 def test_paired_bootstrap_ece_diff_noisy_small_sample_difference_is_a_tie():
     """A noisy, near-random-confidence difference at modest n must resolve
     to a tie despite a nonzero point-estimate gap -- the exact ADR-012
-    scenario CLAUDE.md warns about. Fixture and expected CI verified by
+    scenario PROJECT_RULES.md warns about. Fixture and expected CI verified by
     direct computation, not hand-guessed."""
     import random as _random
 

@@ -6,7 +6,7 @@ one `SupportCell` per (claim, evidence) pair that the evidence SUPPORTS or
 CONTRADICTS -- judged against the retrieved evidence ONLY, never the model's own
 knowledge.
 
-Determinism (agents-engineer.md / CLAUDE.md): Audit is `temperature=0`, always.
+Determinism (agents-engineer.md / PROJECT_RULES.md): Audit is `temperature=0`, always.
 Only the Hypothesis agent may sample. `seed` is threaded through for provenance
 and for `parse_or_repair`'s repair call.
 

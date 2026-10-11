@@ -1,5 +1,5 @@
 """Lexical retrieval: BM25 (`rank_bm25`) over the same corpus.jsonl chunks
-dense.py indexes. dev-scale choice per CLAUDE.md §3 (Pyserini at real scale).
+dense.py indexes. dev-scale choice per PROJECT_RULES.md §3 (Pyserini at real scale).
 
 Index artifacts (pickled BM25Okapi + chunk_ids + manifest) live under
 `indexes/<name>/`, gitignored, always rebuildable from

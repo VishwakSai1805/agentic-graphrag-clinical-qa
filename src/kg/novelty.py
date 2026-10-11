@@ -3,11 +3,11 @@ contribution C1): is a retrieved PrimeKG triple telling the LLM something the
 dense-retrieval passages *don't already say*, or is it redundant with what
 tri-modal retrieval would have surfaced anyway?
 
-Reuses the exact threshold `docs/04_EVALUATION.md` §3 / CLAUDE.md §3 already
+Reuses the exact threshold `docs/04_EVALUATION.md` §3 / PROJECT_RULES.md §3 already
 pin for Phase 6's hallucination-rate scoring (entailment >= 0.5) rather than
 inventing a second convention.
 
-**Model-id correction (flag for an ADR):** CLAUDE.md §3 pins
+**Model-id correction (flag for an ADR):** PROJECT_RULES.md §3 pins
 `MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli`. Verified live against the
 real Hugging Face Hub during this phase's implementation
 (`HfApi.model_info`): that exact repo id does not exist (401/"Repository Not
@@ -21,7 +21,7 @@ This module uses the verified-real id, not the pinned-but-nonexistent one --
 see the ADR this phase adds in docs/05_DECISIONS.md for the full record. Any
 Phase 6 code pulling this model forward for hallucination-rate scoring
 should use `NLI_MODEL_NAME` from this module rather than re-typing
-CLAUDE.md's string, so the two phases can't silently diverge on which model
+PROJECT_RULES.md's string, so the two phases can't silently diverge on which model
 id is "the" real one.
 
 **Relevance-conditioned addendum (this phase's review correction, see
@@ -48,7 +48,7 @@ without downloading/loading the real model:
     injectable for tests (`tests/test_kg_novelty.py` mocks it and never
     touches torch or the network).
 
-Per CLAUDE.md's GPU-script rule, `torch.cuda.is_available()` (+ device
+Per PROJECT_RULES.md's GPU-script rule, `torch.cuda.is_available()` (+ device
 name/capability if true) is printed unconditionally the first time the real
 model is loaded -- not at import time (importing this module must not force
 a multi-GB download/load; only actually using the default scorer does).

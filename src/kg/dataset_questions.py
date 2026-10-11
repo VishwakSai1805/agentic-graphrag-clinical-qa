@@ -72,7 +72,7 @@ _SPLIT_PATHS: dict[tuple[str, str], Path] = {
 # cut into a disjoint 500-question "test" (standard) + 500-question "dev"
 # split, not two independent seeded samples of the whole file (which, at the
 # same seed, would draw the IDENTICAL 500 rows for both and violate
-# CLAUDE.md's no-test-contamination principle by making "dev" just a copy of
+# PROJECT_RULES.md's no-test-contamination principle by making "dev" just a copy of
 # "test"). "test" keeps its original behavior/code path unchanged (a plain
 # seeded sample of the full file, unconditionally) for backward compatibility
 # with existing callers/tests that predate this split. "dev" is defined as

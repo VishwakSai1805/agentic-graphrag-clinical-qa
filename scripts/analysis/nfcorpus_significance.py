@@ -159,7 +159,7 @@ def main() -> None:
 
     # AUDIT 2026-09-06 §1.1: this script used to print to stdout only, with no
     # persisted artifact -- the entire Phase 1 gate existed only in a
-    # gitignored log. Write the real numbers CLAUDE.md §2 requires.
+    # gitignored log. Write the real numbers PROJECT_RULES.md §2 requires.
     result = {
         "generated_at_utc": datetime.now(UTC).isoformat(),
         "n_evaluated": len(eval_qids),

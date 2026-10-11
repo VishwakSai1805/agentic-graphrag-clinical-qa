@@ -1,6 +1,6 @@
 """Test-set contamination guards for retrieval corpora.
 
-CLAUDE.md non-negotiable: "No test-set contamination. Retrieval corpora are
+PROJECT_RULES.md non-negotiable: "No test-set contamination. Retrieval corpora are
 built from training/external corpora only. PubMedQA labelled test abstracts
 must not be indexed in the retrieval corpus for the PubMedQA eval. Assert
 this in code, do not merely comment it."
@@ -117,7 +117,7 @@ def assert_no_contamination(corpus_path: Path, blocklist: set[str]) -> None:
     Reads corpus_path as JSONL, one JSON object per line, each with a
     "doc_id" field. Raises ContaminationError listing every offending
     doc_id if any corpus doc_id is in blocklist. This is an assertion, not
-    a warning: per CLAUDE.md it must not merely log.
+    a warning: per PROJECT_RULES.md it must not merely log.
 
     Comparison is on the normalized string form of doc_id (str(doc_id)),
     since corpus doc_ids for pubmed-sourced docs are the literal
@@ -156,7 +156,7 @@ def assert_no_contamination(corpus_path: Path, blocklist: set[str]) -> None:
 # existed, `scripts/run_baselines.py: contamination_assertion` returned a
 # literal `{"checked": True, ...}` dict without executing anything, and that
 # unearned `checked: true` was written into all eight `results/medqa_B*/
-# metrics.json`, directly violating CLAUDE.md's "assert this in code, do not
+# metrics.json`, directly violating PROJECT_RULES.md's "assert this in code, do not
 # merely comment it".
 #
 # What is measured here instead: the fraction of a question stem's word

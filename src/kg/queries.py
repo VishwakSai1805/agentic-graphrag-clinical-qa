@@ -1,4 +1,4 @@
-"""Every Cypher string used anywhere in Phase 2 lives in this module (CLAUDE.md:
+"""Every Cypher string used anywhere in Phase 2 lives in this module (PROJECT_RULES.md:
 "Every Cypher string lives in src/kg/queries.py. No inline query strings
 anywhere else, ever"). Functions return `(query, params)`-shaped pieces --
 callers (scripts/load_primekg.py, src/kg/traversal.py) never write their own

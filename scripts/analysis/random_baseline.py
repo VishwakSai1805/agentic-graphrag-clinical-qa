@@ -15,7 +15,7 @@ by hand.
 **Post-hoc comparison vs chance (NOT pre-registered).** Not in the m=35
 family, not in the unplanned V0/V2 family. It exists only because
 `docs/04` §5.0a states that the ranking variants rank "barely above chance",
-and CLAUDE.md §2 forbids a comparison claim without a bootstrap. Chance is an
+and PROJECT_RULES.md §2 forbids a comparison claim without a bootstrap. Chance is an
 exact expectation, not a sample, so this is a one-sample test: the
 per-question excess `metric_q - chance` is resampled
 (`paired_bootstrap_ci` / `paired_bootstrap_p`, 10k, seed 42) and Holm-

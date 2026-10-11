@@ -4,7 +4,7 @@ follow-up, docs/05_DECISIONS.md -- the ADR this addition records).
 Per the project owner's explicit instruction, `kg_rerank` is a measured
 on/off ablation, not a silent triple-selection improvement: this script does
 NOT duplicate `scripts/kg_probe.py`'s metrics logic (hit-rate, novelty,
-relevance -- all of it lives in one place, per CLAUDE.md's "every Cypher
+relevance -- all of it lives in one place, per PROJECT_RULES.md's "every Cypher
 query/every metric lives in one reviewable place" spirit extended here). It
 only reads the two JSON files `scripts/kg_probe.py` already produces (one run
 against the canonical `data/processed/kg_cache/medqa/` -- kg_rerank=False --
@@ -15,7 +15,7 @@ human-readable stdout table.
 **Significance follow-up (2026-09-06, see docs/05_DECISIONS.md's ADR for this
 revision):** the raw-mean overall deltas above (e.g. the first pass's
 +0.0380 on `overall_novel_and_relevant_rate`) are a point-estimate inequality
-at n=200 questions -- exactly what CLAUDE.md's research-hygiene section
+at n=200 questions -- exactly what PROJECT_RULES.md's research-hygiene section
 forbids reporting as "reranking helps" without a paired-bootstrap check, per
 the ADR-012 precedent (a real point-estimate "RRF loses" reading on NFCorpus
 turned out to be a statistical tie once checked). This revision pairs the two
@@ -110,7 +110,7 @@ def pair_per_question_diffs(
 
     `n_excluded` is always reported alongside the diffs so a caller can see
     how much of the nominal n=200 actually contributed to the significance
-    test -- CLAUDE.md's `n_evaluated` discipline applies to this pairing step
+    test -- PROJECT_RULES.md's `n_evaluated` discipline applies to this pairing step
     too, not just top-level eval runs."""
     naive_by_id = {row["question_id"]: row.get(metric_key) for row in naive.get("per_question", [])}
     reranked_by_id = {

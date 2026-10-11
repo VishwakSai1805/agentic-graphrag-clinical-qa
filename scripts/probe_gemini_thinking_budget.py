@@ -7,7 +7,7 @@ strictly better than documenting an asymmetry, so it is worth testing before
 settling for the disclosure.
 
 This probe calls litellm directly, which feature code must never do
-(CLAUDE.md section 2). It is a diagnostic, not a call site: `chat()`'s `Usage`
+(PROJECT_RULES.md section 2). It is a diagnostic, not a call site: `chat()`'s `Usage`
 carries prompt/completion/total only, and the question here is specifically
 whether `completion_tokens_details.reasoning_tokens` responds to a budget
 parameter. The free-tier allowlist is asserted below before any call, so the
